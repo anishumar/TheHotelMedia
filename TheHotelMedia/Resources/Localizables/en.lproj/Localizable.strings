@@ -1,0 +1,612 @@
+/* 
+  Localizable.strings
+  HotelMedia
+
+  Created by MAC on 08/08/24.
+  
+*/
+
+"strings_signin_title" = "Sign in";
+"email" = "Email";
+"strings_signin_email_placeholder" = "Enter your email";
+"strings_signin_password_placeholder" = "Enter your password";
+"password" = "Password";
+"remember_me" = "Remember Me";
+"forgot_password" = "Forgot Password";
+"strings_signin_don't_have_account" = "If you don't have account";
+"signup" = "Sign up";
+"3star" = "3 Star";
+"4star" = "4 Star";
+"5star" = "5 Star";
+"select_type" = "Select Type";
+"name" = "Name";
+"full_name" = "Full Name";
+"your_password" = "Your Password";
+"enter_your_password" = "Enter your password";
+"contact_info" = "Contact Info";
+"individual_sign_up" = "Individual Sign up";
+"upload_from" = "Upload from";
+"camera" = "Camera";
+"gallery" = "Gallery";
+"hotels" = "Hotels";
+"bars/clubs" = "Bars/Clubs";
+"home_stays" = "Home Stays";
+"marriage_banquets" = "Marriage Banquets";
+"restaurants" = "Restaurants";
+"hotel_name" = "Hotel Name";
+"bars/clubs_name" = "Bars/Clubs Name";
+"marriage_banquets_name" = "Marriage Banquets Name";
+"home_name" = "Home Name";
+"restaurant_name" = "Restaurant Name";
+"address" = "Address";
+"contact_information" = "Contact Information";
+"gstn" = "GSTIN Number";
+"hotel_star_rating_example" = "Hotel Star rating (e.g 4 star)";
+"select_hotel_star_rating" = "Select Hotel star rating";
+"amenities" = "Amenities";
+"description" = "Description";
+"business_details" = "Business Details";
+"website_link" = "Website Link";
+"property_pictures" = "Property Pictures";
+"business_type" = "Business type";
+"hotel_logo" = "Hotel Logo";
+"manager_information" = "Manager Information";
+"terms_and_conditions" = "Terms and Conditions";
+"i_have_read_and_agree_to_the_terms_and_conditions" = "I have read and agree to the Terms and conditions.";
+"business_registration" = "Business Registration";
+"gst_certificate_incorporation_certificate" = "(i.e. GST Certificate, Incorporation Certificate, Proprietorship, Business PAN or any relevant document)";
+"address_proof" = "Address Proof";
+"electricity_bill_rent_agreement" = "(i.e. Electricity Bill, Rent Agreement, Property Ownership etc.)";
+"supporting_documents" = "Supporting Documents";
+"date_of_expiry" = "Date of Expiry";
+"select_your_plan" = "Select your plan";
+"review_summary" = "Review Summary";
+"you_plan" = "Your plan";
+"billing_address" = "Billing Address";
+"phone_number" = "Phone number";
+"promo_code" = "Promo Code";
+"promocode" = "Promocode";
+"bill_details" = "Bill Details";
+"plan_charges" = "Plan charges";
+"discount" = "Discount";
+"gst" = "Gst";
+"total" = "Total";
+"home" = "Home";
+"search" = "Search";
+"chat" = "Chat";
+"profile" = "Profile";
+"create_event" = "Create event";
+"create_post" = "Create post";
+"create_story" = "Create story";
+"hotel_media" = "Hotel Media";
+"profiles" = "Profiles";
+"posts" = "Posts";
+"events" = "Events";
+"reviews" = "Reviews";
+"looking_for" = "Looking For";
+"location" = "Location";
+"radius" = "Radius";
+"videos" = "Videos";
+"video" = "Video";
+"followers" = "Followers";
+"following" = "Following";
+"edit_profile" = "Edit profile";
+"share_profile" = "Share profile";
+"confirm_your_email" = "Confirm Your Email";
+"we_have_sent_5_digits" = "We have sent 5 digits verification code to ";
+"enter_verification_code" = "Enter Verification Code";
+"enter_your_otp" = "Enter your OTP";
+"resend" = "Resend";
+"resend_in" = "Resend in ";
+"tag_people" = "Tag people";
+"feeling_activity" = "Feeling/activity";
+"check_in" = "Check in";
+"photo_video" = "Photo/video";
+"tags:" = "Tags:";
+"what's_in_your_mind" = "What's in your mind?";
+"date" = "Date";
+"time" = "Time";
+"event_format" = "Event format";
+"online" = "Online";
+"offline" = "Offline";
+"event" = "Event";
+"enter_event_name" = "Enter event name";
+"enter_venue_name" = "Enter venue name";
+"add_streaming_link" = "Add streaming link";
+"event_venue" = "Event Venue";
+"recent_chat" = "Recent Chat";
+"photos" = "Photos";
+"overview" = "Overview";
+"content_you_shared" = "Content you shared";
+"stories" = "Stories";
+"total_followers" = "Total Followers";
+"account_reached" = "Account reached";
+"engaged" = "Engaged";
+"website_redirection" = "Website Redirection";
+"tag_people" = "Tag People";
+"feeling_activity" = "Feeling/Activity";
+"contact_number" = "Contact Number";
+"category" = "Category";
+"bio" = "Bio";
+"about_me" = "About me";
+"edit_name_heading" = "Enter your full name below, and we'll use it to personalize your experience.";
+"edit_email_heading" = "Please provide your email address below, and we'll use it to send you important updates and notifications.";
+"edit_contact_heading" = "Please enter your contact number below. We'll use it to reach out to you if necessary.";
+"confirm_email_subheading" = "Enter the one time verification code that we have send to your email address.";
+"confirm_your_email" = "Confirm Your Email";
+"change_password" = "Change Password";
+"enter_new_password" = "Enter new password";
+"enter_new_password_heading" = "Your password must be different from previous used password.";
+"retype_password" = "Re-Type Password";
+"enter_new_password_again" = "Enter new password again";
+"edit_bio_heading" = "Share a little about yourself. This will help others get to know you better.";
+"business_related_questions" = "Business Related Questions";
+"language" = "Language";
+"general" = "General";
+"saved_posts" = "Saved Posts";
+"documents" = "Documents";
+"blocked_users" = "Blocked Users";
+"private_account" = "Private account";
+"notification" = "Notification";
+"more" = "More";
+"payments_details" = "Payments Details";
+"subscription" = "Subscription";
+"privacy_policy" = "Privacy Policy";
+"about_us" = "About us";
+"help_and_support" = "Help and support";
+"account_deactivate" = "Account Deactivate";
+"delete_account" = "Delete Account";
+"logout" = "Logout";
+"settings" = "Settings";
+"transactions" = "Transactions";
+"yes" = "Yes";
+"no" = "No";
+"logout_alert_title" = "Do you really want to Log out your account ?";
+"delete_acount_alert_title" = "Do you really want to permanently delete your account ?";
+"deactivate_acount_alert_title" = "Do you really want to deactivate your account ?";
+"account" = "Account";
+"services" = "Services";
+"faqs" = "FAQS";
+"contactUs" = "Contact us";
+"whatsapp" = "Whatsapp";
+"message" = "Message";
+"or" = "Or";
+"optional" = "Optional";
+"review" = "Review";
+"apply" = "apply";
+"completed" = "completed";
+"unblock" = "unblock";
+"follow" = "follow";
+"requested" = "requested";
+"unfollow" = "unfollow";
+"visit" = "visit";
+"transactions" = "transactions";
+"active_subscription" = "Active Subscription";
+"current_subscription" = "Current Subscription";
+"cancel_subscription" = "Cancel subscription";
+"days_remaining" = "days remaining";
+"sure_you_want_to_cancel_subscription" = "Sure you want to cancel Subscription?";
+"no_cancel" = "No, Cancel";
+"yes_confirm" = "Yes, Confirm";
+"no_blocked_users" = "No blocked users";
+"blocked_users" = "Blocked Users";
+"no_saved_post_yet" = "No saved post yet";
+"no_transactions_done_yet" = "No transactions done yet";
+"transactionID" = "Transaction ID";
+"deactivate_modal_title" = "Do you really want to deactivate your account?";
+"delete_account_modal_title" = "Do you really want to permanently delete your account?";
+"logout_modal_title" = "Do you really want to logout your account?";
+"choose_an_option" = "Choose an option.";
+"fileManager" = "File";
+"billing_address" = "Billing Address";
+"edit_profile" = "Edit Profile";
+"edit_billing_address_headline" = "Enter your billing address below, and we'll use it to ensure uninterrupted service for your subscription.";
+"edit_category_headline" = "Choose the category that best describes your preferences or needs from the options below.";
+"sub_category" = "Sub-category";
+"sent_verfication_code" = "We’ve sent 5 digits verification code to ";
+"review_uploaded_successfully" = "Review uploaded successfully";
+"done" = "Done";
+"please_wait_while_your_selected_video_is_being_processed..." = "Please wait while your selected video is being processed...";
+"post_uploaded_successfully" = "Post uploaded successfully";
+"event_uploaded_successfully" = "Event uploaded successfully";
+"start_date" = "Start Date";
+"end_date" = "End Date";
+"start_time" = "Start Time";
+"end_time" = "End Time";
+"event_name" = "Event Name";
+"please_select_an_image_from_gallery" = "Please select an image from gallery.";
+"please_enter_the_event_name" = "Please enter the event name.";
+"please_select_end_date_and_end_time" = "Please select end date and end time.";
+"Please select start date and start time." = "Please select start date and start time.";
+"please_select_an_event_type" = "Please select an event type.";
+"please_enter_the_streaming_link_for_the_event" = "Please enter the streaming link for the event.";
+"please_enter_a_valid_streaming_link" = "Please enter a valid streaming link.";
+"please_select_venue_for_the_event" = "Please select venue for the event.";
+"please_enter_description_about_the_event" = "Please enter description about the event.";
+"please_fill_all_the_required_fields" = "Please fill all the required fields.";
+"there_is_an_error_uploading_your_event_at_this_moment" = "There is an error uploading your event at this moment.";
+"choose_an_option" = "Choose an option.";
+"send_message" = "Send message";
+"failed_to_send_media" = "Failed to send media.";
+"individual" = "Individual";
+"business" = "Business";
+"enter_your_full_name" = "Enter your full name.";
+"your_name_cannot_contain_numeric_values" = "Your name cannot contain numeric values.";
+"enter_your_email_address" = "Enter your email address.";
+"please_enter_a_valid_email_address" = "Please enter a valid email address.";
+"please_enter_a_valid_contact_number" = "Please enter a valid contact number.";
+"please_enter_your_password" = "Please enter your password.";
+"cancel" = "Cancel";
+
+// Password Validation Messsages
+"password_must_be_at_least_8_characters" = "Password must be at least 8 characters.";
+"password_must_contain_at_least_one_uppercase_letter" = "Password must contain at least one uppercase letter.";
+"password_must_contain_at_least_one_lowercase_letter" = "Password must contain at least one lowercase letter.";
+"password_must_contain_at_least_one_number" = "Password must contain at least one number.";
+"password_must_contain_at_least_one_special_character" = "Password must contain at least one special character.";
+
+// IndividualSignupLogoView
+"please_choose_an_image_from_gallery_or_camera" = "Please choose an image from gallery or camera.";
+"skip" = "Skip";
+
+// SelectBusinessTypeView
+"skip" = "Skip";
+"select_business_type" = "Select Business Type";
+
+// BusinessDetailView
+"upload_high_quality" = "Upload high-quality";
+"browse" = "Browse";
+"select_your_business_address" = "Select your business address.";
+"enter_business_name" = "Enter business name.";
+"please_enter_a_valid_website_link" = "Please enter a valid website link.";
+"please_enter_a_valid_GSTIN" = "Please enter a valid GSTIN.";
+"please_select_a_subtype" = "Please select a subtype.";
+"enter_your_bio" = "Enter your bio.";
+
+// BusinessLogoDetailView
+"please_choose_an_image_from_gallery" = "Please choose an image from gallery.";
+
+// SupportingDocumentsView
+"please_select_documents" = "Please select documents.";
+
+// BusinessQuestionView
+"please_select_an_answer_for_all_the_questions" = "Please select an answer for all the questions.";
+
+// Intro Screen
+"Find the Best Hotels" = "Find the Best Hotels";
+"Rate and Review Hotels" = "Rate and Review Hotels";
+"Share Your Moments" = "Share Your Moments";
+"Connect with Friends" = "Connect with Friends";
+"Search and discover top-rated hotels around the world." = "Search and discover top-rated hotels around the world.";
+"Share your experiences and help others choose the best hotels." = "Share your experiences and help others choose the best hotels.";
+"Upload photos and videos of your hotel stays." = "Upload photos and videos of your hotel stays.";
+"Follow friends and see their hotel reviews and photos." = "Follow friends and see their hotel reviews and photos.";
+
+// SinglePostView
+"report" = "Report";
+"an_error_occured_while_loading_the_post" = "An error occured while loading the post.";
+
+// StorySeenView (pending)
+"block" = "Block";
+"remove_follower" = "Remove Follower";
+
+// Enter Email Screen(Forgot password)
+"email_address" = "Email Address";
+"enter_email_address" = "Enter Email Address";
+"reset_your_password" = "Reset Your Password";
+"enter_your_email_address_below_and_we’ll_send_you_a_link_with_instructions" = "Enter your email address below and we’ll send you a link with instructions";
+
+// Change Password Screen(Forgot password)
+"enter_new_password" = "Enter New Password";
+"please_enter_the_same_password_in_both_the_fields" = "Please enter the same password in both the fields.";
+"your_password_must_be_different_from_previous\n_used_password" = "Your password must be different from previous used password.";
+
+// Event Detail Screen
+"nobody_has_joined_yet" = "Nobody has joined yet.";
+"1_person_has_joined" = "1 person has joined.";
+"people_have_joined" = "People have joined:";
+"nobody_has_joined_yet" = "Nobody has joined yet.";
+"about_the_event_venue" = "About the event venue";
+"distance_from_your_location" = "distance from your location";
+"streaming_link" = "Streaming Link";
+"joining ?" = "Joining ?";
+"joined" = "Joined";
+"...Read less" = "...Read less";
+"...Read more" = "...Read more";
+
+// Followers List Screen
+"no_user_found" = "No user found";
+"send_message" = "Send message";
+
+// Story Detail Screen
+"are_you_sure_you_want_to_delete_this_story?" = "Are you sure you want to delete this Story?";
+"view_profile" = "View Profile";
+
+// Check in Screen
+"suggested_nearby_places" = "Suggested Nearby Places";
+
+// Edit Story Image View
+"edit_story" = "Edit Story";
+"add" = "Add";
+"type_here" = "Type Here";
+"delete" = "Delete";
+
+// Edit Image View
+"edit_image" = "Edit Image";
+
+// Notification View
+"no_notifications_yet" = "No notifications yet";
+"you_have_no_notifications_right_now_come_back_later" = "You have no notifications right now.\n Come back later";
+"decline" = "Decline";
+"accept" = "Accept";
+"following" = "Following";
+"follow" = "Follow";
+"requested" = "Requested";
+
+// Comment Section View
+"no_comments_yet" = "No Comments Yet";
+"comments" = "Comments";
+"no_comments" = "No Comments";
+"add_comment" = "Add comment";
+
+// Blocked Users View
+"do_really_want_to_unblock_this_user" = "Do you really want to unblock this user?";
+
+// Help and Support View
+"privacy" = "Privacy";
+"content" = "Content";
+"share" = "Share";
+
+// Report View
+"why_are_you_reporting_this_user" = "Why are you reporting this user?";
+"why_are_you_reporting_this_post" = "Why are you reporting this post?";
+"Your report is anonymous. If someone is in immediate danger, call the local emergency services – don't wait." = "Your report is anonymous. If someone is in immediate danger, call the local emergency services – don't wait.";
+"I just don't like it" = "I just don't like it";
+"Bullying or unwanted contact" = "Bullying or unwanted contact";
+"Suicide, self-injury or eating disorders" = "Suicide, self-injury or eating disorders";
+"Violence, hate or exploitation" = "Violence, hate or exploitation";
+"Selling or promoting restricted items" = "Selling or promoting restricted items";
+"Nudity or sexual activity" = "Nudity or sexual activity";
+"Scam, fraud or spam" = "Scam, fraud or spam";
+"False information" = "False information";
+"Fake account" = "Fake account";
+"Impersonation" = "Impersonation";
+"Harassment or bullying" = "Harassment or bullying";
+"Hate speech or symbols" = "Hate speech or symbols";
+"Scam or fraud" = "Scam or fraud";
+"Posting inappropriate content" = "Posting inappropriate content";
+"Violating community guidelines" = "Violating community guidelines";
+
+"story_uploaded_successfully" = "Story uploaded successfully";
+"you_have_logged_in_successfully" = "You have logged in successfully.";
+"upload" = "Upload";
+"no_video_uploaded_yet" = "No video uploaded yet";
+"no_reviews_yet" = "No reviews yet";
+"no_post_uploaded_yet" = "No post uploaded yet";
+"no_photos_uploaded_yet" = "No photos uploaded yet";
+"write_a_review" = "Write a Review";
+"your_inbox_is_empty" = "Your inbox is empty";
+"no_one_send_a_message_to_you_yet" = "No one send a message to you yet.";
+"Loading pdf..." = "Loading pdf...";
+
+"no_result_found" = "No result found";
+"please_write_a_brief_message" = "Please write a brief message.";
+
+"this_account_is_private" = "This account is Private";
+"follow_this_account_to_see_their_photos_and_videos" = "Follow this account to see their photos and videos.";
+"do_you_really_want_to_block_this_user" = "Do you really want to block this user?";
+
+"about_us_text" = "Hotel Media is a mobile app that combines hotel reviews with social media features. Users can rate hotels, bars, pubs, nightclubs, restaurants, cafes, homestays, and marriage banquets, share feedback, post photos, and engage with other travelers. The app offers hotel search, event creation, and personalized tailored experience. It's designed to help users make informed decisions for their trips.";
+
+"number" = "Number";
+
+"Hotel" = "Hotel";
+"Bars / Clubs" = "Bars / Clubs";
+"Home Stays" = "Home Stays";
+"Marriage Banquets" = "Marriage Banquets";
+"Restaurant" = "Restaurant";
+"type" = "type";
+"profession" = "Profession";
+"Please enter a profession name." = "Please enter a profession name.";
+"Please select a profession." = "Please select a profession.";
+"Others" = "Others";
+"Business Person/ Man" = "Business Person/ Man";
+"Government Sector/ Employee" = "Government Sector/ Employee";
+"Self Employee/ Private Job" = "Self Employee/ Private Job";
+"Belongs To Hotel Industry" = "Belongs To Hotel Industry";
+"name" = "Name";
+"do_you_really_want_to_delete_this_post" = "Do you really want to delete this post?";
+"you_cannot_select_more_than_10_items" = "You cannot select more than 10 items.";
+"remove" = "remove";
+
+"export_chat" = "Export Chat";
+"delete_chat" = "Delete Chat";
+"user_blocked_successfully" = "User blocked successfully.";
+"failed_to_block_the_user" = "Failed to block the user.";
+"internal_server_error_please_try_again" = "Internal server error. Please try again.";
+"chat_deleted_successfully" = "Chat deleted successfully.";
+"failed_to_delete_chat" = "Failed to delete chat.";
+"chat_exported_successfully" = "Chat exported successfully.";
+"failed_to_export_chat" = "Failed to export chat.";
+"offensive_language" = "Offensive Language";
+"spam" = "Spam";
+"hate_speech" = "Hate Speech";
+"harassment" = "Harassment";
+"bullying" = "Bullying";
+"personal_attacks" = "Personal Attacks";
+"false_information" = "False Information";
+"misinformation" = "Misinformation";
+"promoting_violence" = "Promoting Violence";
+"inappropriate_content" = "Inappropriate Content";
+"self_harm_or_suicide" = "Self-harm or Suicide";
+"scam_or_fraud" = "Scam or Fraud";
+"irrelevant_content" = "Irrelevant Content";
+"threatening_behavior" = "Threatening Behavior";
+"graphic_content" = "Graphic Content";
+"why_are_you_reporting_this_comment" = "Why are you reporting this comment?";
+"you_cannot_select_larger_than_5_MB" = "You cannot select file larger than 5 MB.";
+"nearby" = "Nearby";
+"suggestions" = "Suggestions";
+"show_in_map" = "Show in Map";
+"attachment" = "Attachment";
+"this_user_is_not_registered_with_THM." = "This user is not registered with THM.";
+"suggested_for_you" = "Suggested for You";
+"feeling_angry" = "Feeling Angry";
+"feeling_excited" = "Feeling Excited";
+"feeling_surprised" = "Feeling Surprised";
+"feeling_scared" = "Feeling Scared";
+"feeling_confused" = "Feeling Confused";
+"feeling_tired" = "Feeling Tired";
+"feeling_nervous" = "Feeling Nervous";
+"feeling_bored" = "Feeling Bored";
+"feeling_anxious" = "Feeling Anxious";
+"feeling_embarrassed" = "Feeling Embarrassed";
+"feeling_grateful" = "Feeling Grateful";
+"feeling_proud" = "Feeling Proud";
+"feeling_lonely" = "Feeling Lonely";
+"feeling_hopeful" = "Feeling Hopeful";
+"feeling_love" = "Feeling Love";
+"feeling_jealous" = "Feeling Jealous";
+"feeling_curious" = "Feeling Curious";
+"feeling_ashamed" = "Feeling Ashamed";
+"feeling_guilty" = "Feeling Guilty";
+"feeling_determined" = "Feeling Determined";
+"feeling_relieved" = "Feeling Relieved";
+"feeling_shocked" = "Feeling Shocked";
+"feeling_disappointed" = "Feeling Disappointed";
+"feeling_frustrated" = "Feeling Frustrated";
+"feeling_amazed" = "Feeling Amazed";
+"feeling_confident" = "Feeling Confident";
+"feeling_indifferent" = "Feeling Indifferent";
+"feeling_hilarious" = "Feeling Hilarious";
+"feeling_rolling_with_laughter" = "Feeling Rolling with Laughter";
+"feeling_loved" = "Feeling Loved";
+"feeling_caring" = "Feeling Caring";
+"feeling_miserable" = "Feeling Miserable";
+"feeling_exhausted" = "Feeling Exhausted";
+"feeling_overwhelmed" = "Feeling Overwhelmed";
+"feeling_celebratory" = "Feeling Celebratory";
+"feeling_mind_blown" = "Feeling Mind-Blown";
+"feeling_worried" = "Feeling Worried";
+"feeling_hungry" = "Feeling Hungry";
+"feeling_happy" = "Feeling Happy";
+"feeling_sad" = "Feeling Sad";
+"feeling_angry" = "Feeling Angry";
+"feeling_excited" = "Feeling Excited";
+"feeling_surprised" = "Feeling Surprised";
+"feeling_scared" = "Feeling Scared";
+"feeling_confused" = "Feeling Confused";
+"users" = "Users";
+"day ago" = "day ago";
+"days ago" = "days ago";
+"hour ago" = "hour ago";
+"hours ago" = "hours ago";
+"min ago" = "min ago";
+"sec ago" = "sec ago";
+"no_internet_connection" = "No internet connection.";
+"language_changed_successfully" = "Language changed successfully.";
+"your_post_has_been_uploaded_and_will_be_live_shortly" = "Your post has been uploaded and will be live shortly.";
+"do_you_really_want_to_delete_the_chat_with_this_user" = "Do you really want to delete the chat with this user?";
+"this_is_a_free_plan" = "This is a free plan.";
+"there_is_an_error_performing_your_request" = "There is an error performing your request!";
+"Dark Mode" = "Dark Mode";
+"Theme" = "Theme";
+"Please enter a valid name." = "Please enter a valid name.";
+"Please select a title." = "Please select a title.";
+"Please enter a valid phone number." = "Please enter a valid phone number.";
+"Please enter a valid email address." = "Please enter a valid email address.";
+"This plan is currently not available. Please try again later." = "This plan is currently not available. Please try again later.";
+"add_details" = "Add Details";
+"guest" = "Guest";
+"Check-in" = "Check-in";
+"Check-out" = "Check-out";
+"Guest and room" = "Guest and room";
+"Traveling with pet" = "Traveling with pet";
+"Children" = "Children";
+"Proceed" = "Proceed";
+"Next" = "Next";
+"Select Age" = "Select Age";
+"Plan Details" = "Plan Details";
+"Available Rooms" = "Available Rooms";
+"Room Details" = "Room Details";
+"Some helpful facts" = "Some helpful facts";
+"Check-in-out" = "Check-in-out";
+"Check-in/ Check-out" = "Check-in/Check-out";
+"Check-in from:" = "Check-in from:";
+"Check-out from:" = "Check-out from:";
+"Languages spoken" = "Languages spoken";
+"Amenities" = "Amenities";
+"See all" = "See all";
+"Property Images" = "Property Images";
+"Booking Confirmation" = "Booking Confirmation";
+"Change Room" = "Change Room";
+"Room type" = "Room type";
+"Convenience charges" = "Convenience charges";
+"Phone Number" = "Phone Number";
+"Email" = "Email";
+"Name" = "Name";
+"Change" = "Change";
+"Pay now" = "Pay now";
+"Guest Details" = "Guest Details";
+"Booking Confirmation" = "Booking Confirmation";
+"Please select all the children ages before proceeding." = "Please select all the children ages before proceeding.";
+"Booking History" = "Booking History";
+"No booking history" = "No booking history";
+"Cancel Booking" = "Cancel Booking";
+"Free Cancellation till" = "Free Cancellation till";
+"Booking Details" = "Booking Details";
+"Night" = "Night";
+"Nights" = "Nights";
+"Room" = "Room";
+"Booked on " = "Booked on ";
+"Booking ID" = "Booking ID";
+"Payment Method" = "Payment Method";
+"Date & time" = "Date & time";
+"Total" = "Total";
+"Book a table" = "Book a table";
+"Time slot" = "Time slot";
+"Number of guest" = "Number of guest";
+"Submit" = "Submit";
+"Please select a time slot before proceeding." = "Please select a time slot before proceeding.";
+"Book a Banquet" = "Book a Banquet";
+"Type of Event" = "Type of Event";
+"Number of Guests" = "Number of Guests";
+"Please select an event type." = "Please select an event type.";
+"Please enter other event name in the field." = "Please enter other event name in the field.";
+"Please select check-in/check-out dates." = "Please select check-in/check-out dates.";
+"Please select number of guests." = "Please select number of guests.";
+"Other Occasion" = "Other Occasion";
+"Post Job" = "Post Job";
+"Job Title" = "Job Title";
+"Job Description" = "Job Description";
+"Joining Date" = "Joining Date";
+"Designation" = "Designation";
+"Job Type" = "Job Type";
+"Experience" = "Experience";
+"Salary Offer" = "Salary Offer";
+"Number of Vacancies" = "Number of Vacancies";
+"Number of guests" = "Number of guests";
+"Booking For" = "Booking For";
+"Table Booking Details" = "Table Booking Details";
+"Type of Event" = "Type of Event";
+"Please enter a title for the job." = "Please enter a title for the job.";
+"Please select a job designation." = "Please select a job designation.";
+"Please enter a brief job description." = "Please enter a brief job description.";
+"Please select a job type." = "Please select a job type.";
+"Please select a minimum required experience for the job." = "Please select a minimum required experience for the job.";
+"Please select an offered salary range for the job." = "Please select an offered salary range for the job.";
+"Please select number of vacancies available for the job." = "Please select number of vacancies available for the job.";
+"Job Detail" = "Job Detail";
+"Change Location" = "Change Location";
+"No Businesses Found Nearby" = "No Businesses Found Nearby";
+"Hi, I'd like to apply for the job you shared. Let me know the next steps!" = "Hi, I'd like to apply for the job you shared. Let me know the next steps!";
+"Booking Cancelled!" = "Booking Cancelled!";
+"Booking Summary" = "Booking Summary";
+"Try changing location!" = "Try changing location!";
+"Book now" = "Book now";
+"Book Table" = "Book Table";
+"Book Banquet" = "Book Banquet";
+"No rooms available" = "No rooms available";
+"Skip" = "Skip";
+"reject" = "Reject";
+"Please choose a logo image from gallery." = "Please choose a logo image from gallery.";

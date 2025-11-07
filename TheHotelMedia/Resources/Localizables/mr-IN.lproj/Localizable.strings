@@ -1,0 +1,609 @@
+/* 
+  Localizable.strings
+  HotelMedia
+
+  Created by MAC on 08/08/24.
+  
+*/
+
+"strings_signin_title" = "साइन इन";
+"email" = "ईमेल";
+"strings_signin_email_placeholder" = "तुमचा ईमेल प्रविष्ट करा";
+"strings_signin_password_placeholder" = "तुमचा पासवर्ड प्रविष्ट करा";
+"password" = "पासवर्ड";
+"remember_me" = "मला लक्षात ठेवा";
+"forgot_password" = "पासवर्ड विसरलात का?";
+"strings_signin_don't_have_account" = "तुमच्याकडे खाते नाही का?";
+"signup" = "साइन अप करा";
+"3star" = "3 स्टार";
+"4star" = "4 स्टार";
+"5star" = "5 स्टार";
+"select_type" = "प्रकार निवडा";
+"name" = "नाव";
+"full_name" = "पूर्ण नाव";
+"your_password" = "तुमचा पासवर्ड";
+"enter_your_password" = "तुमचा पासवर्ड प्रविष्ट करा";
+"contact_info" = "संपर्क माहिती";
+"individual_sign_up" = "वैयक्तिक साइन अप";
+"upload_from" = "येथून अपलोड करा";
+"camera" = "कॅमेरा";
+"gallery" = "गॅलरी";
+"hotels" = "हॉटेल्स";
+"bars/clubs" = "बार्स/क्लब्स";
+"home_stays" = "होम स्टे";
+"marriage_banquets" = "लग्न सोहळा बँक्वेट्स";
+"restaurants" = "रेस्टॉरंट्स";
+"hotel_name" = "हॉटेलचे नाव";
+"bars/clubs_name" = "बार्स/क्लब्सचे नाव";
+"marriage_banquets_name" = "लग्न बँक्वेट्सचे नाव";
+"home_name" = "घराचे नाव";
+"restaurant_name" = "रेस्टॉरंटचे नाव";
+"address" = "पत्ता";
+"contact_information" = "संपर्क माहिती";
+//"gstn" = "GSTIN";
+"hotel_star_rating_example" = "हॉटेल स्टार रेटिंग (उदा. 4 स्टार)";
+"select_hotel_star_rating" = "हॉटेल स्टार रेटिंग निवडा";
+"amenities" = "सुविधा";
+"description" = "वर्णन";
+"business_details" = "व्यवसायाचे तपशील";
+"website_link" = "वेबसाईट लिंक";
+"property_pictures" = "मालमत्तेचे चित्र";
+"business_type" = "व्यवसाय प्रकार";
+"hotel_logo" = "हॉटेल लोगो";
+"manager_information" = "व्यवस्थापकाची माहिती";
+"terms_and_conditions" = "नियम व अटी";
+"i_have_read_and_agree_to_the_terms_and_conditions" = "मी नियम व अटी वाचल्या आहेत आणि त्यांना सहमती दर्शवतो.";
+"business_registration" = "व्यवसाय नोंदणी";
+"gst_certificate_incorporation_certificate" = "(उदा. जीएसटी प्रमाणपत्र, समाविष्ट प्रमाणपत्र, प्रोप्रायटर्शिप, व्यवसाय पॅन किंवा कोणताही संबंधित दस्तऐवज)";
+"address_proof" = "पत्ता पुरावा";
+"electricity_bill_rent_agreement" = "(उदा. वीज बिल, भाडे करार, मालमत्तेचा मालकी हक्क इ.)";
+"supporting_documents" = "सहायक कागदपत्रे";
+"date_of_expiry" = "समाप्तीची तारीख";
+"select_your_plan" = "तुमची योजना निवडा";
+"review_summary" = "सारांश पुनरावलोकन";
+"you_plan" = "तुमची योजना";
+"billing_address" = "बिलिंग पत्ता";
+"phone_number" = "फोन क्रमांक";
+"promo_code" = "प्रोमो कोड";
+"promocode" = "प्रोमोकोड";
+"bill_details" = "बिल तपशील";
+"plan_charges" = "योजनेचे शुल्क";
+"discount" = "सवलत";
+"gst" = "जीएसटी";
+"total" = "एकूण";
+"home" = "मुख्य पृष्ठ";
+"search" = "शोधा";
+"chat" = "गप्पा";
+"profile" = "प्रोफाइल";
+"create_event" = "कार्यक्रम तयार करा";
+"create_post" = "पोस्ट तयार करा";
+"create_story" = "स्टोरी तयार करा";
+"hotel_media" = "हॉटेल मीडिया";
+"profiles" = "प्रोफाइल्स";
+"posts" = "पोस्ट्स";
+"events" = "कार्यक्रम";
+"reviews" = "पुनरावलोकने";
+"looking_for" = "शोधत आहे";
+"location" = "स्थान";
+"radius" = "त्रिज्या";
+"videos" = "व्हिडिओज";
+"video" = "व्हिडिओ";
+"followers" = "अनुयायी";
+"following" = "अनुसरण";
+"edit_profile" = "प्रोफाइल संपादित करा";
+"share_profile" = "प्रोफाइल शेअर करा";
+"confirm_your_email" = "तुमचा ईमेल पुष्टी करा";
+"we_have_sent_5_digits" = "आम्ही 5 अंकी पडताळणी कोड पाठवला आहे";
+"enter_verification_code" = "पडताळणी कोड प्रविष्ट करा";
+"enter_your_otp" = "तुमचा ओटीपी प्रविष्ट करा";
+"resend" = "पुन्हा पाठवा";
+"resend_in" = "पुन्हा पाठवा";
+"tag_people" = "लोकांना टॅग करा";
+"feeling_activity" = "भावना/क्रियाकलाप";
+"check_in" = "चेक इन";
+"photo_video" = "फोटो/व्हिडिओ";
+"tags:" = "टॅग्स:";
+"what's_in_your_mind" = "तुमच्या मनात काय आहे?";
+"date" = "तारीख";
+"time" = "वेळ";
+"event_format" = "कार्यक्रम स्वरूप";
+"online" = "ऑनलाइन";
+"offline" = "ऑफलाइन";
+"event" = "कार्यक्रम";
+"enter_event_name" = "कार्यक्रमाचे नाव प्रविष्ट करा";
+"enter_venue_name" = "ठिकाणाचे नाव प्रविष्ट करा";
+"add_streaming_link" = "स्ट्रीमिंग लिंक जोडा";
+"event_venue" = "कार्यक्रम स्थळ";
+"recent_chat" = "अलीकडील गप्पा";
+"photos" = "फोटो";
+"overview" = "आढावा";
+"content_you_shared" = "तुम्ही शेअर केलेली सामग्री";
+"stories" = "कथा";
+"total_followers" = "एकूण अनुयायी";
+"account_reached" = "पंक्तीपर्यंत पोहोचलेले खाते";
+"engaged" = "सक्रिय";
+"website_redirection" = "वेकसाइट पुनर्निर्देशन";
+"tag_people" = "लोकांना टॅग करा";
+"feeling_activity" = "भावना/क्रियाकलाप";
+"contact_number" = "संपर्क क्रमांक";
+"category" = "श्रेणी";
+"bio" = "बायो";
+"about_me" = "माझ्याबद्दल";
+"edit_name_heading" = "तुमचे पूर्ण नाव खाली प्रविष्ट करा, आम्ही तुमचा अनुभव वैयक्तिक करण्यासाठी त्याचा वापर करू.";
+"edit_email_heading" = "कृपया तुमचा ईमेल पत्ता खाली द्या, आम्ही तुम्हाला महत्त्वाच्या अद्यतने आणि सूचना पाठवण्यासाठी याचा वापर करू.";
+"edit_contact_heading" = "कृपया तुमचा संपर्क क्रमांक खाली प्रविष्ट करा. आवश्यक असल्यास आम्ही तुमच्याशी संपर्क साधू.";
+"confirm_email_subheading" = "तुमच्या ईमेल पत्त्यावर पाठवलेला एक वेळ पडताळणी कोड प्रविष्ट करा.";
+"confirm_your_email" = "तुमचा ईमेल पुष्टी करा";
+"change_password" = "पासवर्ड बदला";
+"enter_new_password" = "नवीन पासवर्ड प्रविष्ट करा";
+"enter_new_password_heading" = "तुमचा पासवर्ड आधी वापरलेल्या पासवर्डपेक्षा वेगळा असावा.";
+"retype_password" = "पासवर्ड पुन्हा प्रविष्ट करा";
+"enter_new_password_again" = "नवीन पासवर्ड पुन्हा प्रविष्ट करा";
+"edit_bio_heading" = "तुमच्याबद्दल थोडक्यात सांगा. यामुळे इतरांना तुम्हाला चांगले समजून घेण्यास मदत होईल.";
+"business_related_questions" = "व्यवसाय संबंधित प्रश्न";
+"language" = "भाषा";
+"general" = "सामान्य";
+"saved_posts" = "जतन केलेल्या पोस्ट्स";
+"documents" = "दस्तऐवज";
+"blocked_users" = "अडथळा घातलेले वापरकर्ते";
+"private_account" = "खाजगी खाते";
+"notification" = "सूचना";
+"more" = "अधिक";
+"payments_details" = "देयक तपशील";
+"subscription" = "सदस्यता";
+"privacy_policy" = "गोपनीयता धोरण";
+"about_us" = "आमच्याबद्दल";
+"help_and_support" = "मदत आणि समर्थन";
+"account_deactivate" = "खाते निष्क्रिय करा";
+"delete_account" = "खाते हटवा";
+"logout" = "बाहेर पडा";
+"settings" = "सेटिंग्ज";
+"transactions" = "व्यवहार";
+"yes" = "होय";
+"no" = "नाही";
+"logout_alert_title" = "आपण खरोखरच आपले खाते लॉगआउट करू इच्छिता?";
+"delete_acount_alert_title" = "आपण खरोखरच आपले खाते कायमचे हटवू इच्छिता?";
+"deactivate_acount_alert_title" = "आपण खरोखरच आपले खाते निष्क्रिय करू इच्छिता?";
+"account" = "खाते";
+"services" = "सेवाहरू";
+"faqs" = "सामान्य प्रश्न";
+"contactUs" = "आमच्याशी संपर्क साधा";
+"whatsapp" = "व्हॉट्सअॅप";
+"message" = "संदेश";
+"or" = "किंवा";
+"optional" = "पर्यायी";
+"review" = "पुनरावलोकन";
+"apply" = "अर्ज करा";
+"completed" = "पूर्ण झाले";
+"amenities" = "सुविधा";
+"unblock" = "अनब्लॉक करा";
+"follow" = "अनुसरण करा";
+"requested" = "विनंती केली";
+"unfollow" = "अनुसरण करणे थांबवा";
+"visit" = "भेट द्या";
+"transactions" = "व्यवहार";
+"active_subscription" = "सक्रिय सदस्यता";
+"current_subscription" = "चालू सदस्यता";
+"cancel_subscription" = "सदस्यता रद्द करा";
+"days_remaining" = "शिल्लक दिवस";
+"sure_you_want_to_cancel_subscription" = "आपण सदस्यता रद्द करू इच्छिता?";
+"no_cancel" = "नाही, रद्द करा";
+"yes_confirm" = "होय, पुष्टी करा";
+"no_blocked_users" = "अडथळा घातलेले वापरकर्ते नाहीत";
+"blocked_users" = "अडथळा घातलेले वापरकर्ते";
+"no_saved_post_yet" = "अद्याप कोणतीही पोस्ट जतन केलेली नाही";
+"no_transactions_done_yet" = "अद्याप कोणतेही व्यवहार झाले नाहीत";
+"transactionID" = "व्यवहार आयडी";
+"deactivate_modal_title" = "आपण खरोखरच आपले खाते निष्क्रिय करू इच्छिता?";
+"delete_account_modal_title" = "आपण खरोखरच आपले खाते कायमचे हटवू इच्छिता?";
+"logout_modal_title" = "आपण खरोखरच आपले खाते लॉगआउट करू इच्छिता?";
+"choose_an_option" = "पर्याय निवडा.";
+"fileManager" = "फाइल";
+"billing_address" = "बिलिंग पत्ता";
+"edit_profile" = "प्रोफाइल संपादित करा";
+"edit_billing_address_headline" = "आपला बिलिंग पत्ता खाली प्रविष्ट करा, आणि आम्ही आपल्या सदस्यतेसाठी अखंड सेवा सुनिश्चित करण्यासाठी याचा वापर करू.";
+"edit_category_headline" = "खालील पर्यायांमधून आपल्या प्राधान्ये किंवा गरजांशी जुळणारी श्रेणी निवडा.";
+"sub_category" = "उप-श्रेणी";
+"sent_verfication_code" = "आम्ही 5 अंकांचा सत्यापन कोड पाठवला आहे ";
+"review_uploaded_successfully" = "पुनरावलोकन यशस्वीरित्या अपलोड केले";
+"done" = "पूर्ण झाले";
+"please_wait_while_your_selected_video_is_being_processed..." = "कृपया प्रतीक्षा करा, आपला निवडलेला व्हिडिओ प्रक्रिया चालू आहे...";
+"post_uploaded_successfully" = "पोस्ट यशस्वीरित्या अपलोड केली";
+"event_uploaded_successfully" = "कार्यक्रम यशस्वीरित्या अपलोड केला";
+"start_date" = "सुरुवातीची तारीख";
+"end_date" = "शेवटची तारीख";
+"start_time" = "सुरुवातीची वेळ";
+"end_time" = "शेवटची वेळ";
+"event_name" = "कार्यक्रमाचे नाव";
+"please_select_an_image_from_gallery" = "कृपया गॅलरीमधून प्रतिमा निवडा.";
+"please_enter_the_event_name" = "कृपया कार्यक्रमाचे नाव प्रविष्ट करा.";
+"please_select_end_date_and_end_time" = "कृपया शेवटची तारीख आणि वेळ निवडा.";
+"please_select_an_event_type" = "कृपया कार्यक्रम प्रकार निवडा.";
+"please_enter_the_streaming_link_for_the_event" = "कृपया कार्यक्रमासाठी स्ट्रीमिंग लिंक प्रविष्ट करा.";
+"please_enter_a_valid_streaming_link" = "कृपया वैध स्ट्रीमिंग लिंक प्रविष्ट करा.";
+"please_select_venue_for_the_event" = "कृपया कार्यक्रमासाठी स्थळ निवडा.";
+"please_enter_description_about_the_event" = "कृपया कार्यक्रमाबद्दल वर्णन प्रविष्ट करा.";
+"please_fill_all_the_required_fields" = "कृपया सर्व आवश्यक फील्ड भरा.";
+"there_is_an_error_uploading_your_event_at_this_moment" = "सध्या आपला कार्यक्रम अपलोड करताना त्रुटी आली आहे.";
+"choose_an_option" = "पर्याय निवडा.";
+"send_message" = "संदेश पाठवा";
+"failed_to_send_media" = "मीडिया पाठविण्यात अयशस्वी.";
+"individual" = "व्यक्तिगत";
+"business" = "व्यवसाय";
+"enter_your_full_name" = "आपले पूर्ण नाव प्रविष्ट करा.";
+"your_name_cannot_contain_numeric_values" = "आपल्या नावामध्ये अंक असू शकत नाहीत.";
+"enter_your_email_address" = "आपला ईमेल पत्ता प्रविष्ट करा.";
+"please_enter_a_valid_email_address" = "कृपया वैध ईमेल पत्ता प्रविष्ट करा.";
+"enter_your_password" = "आपला पासवर्ड प्रविष्ट करा.";
+"please_enter_a_valid_contact_number" = "कृपया वैध संपर्क क्रमांक प्रविष्ट करा.";
+"please_enter_your_password" = "कृपया आपला पासवर्ड प्रविष्ट करा.";
+"cancel" = "रद्द करा";
+
+// Password Validation Messages
+"password_must_be_at_least_8_characters" = "पासवर्ड किमान ८ अक्षरे असावा.";
+"password_must_contain_at_least_one_uppercase_letter" = "पासवर्डमध्ये किमान एक मोठे अक्षर असावे.";
+"password_must_contain_at_least_one_lowercase_letter" = "पासवर्डमध्ये किमान एक छोटे अक्षर असावे.";
+"password_must_contain_at_least_one_number" = "पासवर्डमध्ये किमान एक अंक असावा.";
+"password_must_contain_at_least_one_special_character" = "पासवर्डमध्ये किमान एक विशेष चिन्ह असावे.";
+
+// IndividualSignupLogoView
+"please_choose_an_image_from_gallery_or_camera" = "कृपया गॅलरी किंवा कॅमेरामधून एक प्रतिमा निवडा.";
+"skip" = "वगळा";
+
+// SelectBusinessTypeView
+"skip" = "वगळा";
+"select_business_type" = "व्यवसाय प्रकार निवडा";
+
+// BusinessDetailView
+"upload_high_quality" = "उच्च गुणवत्तेचे अपलोड करा";
+"browse" = "ब्राउझ करा";
+"select_your_business_address" = "तुमचा व्यवसायाचा पत्ता निवडा.";
+"enter_business_name" = "व्यवसायाचे नाव प्रविष्ट करा.";
+"please_enter_a_valid_website_link" = "कृपया वैध वेबसाइट लिंक प्रविष्ट करा.";
+"please_enter_a_valid_GSTIN" = "कृपया वैध GSTIN प्रविष्ट करा.";
+"please_select_a_subtype" = "कृपया एक उपप्रकार निवडा.";
+"enter_your_bio" = "तुमची बायो प्रविष्ट करा.";
+
+// BusinessLogoDetailView
+"please_choose_an_image_from_gallery" = "कृपया गॅलरीमधून प्रतिमा निवडा.";
+
+// SupportingDocumentsView
+"please_select_documents" = "कृपया कागदपत्रे निवडा.";
+
+// BusinessQuestionView
+"please_select_an_answer_for_all_the_questions" = "कृपया सर्व प्रश्नांसाठी उत्तर निवडा.";
+
+// Intro Screen
+"Find the Best Hotels" = "सर्वोत्तम हॉटेल्स शोधा";
+"Rate and Review Hotels" = "हॉटेल्सचे रेटिंग करा आणि पुनरावलोकन करा";
+"Share Your Moments" = "तुमचे क्षण सामायिक करा";
+"Connect with Friends" = "मित्रांशी जोडले जा";
+"Search and discover top-rated hotels around the world." = "जगभरातील टॉप रेटेड हॉटेल्स शोधा आणि शोधा.";
+"Share your experiences and help others choose the best hotels." = "तुमचे अनुभव शेअर करा आणि इतरांना सर्वोत्तम हॉटेल्स निवडण्यास मदत करा.";
+"Upload photos and videos of your hotel stays." = "तुमच्या हॉटेल मुक्कामाचे फोटो आणि व्हिडिओ अपलोड करा.";
+"Follow friends and see their hotel reviews and photos." = "मित्रांना फॉलो करा आणि त्यांचे हॉटेल पुनरावलोकने व फोटो पहा.";
+
+// SinglePostView
+"report" = "तक्रार करा";
+"an_error_occured_while_loading_the_post" = "पोस्ट लोड करताना त्रुटी आली.";
+
+// StorySeenView (pending)
+"block" = "ब्लॉक करा";
+"remove_follower" = "अनुयायी काढून टाका";
+"remove_follower" = "तुम्हाला खरोखर ब्लॉक करायचे आहे का";
+
+// Enter Email Screen(Forgot password)
+"remove_follower" = "तुम्हाला खरोखर ब्लॉक करायचे आहे का";
+"email_address" = "ईमेल पत्ता";
+"enter_email_address" = "ईमेल पत्ता प्रविष्ट करा";
+"reset_your_password" = "तुमचा पासवर्ड रीसेट करा";
+"enter_your_email_address_below_and_we’ll_send_you_a_link_with_instructions" = "खाली तुमचा ईमेल पत्ता प्रविष्ट करा आणि आम्ही तुम्हाला सूचना असलेली लिंक पाठवू";
+
+// Change Password Screen(Forgot password)
+"enter_new_password" = "नवीन पासवर्ड प्रविष्ट करा";
+"please_enter_the_same_password_in_both_the_fields" = "कृपया दोन्ही फील्डमध्ये समान पासवर्ड प्रविष्ट करा.";
+"your_password_must_be_different_from_previous\n_used_password" = "तुमचा पासवर्ड मागील वापरलेल्या पासवर्डपेक्षा वेगळा असणे आवश्यक आहे.";
+
+// Event Detail Screen
+"nobody_has_joined_yet" = "अजून कोणीही सामील झाले नाही.";
+"1_person_has_joined" = "1 व्यक्ती सामील झाली आहे.";
+"people_have_joined" = "लोक सामील झाले आहेत:";
+"about_the_event_venue" = "कार्यक्रम स्थळाबद्दल";
+"distance_from_your_location" = "तुमच्या स्थानापासून अंतर";
+"streaming_link" = "स्ट्रीमिंग लिंक";
+"joining ?" = "सामील होत आहात?";
+"joined" = "सामील झाले";
+"...Read less" = "...कमी वाचा";
+"...Read more" = "...अधिक वाचा";
+
+// Followers List Screen
+"no_user_found" = "कोणताही वापरकर्ता सापडला नाही";
+"send_message" = "संदेश पाठवा";
+
+// Story Detail Screen
+"are_you_sure_you_want_to_delete_this_story?" = "तुम्हाला ही कथा खरोखर हटवायची आहे का?";
+"view_profile" = "प्रोफाइल पहा";
+
+// Check in Screen
+"suggested_nearby_places" = "शिफारस केलेली जवळची ठिकाणे";
+
+// Edit Story Image View
+"edit_story" = "कथा संपादित करा";
+"add" = "जोडा";
+"type_here" = "इथे टाइप करा";
+"delete" = "हटवा";
+
+// Edit Image View
+"edit_image" = "प्रतिमा संपादित करा";
+
+// Notification View
+"no_notifications_yet" = "अजून कोणतीही सूचना नाही";
+"you_have_no_notifications_right_now_come_back_later" = "सध्या तुम्हाला कोणत्याही सूचना नाहीत.\n नंतर पुन्हा या";
+"decline" = "नकार द्या";
+"accept" = "स्वीकारा";
+"following" = "फॉलो करत आहे";
+"follow" = "फॉलो करा";
+"requested" = "विनंती केली";
+
+// Comment Section View
+"no_comments_yet" = "अजून कोणतीही टिप्पणी नाही";
+"comments" = "टिप्पण्या";
+"no_comments" = "कोणतीही टिप्पणी नाही";
+"add_comment" = "टिप्पणी जोडा";
+
+"do_really_want_to_unblock_this_user" = "तुम्ही खरोखरच या वापरकर्त्याला अनब्लॉक करू इच्छिता का?";
+"privacy" = "गोपनीयता";
+"content" = "सामग्री";
+"share" = "शेअर करा";
+
+
+// Report View
+"why_are_you_reporting_this_user" = "आपण या वापरकर्त्याची तक्रार का करत आहात?";
+"why_are_you_reporting_this_post" = "आपण या पोस्टची तक्रार का करत आहात?";
+"Your report is anonymous. If someone is in immediate danger, call the local emergency services – don't wait." = "आपली तक्रार गुप्त आहे. जर कोणी त्वरित धोक्यात असेल, तर स्थानिक आपत्कालीन सेवांना कॉल करा – थांबू नका.";
+"I just don't like it" = "मला हे आवडत नाही";
+"Bullying or unwanted contact" = "छळ करणे किंवा अवांछित संपर्क";
+"Suicide, self-injury or eating disorders" = "आत्महत्या, स्वत:ला इजा किंवा खाण्याचे विकार";
+"Violence, hate or exploitation" = "हिंसा, द्वेष किंवा शोषण";
+"Selling or promoting restricted items" = "प्रतिबंधित वस्तू विकणे किंवा त्यांचे प्रमोशन करणे";
+"Nudity or sexual activity" = "नग्नता किंवा लैंगिक क्रियाकलाप";
+"Scam, fraud or spam" = "फसवणूक, धोका किंवा स्पॅम";
+"False information" = "चुकीची माहिती";
+"Fake account" = "बनावट खाते";
+"Impersonation" = "प्रतिरूपण";
+"Harassment or bullying" = "छळ किंवा धमकावणे";
+"Hate speech or symbols" = "द्वेषपूर्ण भाषण किंवा चिन्हे";
+"Scam or fraud" = "फसवणूक किंवा धोका";
+"Posting inappropriate content" = "अयोग्य सामग्री पोस्ट करणे";
+"Violating community guidelines" = "समुदायाच्या मार्गदर्शक तत्त्वांचे उल्लंघन करणे";
+
+"story_uploaded_successfully" = "कथा यशस्वीरीत्या अपलोड झाली आहे.";
+"you_have_logged_in_successfully" = "आपण यशस्वीरित्या लॉग इन केले आहे.";
+"upload" = "अपलोड";
+"no_video_uploaded_yet" = "आतापर्यंत कोणतेही व्हिडिओ अपलोड केलेले नाहीत.";
+"no_reviews_yet" = "आतापर्यंत कोणत्याही पुनरावलोकनाची नोंद नाही.";
+"no_post_uploaded_yet" = "आतापर्यंत कोणताही पोस्ट अपलोड केलेला नाही.";
+"no_photos_uploaded_yet" = "आतापर्यंत कोणतेही फोटो अपलोड केलेले नाहीत.";
+"write_a_review" = "पुनरावलोकन लिहा";
+"your_inbox_is_empty" = "आपला इनबॉक्स रिकामा आहे.";
+"no_one_send_a_message_to_you_yet" = "आतापर्यंत कोणीही आपल्याला संदेश पाठवलेला नाही.";
+"Loading pdf..." = "पीडीएफ लोड करत आहे...";
+
+"no_result_found" = "कोणताही परिणाम सापडला नाही.";
+"please_write_a_brief_message" = "कृपया एक संक्षिप्त संदेश लिहा.";
+
+
+"this_account_is_private" = "हे खाते खाजगी आहे";
+"follow_this_account_to_see_their_photos_and_videos" = "त्यांचे फोटो आणि व्हिडिओ पाहण्यासाठी हे खाते फॉलो करा.";
+"do_you_really_want_to_block_this_user" = "तुम्हाला खरोखर हा वापरकर्ता ब्लॉक करायचा आहे का?";
+
+"about_us_text" = "हॉटेल मीडिया हे एक मोबाइल अॅप आहे जे हॉटेल पुनरावलोकनांना सोशल मीडिया वैशिष्ट्यांसोबत जोडते. वापरकर्ते हॉटेल्स, बार, पब, नाईटक्लब्स, रेस्टॉरंट्स, कॅफे, होमस्टे आणि लग्न हॉलचे रेटिंग देऊ शकतात, प्रतिक्रिया शेअर करू शकतात, फोटो पोस्ट करू शकतात आणि इतर प्रवाशांसोबत संवाद साधू शकतात. हे अॅप हॉटेल शोध, इव्हेंट तयार करणे आणि वैयक्तिक अनुभव प्रदान करते. हे वापरकर्त्यांना त्यांच्या प्रवासासाठी योग्य निर्णय घेण्यासाठी डिझाइन केले आहे.";
+
+"number" = "संख्या";
+"Hotel" = "हॉटेल";
+"Bars / Clubs" = "बार / क्लब";
+"Home Stays" = "होम स्टे";
+"Marriage Banquets" = "लग्नाचे बँक्वेट";
+"Restaurant" = "रेस्टॉरंट";
+"type" = "प्रकार";
+"profession" = "व्यवसाय";
+"Please enter a profession name." = "कृपया व्यवसायाचे नाव प्रविष्ट करा.";
+"Please select a profession." = "कृपया एक व्यवसाय निवडा.";
+"Others" = "इतर";
+"Business Person/ Man" = "व्यवसायिक/ पुरुष";
+"Government Sector/ Employee" = "सरकारी क्षेत्र/ कर्मचारी";
+"Self Employee/ Private Job" = "स्वयं कर्मचारी/ खाजगी नोकरी";
+"Belongs To Hotel Industry" = "हॉटेल उद्योगाशी संबंधित";
+"name" = "नाव";
+"do_you_really_want_to_delete_this_post" = "आपण खरोखरच ही पोस्ट हटवू इच्छिता?";
+"you_cannot_select_more_than_10_items" = "आपण 10 पेक्षा जास्त आयटम निवडू शकत नाही.";
+"remove" = "काढून टाका";
+
+"export_chat" = "चॅट निर्यात करा";
+"delete_chat" = "चॅट हटवा";
+"user_blocked_successfully" = "वापरकर्त्याला यशस्वीरित्या ब्लॉक केले.";
+"failed_to_block_the_user" = "वापरकर्त्याला ब्लॉक करण्यात अयशस्वी.";
+"internal_server_error_please_try_again" = "आंतरिक सर्व्हर त्रुटी. कृपया पुन्हा प्रयत्न करा.";
+"chat_deleted_successfully" = "चॅट यशस्वीरित्या हटवले.";
+"failed_to_delete_chat" = "चॅट हटवण्यात अयशस्वी.";
+"chat_exported_successfully" = "चॅट यशस्वीरित्या निर्यात केला.";
+"failed_to_export_chat" = "चॅट निर्यात करण्यात अयशस्वी.";
+"offensive_language" = "अपमानजनक भाषा";
+"spam" = "स्पॅम";
+"hate_speech" = "द्वेषपूर्ण भाषण";
+"harassment" = "छळ";
+"bullying" = "छळ";
+"personal_attacks" = "वैयक्तिक हल्ले";
+"false_information" = "खोटी माहिती";
+"misinformation" = "भ्रामक माहिती";
+"promoting_violence" = "हिंसा प्रसार";
+"inappropriate_content" = "अविचार सामग्री";
+"self_harm_or_suicide" = "स्वतःला हानी करणे किंवा आत्महत्या";
+"scam_or_fraud" = "फसवणूक किंवा ठगी";
+"irrelevant_content" = "अप्रासंगिक सामग्री";
+"threatening_behavior" = "धमकी देणारा वर्तन";
+"graphic_content" = "ग्राफिक सामग्री";
+"why_are_you_reporting_this_comment" = "तुम्ही हा टिप्पणी का रिपोर्ट करत आहात?";
+"you_cannot_select_larger_than_5_MB" = "तुम्ही 5 एमबी पेक्षा मोठी फाईल निवडू शकत नाही.";
+"gstn" = "जीएसटीआयएन नंबर";
+"nearby" = "जवळपास";
+"suggestions" = "सूचना";
+"show_in_map" = "नकाशावर दाखवा";
+"attachment" = "संलग्नक";
+"this_user_is_not_registered_with_THM." = "हा वापरकर्ता THM सह नोंदणीकृत नाही.";
+"suggested_for_you" = "आपल्यासाठी सुचवलेले";
+"feeling_angry" = "राग येतो आहे";
+"feeling_excited" = "उत्साही वाटत आहे";
+"feeling_surprised" = "आश्चर्य वाटत आहे";
+"feeling_scared" = "घाबरल्यासारखे वाटत आहे";
+"feeling_confused" = "गोंधळल्यासारखे वाटत आहे";
+"feeling_tired" = "थकल्यासारखे वाटत आहे";
+"feeling_nervous" = "सावध वाटत आहे";
+"feeling_bored" = "कंटाळा येतो आहे";
+"feeling_anxious" = "चिंताग्रस्त वाटत आहे";
+"feeling_embarrassed" = "लाजल्यासारखे वाटत आहे";
+"feeling_grateful" = "कृतज्ञ वाटत आहे";
+"feeling_proud" = "गर्व वाटत आहे";
+"feeling_lonely" = "एकटे वाटत आहे";
+"feeling_hopeful" = "आशावादी वाटत आहे";
+"feeling_love" = "प्रेम वाटत आहे";
+"feeling_jealous" = "मत्सर वाटत आहे";
+"feeling_curious" = "कुतूहल वाटत आहे";
+"feeling_ashamed" = "शरम वाटत आहे";
+"feeling_guilty" = "गुन्हेगार वाटत आहे";
+"feeling_determined" = "दृढ निश्चय वाटत आहे";
+"feeling_relieved" = "हायसे वाटत आहे";
+"feeling_shocked" = "धक्का बसल्यासारखे वाटत आहे";
+"feeling_disappointed" = "निराश वाटत आहे";
+"feeling_frustrated" = "हताश वाटत आहे";
+"feeling_amazed" = "चकीत वाटत आहे";
+"feeling_confident" = "आत्मविश्वास वाटत आहे";
+"feeling_indifferent" = "उदासीन वाटत आहे";
+"feeling_hilarious" = "खूपच मजेदार वाटत आहे";
+"feeling_rolling_with_laughter" = "हसून हसून लोटपोट झालेले वाटत आहे";
+"feeling_loved" = "प्रेमात असल्यासारखे वाटत आहे";
+"feeling_caring" = "काळजी घेतल्यासारखे वाटत आहे";
+"feeling_miserable" = "दुःखी वाटत आहे";
+"feeling_exhausted" = "थकलेल्यासारखे वाटत आहे";
+"feeling_overwhelmed" = "अभिभूत वाटत आहे";
+"feeling_celebratory" = "साजरा करत असल्यासारखे वाटत आहे";
+"feeling_mind_blown" = "डोकं फिरल्यासारखे वाटत आहे";
+"feeling_worried" = "चिंताग्रस्त वाटत आहे";
+"feeling_hungry" = "भूक लागली आहे";
+"feeling_happy" = "आनंदी आहे";
+"feeling_sad" = "दु:खी आहे";
+"feeling_angry" = "रागात आहे";
+"feeling_excited" = "उत्साही आहे";
+"feeling_surprised" = "आश्चर्यचकित आहे";
+"feeling_scared" = "भयभीत आहे";
+"feeling_confused" = "गोंधळलेला आहे";
+"users" = "वापरकर्ते";
+"day ago" = "दिवस आधी";
+"days ago" = "दिवसांपूर्वी";
+"hour ago" = "तास आधी";
+"hours ago" = "तासांपूर्वी";
+"min ago" = "मिनिटांपूर्वी";
+"sec ago" = "सेकंदांपूर्वी";
+"no_internet_connection" = "इंटरनेट कनेक्शन उपलब्ध नाही.";
+"your_post_has_been_uploaded_and_will_be_live_shortly" = "तुमची पोस्ट अपलोड झाली आहे आणि लवकरच लाईव्ह होईल.";
+"language_changed_successfully" = "भाषा यशस्वीरीत्या बदलली गेली.";
+"do_you_really_want_to_delete_the_chat_with_this_user" = "आपण खरोखर या वापरकर्त्यासोबतची चॅट हटवू इच्छिता का?";
+"this_is_a_free_plan" = "ही एक मोफत योजना आहे.";
+"there_is_an_error_performing_your_request" = "तुमच्या विनंतीमध्ये त्रुटी आढळली आहे!";
+"Dark Mode" = "डार्क मोड";
+"Theme" = "थीम";
+"add_details" = "तपशील जोडा";
+"guest" = "अतिथी";
+"Check-in" = "चेक-इन";
+"Check-out" = "चेक-आउट";
+"Guest and room" = "अतिथी आणि खोली";
+"Traveling with pet" = "पालतू प्राण्यासह प्रवास";
+"Children" = "मुले";
+"Proceed" = "पुढे चला";
+"Next" = "पुढील";
+"Select Age" = "वय निवडा";
+"Plan Details" = "योजनाचा तपशील";
+"Available Rooms" = "उपलब्ध खोल्या";
+"Room Details" = "खोलीचा तपशील";
+"Some helpful facts" = "काही उपयुक्त माहिती";
+"Check-in-out" = "चेक-इन-आउट";
+"Check-in/ Check-out" = "चेक-इन/चेक-आउट";
+"Check-in from:" = "चेक-इन पासून:";
+"Check-out from:" = "चेक-आउट पासून:";
+"Languages spoken" = "बोलल्या जाणाऱ्या भाषा";
+"Amenities" = "सुविधा";
+"See all" = "सर्व पहा";
+"Property Images" = "मालमत्तेच्या छायाचित्रे";
+"Booking Confirmation" = "बुकिंगची पुष्टी";
+"Change Room" = "खोली बदला";
+"Room type" = "खोलीचा प्रकार";
+"Convenience charges" = "सुविधा शुल्क";
+"Phone Number" = "फोन नंबर";
+"Email" = "ईमेल";
+"Name" = "नाव";
+"Change" = "बदला";
+"Pay now" = "आता पैसे भरा";
+"Guest Details" = "अतिथी तपशील";
+"Please select all the children ages before proceeding." = "कृपया पुढे जाण्यापूर्वी सर्व मुलांचे वय निवडा.";
+"Booking History" = "बुकिंग इतिहास";
+"No booking history" = "कोणताही बुकिंग इतिहास नाही";
+"Cancel Booking" = "बुकिंग रद्द करा";
+"Free Cancellation till" = "मोफत रद्द करणे पर्यंत";
+"Booking Details" = "बुकिंग तपशील";
+"Night" = "रात्र";
+"Nights" = "रात्रि";
+"Room" = "कमरा";
+"Booked on " = "यावर बुक केले ";
+"Booking ID" = "बुकिंग आयडी";
+"Payment Method" = "पेमेंट पद्धत";
+"Date & time" = "तारीख आणि वेळ";
+"Total" = "एकूण";
+"Book a table" = "टेबल बुक करा";
+"Time slot" = "वेळ स्लॉट";
+"Number of guest" = "अतिथींची संख्या";
+"Submit" = "सबमिट करा";
+"Please select a time slot before proceeding." = "कृपया पुढे जाण्यापूर्वी वेळ स्लॉट निवडा.";
+"Book a Banquet" = "बँक्वेट बुक करा";
+"Type of Event" = "कार्यक्रमाचा प्रकार";
+"Number of Guests" = "अतिथींची संख्या";
+"Please select an event type." = "कृपया कार्यक्रमाचा प्रकार निवडा.";
+"Please enter other event name in the field." = "कृपया फील्डमध्ये इतर कार्यक्रमाचे नाव प्रविष्ट करा.";
+"Please select check-in/check-out dates." = "कृपया चेक-इन/चेक-आउट तारखा निवडा.";
+"Please select number of guests." = "कृपया अतिथींची संख्या निवडा.";
+"Other Occasion" = "इतर प्रसंग";
+"Post Job" = "नोकरी पोस्ट करा";
+"Job Title" = "नोकरीचे शीर्षक";
+"Job Description" = "नोकरीचे वर्णन";
+"Joining Date" = "जॉइनिंग तारीख";
+"Designation" = "पदनाम";
+"Job Type" = "नोकरीचा प्रकार";
+"Experience" = "अनुभव";
+"Salary Offer" = "पगाराची ऑफर";
+"Number of Vacancies" = "रिक्त जागांची संख्या";
+"Number of guests" = "अतिथींची संख्या";
+"Booking For" = "बुकिंग कोणासाठी";
+"Table Booking Details" = "टेबल बुकिंग तपशील";
+"Type of Event" = "कार्यक्रमाचा प्रकार";
+"Please enter a title for the job." = "कृपया नोकरीचे शीर्षक प्रविष्ट करा.";
+"Please select a job designation." = "कृपया नोकरीचे पदनाम निवडा.";
+"Please enter a brief job description." = "कृपया नोकरीचे संक्षिप्त वर्णन प्रविष्ट करा.";
+"Please select a job type." = "कृपया नोकरीचा प्रकार निवडा.";
+"Please select a minimum required experience for the job." = "कृपया नोकरीसाठी आवश्यक किमान अनुभव निवडा.";
+"Please select an offered salary range for the job." = "कृपया नोकरीसाठी प्रस्तावित वेतन श्रेणी निवडा.";
+"Please select number of vacancies available for the job." = "कृपया नोकरीसाठी उपलब्ध रिक्त जागा निवडा.";
+"Job Detail" = "नोकरीचा तपशील";
+"Change Location" = "स्थान बदला";
+"No Businesses Found Nearby" = "जवळपास कोणतेही व्यवसाय सापडले नाहीत";
+"Hi, I'd like to apply for the job you shared. Let me know the next steps!" = "हाय, तुम्ही शेअर केलेल्या नोकरीसाठी मी अर्ज करू इच्छितो/इच्छिते. पुढील प्रक्रिया कळवा!";
+"Booking Cancelled!" = "बुकिंग रद्द करण्यात आली!";
+"Booking Summary" = "बुकिंगचा सारांश";
+"Try changing location!" = "स्थान बदलण्याचा प्रयत्न करा!";
+"Book now" = "आता बुक करा";
+"Book Table" = "टेबल बुक करा";
+"Book Banquet" = "बँक्वेट बुक करा";
+"No rooms available" = "खोले उपलब्ध नाहीत";
+"Skip" = "पुढे जा";  // Pudhe ja – means "Go ahead"
+"Please select start date and start time." = "कृपया सुरुवातीची तारीख आणि वेळ निवडा.";
+"reject" = "नकार द्या";
+"Please choose a logo image from gallery." = "कृपया गॅलरीमधून एक लोगो प्रतिमा निवडा.";
+

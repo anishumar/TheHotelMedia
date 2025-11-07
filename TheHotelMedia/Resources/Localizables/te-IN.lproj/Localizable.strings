@@ -1,0 +1,608 @@
+/* 
+  Localizable.strings
+  HotelMedia
+
+  Created by MAC on 08/08/24.
+  
+*/
+
+"strings_signin_title" = "సైన్ ఇన్";
+"email" = "ఇమెయిల్";
+"strings_signin_email_placeholder" = "మీ ఇమెయిల్‌ను నమోదు చేయండి";
+"strings_signin_password_placeholder" = "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి";
+"password" = "పాస్‌వర్డ్";
+"remember_me" = "నన్ను గుర్తుంచుకో";
+"forgot_password" = "పాస్‌వర్డ్‌ను మరచిపోయారా?";
+"strings_signin_don't_have_account" = "మీకు ఖాతా లేకపోతే";
+"signup" = "సైన్ అప్";
+"3star" = "3 స్టార్";
+"4star" = "4 స్టార్";
+"5star" = "5 స్టార్";
+"select_type" = "ప్రకారం ఎంచుకోండి";
+"name" = "పేరు";
+"full_name" = "పూర్తి పేరు";
+"your_password" = "మీ పాస్‌వర్డ్";
+"enter_your_password" = "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి";
+"contact_info" = "సంప్రదింపు సమాచారం";
+"individual_sign_up" = "వ్యక్తిగత సైన్ అప్";
+"upload_from" = "నుండి అప్‌లోడ్ చేయండి";
+"camera" = "క్యామేరా";
+"gallery" = "గ్యాలరీ";
+"hotels" = "హోటల్స్";
+"bars/clubs" = "బార్లు/క్లబ్బులు";
+"home_stays" = "హోమ్ స్టేలు";
+"marriage_banquets" = "వివాహ భోజనశాలలు";
+"restaurants" = "రెస్టారెంట్లు";
+"hotel_name" = "హోటల్ పేరు";
+"bars/clubs_name" = "బార్లు/క్లబ్బులు పేరు";
+"marriage_banquets_name" = "వివాహ భోజనశాల పేరు";
+"home_name" = "హోమ్ పేరు";
+"restaurant_name" = "రెస్టారెంట్ పేరు";
+"address" = "చిరునామా";
+"contact_information" = "సంప్రదింపు సమాచారం";
+//"gstn" = "జిఎస్టిఎన్";
+"hotel_star_rating_example" = "హోటల్ స్టార్ రేటింగ్ (ఉదా: 4 స్టార్)";
+"select_hotel_star_rating" = "హోటల్ స్టార్ రేటింగ్ ఎంచుకోండి";
+"amenities" = "సౌకర్యాలు";
+"description" = "వివరణ";
+"business_details" = "వ్యాపార వివరాలు";
+"website_link" = "వెబ్‌సైట్ లింక్";
+"property_pictures" = "ప్రాపర్టీ చిత్రాలు";
+"business_type" = "వ్యాపారం రకం";
+"hotel_logo" = "హోటల్ లోగో";
+"manager_information" = "మ్యానేజర్ సమాచారం";
+"terms_and_conditions" = "నిబంధనలు మరియు షరతులు";
+"i_have_read_and_agree_to_the_terms_and_conditions" = "నేను నిబంధనలు మరియు షరతులను చదివి అంగీకరిస్తున్నాను.";
+"business_registration" = "వ్యాపార నమోదు";
+"gst_certificate_incorporation_certificate" = "(అంటే: జిఎస్టి సర్టిఫికెట్, సంస్థాగత సర్టిఫికేట్, ప్రొప్రియేటర్షిప్, వ్యాపార పాన్ లేదా సంబంధిత పత్రం)";
+"address_proof" = "చిరునామా రుజువు";
+"electricity_bill_rent_agreement" = "(అంటే: విద్యుత్ బిల్లు, అద్దె ఒప్పందం, ప్రాపర్టీ ఓనర్షిప్ మొదలైనవి)";
+"supporting_documents" = "మద్దతు పత్రాలు";
+"date_of_expiry" = "గడువు తేదీ";
+"select_your_plan" = "మీ ప్రణాళికను ఎంచుకోండి";
+"review_summary" = "సమీక్ష సారాంశం";
+"you_plan" = "మీ ప్రణాళిక";
+"billing_address" = "బిల్లింగ్ చిరునామా";
+"phone_number" = "ఫోన్ నంబర్";
+"promo_code" = "ప్రోమో కోడ్";
+"promocode" = "ప్రోమోకోడ్";
+"bill_details" = "బిల్లు వివరాలు";
+"plan_charges" = "ప్రణాళిక చార్జీలు";
+"discount" = "డిస్కౌంట్";
+"gst" = "జిఎస్టి";
+"total" = "మొత్తం";
+"home" = "హోమ్";
+"search" = "శోధించు";
+"chat" = "చాట్";
+"profile" = "ప్రొఫైల్";
+"create_event" = "ఈవెంట్ సృష్టించండి";
+"create_post" = "పోస్ట్ సృష్టించండి";
+"create_story" = "కథ సృష్టించండి";
+"hotel_media" = "హోటల్ మీడియా";
+"profiles" = "ప్రొఫైళ్లు";
+"posts" = "పోస్టులు";
+"events" = "ఈవెంట్లు";
+"reviews" = "సమీక్షలు";
+"looking_for" = "కొనసాగిస్తున్నారు";
+"location" = "స్థానం";
+"radius" = "ఆవర్తనం";
+"videos" = "వీడియోలు";
+"video" = "వీడియో";
+"followers" = "అనుచరులు";
+"following" = "అనుసరిస్తున్నారు";
+"edit_profile" = "ప్రొఫైల్ సవరించండి";
+"share_profile" = "ప్రొఫైల్ పంచుకోండి";
+"confirm_your_email" = "మీ ఇమెయిల్ నిర్ధారించండి";
+"we_have_sent_5_digits" = "మేము 5 అంకెల నిర్ధారణ కోడ్ పంపాము";
+"enter_verification_code" = "నిర్ధారణ కోడ్ నమోదు చేయండి";
+"enter_your_otp" = "మీ ఒటిపి నమోదు చేయండి";
+"resend" = "మళ్లీ పంపు";
+"resend_in" = "మళ్లీ పంపడానికి";
+"tag_people" = "ప్రజలను ట్యాగ్ చేయండి";
+"feeling_activity" = "భావన/క్రియ";
+"check_in" = "చెక్ ఇన్";
+"photo_video" = "ఫోటో/వీడియో";
+"tags:" = "ట్యాగ్స్:";
+"what's_in_your_mind" = "మీ మనస్సులో ఏముంది?";
+"date" = "తేదీ";
+"time" = "సమయం";
+"event_format" = "ఈవెంట్ ఫార్మాట్";
+"online" = "ఆన్లైన్";
+"offline" = "ఆఫ్లైన్";
+"event" = "ఈవెంట్";
+"enter_event_name" = "ఈవెంట్ పేరు నమోదు చేయండి";
+"enter_venue_name" = "స్థల పేరు నమోదు చేయండి";
+"add_streaming_link" = "స్ట్రీమింగ్ లింక్ జోడించండి";
+"event_venue" = "ఈవెంట్ స్థలం";
+"recent_chat" = "ఇటీవలి చాట్";
+"photos" = "ఫోటోలు";
+"overview" = "అవలోకనం";
+"content_you_shared" = "మీరు పంచుకున్న కంటెంట్";
+"stories" = "కథలు";
+"total_followers" = "మొత్తం అనుచరులు";
+"account_reached" = "ఖాతా చేరుకున్నది";
+"engaged" = "వ్యవహరించినది";
+"website_redirection" = "వెబ్సైట్ రీడైరెక్షన్";
+"tag_people" = "ప్రజలను ట్యాగ్ చేయండి";
+"feeling_activity" = "భావన/క్రియ";
+"contact_number" = "సంప్రదింపు నంబర్";
+"category" = "వర్గం";
+"bio" = "జీవిత వివరాలు";
+"about_me" = "నా గురించి";
+"edit_name_heading" = "క్రింద మీ పూర్తి పేరు నమోదు చేయండి, మేము దీన్ని మీ అనుభవాన్ని వ్యక్తిగతీకరించడానికి ఉపయోగిస్తాము.";
+"edit_email_heading" = "క్రింద మీ ఇమెయిల్ చిరునామాను నమోదు చేయండి, మేము దీనిని ముఖ్యమైన అప్‌డేట్లు మరియు నోటిఫికేషన్లను పంపడానికి ఉపయోగిస్తాము.";
+"edit_contact_heading" = "క్రింద మీ సంప్రదింపు నంబర్ నమోదు చేయండి. అవసరమైతే మేము మీరు చేరుకోవడానికి దీన్ని ఉపయోగిస్తాము.";
+"confirm_email_subheading" = "మీ ఇమెయిల్ చిరునామాకు పంపిన ఒకటే ప్రమాణపత్ర కోడ్‌ను నమోదు చేయండి.";
+"confirm_your_email" = "మీ ఇమెయిల్‌ను నిర్ధారించండి";
+"change_password" = "పాస్‌వర్డ్ మార్చండి";
+"enter_new_password" = "కొత్త పాస్‌వర్డ్ నమోదు చేయండి";
+"enter_new_password_heading" = "మీ పాస్‌వర్డ్ గతంలో ఉపయోగించిన పాస్‌వర్డ్ కంటే వేరే ఉండాలి.";
+"retype_password" = "పాస్‌వర్డ్ మళ్ళీ టైప్ చేయండి";
+"enter_new_password_again" = "మళ్లీ కొత్త పాస్‌వర్డ్ నమోదు చేయండి";
+"edit_bio_heading" = "మీ గురించి కొంచెం పంచుకోండి. ఇది ఇతరులకు మీరు గురించి బాగా తెలుసుకోవడంలో సహాయం చేస్తుంది.";
+"business_related_questions" = "వ్యాపార సంబంధిత ప్రశ్నలు";
+"language" = "భాష";
+"general" = "సాధారణ";
+"saved_posts" = "సేవ్ చేసిన పోస్ట్లు";
+"documents" = "పత్రాలు";
+"blocked_users" = "బ్లాక్ చేసిన వినియోగదారులు";
+"private_account" = "ప్రైవేట్ ఖాతా";
+"notification" = "నోటిఫికేషన్";
+"more" = "ఇంకా";
+"payments_details" = "చెల్లింపుల వివరాలు";
+"subscription" = "సబ్‌స్క్రిప్షన్";
+"privacy_policy" = "గోప్యతా విధానం";
+"about_us" = "మా గురించి";
+"help_and_support" = "సహాయం మరియు మద్దతు";
+"account_deactivate" = "ఖాతా నిలిపివేయండి";
+"delete_account" = "ఖాతా తొలగించండి";
+"logout" = "లాగ్ అవుట్";
+"settings" = "సెట్టింగ్స్";
+"transactions" = "ట్రాన్సాక్షన్లు";
+"yes" = "అవును";
+"no" = "కాదు";
+"logout_alert_title" = "మీ ఖాతా నుండి లాగ్ అవుట్ అవ్వాలా?";
+"delete_acount_alert_title" = "మీ ఖాతాను శాశ్వతంగా తొలగించాలా?";
+"deactivate_acount_alert_title" = "మీ ఖాతాను నిలిపివేయాలా?";
+"account" = "ఖాతా";
+"services" = "సేవలు";
+"faqs" = "FAQs";
+"contactUs" = "మా సంప్రదించండి";
+"whatsapp" = "వాట్సాప్";
+"message" = "సందేశం";
+"or" = "లేదా";
+"optional" = "ఐచ్ఛికం";
+"review" = "సమీక్ష";
+"apply" = "అప్లై చేయండి";
+"completed" = "పూర్తయింది";
+"amenities" = "సౌకర్యాలు";
+"unblock" = "అన్‌బ్లాక్ చేయండి";
+"follow" = "ఫాలో చేయండి";
+"requested" = "కోరబడినది";
+"unfollow" = "ఫాలో చేయకండి";
+"visit" = "సందర్శించండి";
+"transactions" = "ట్రాన్సాక్షన్లు";
+"active_subscription" = "క్రియాశీల సబ్‌స్క్రిప్షన్";
+"current_subscription" = "ప్రస్తుత సబ్‌స్క్రిప్షన్";
+"cancel_subscription" = "సబ్‌స్క్రిప్షన్ రద్దు చేయండి";
+"days_remaining" = "మిగిలిన రోజులు";
+"sure_you_want_to_cancel_subscription" = "మీరు సబ్‌స్క్రిప్షన్ రద్దు చేయాలనుకుంటున్నారా?";
+"no_cancel" = "కాదు, రద్దు చేయండి";
+"yes_confirm" = "అవును, ధృవీకరించండి";
+"no_blocked_users" = "బ్లాక్ చేసిన వినియోగదారులు లేవు";
+"blocked_users" = "బ్లాక్ చేసిన వినియోగదారులు";
+"no_saved_post_yet" = "ఇప్పటివరకు సేవ్ చేసిన పోస్ట్లు లేవు";
+"no_transactions_done_yet" = "ఇప్పటివరకు ఎటువంటి ట్రాన్సాక్షన్లు జరిగినవే కాదు";
+"transactionID" = "ట్రాన్సాక్షన్ ID";
+"deactivate_modal_title" = "మీ ఖాతాను నిజంగా నిలిపివేయాలా?";
+"delete_account_modal_title" = "మీ ఖాతాను నిజంగా శాశ్వతంగా తొలగించాలా?";
+"logout_modal_title" = "మీ ఖాతా నుండి నిజంగా లాగ్ అవుట్ కావాలా?";
+"choose_an_option" = "ఒక ఎంపికను ఎంచుకోండి.";
+"fileManager" = "ఫైల్";
+"billing_address" = "బిల్లింగ్ చిరునామా";
+"edit_profile" = "ప్రొఫైల్ ను ఎడిట్ చేయండి";
+"edit_billing_address_headline" = "మీ బిల్లింగ్ చిరునామాను క్రింద నమోదు చేయండి, మరియు మేము దీన్ని మీ సభ్యత్వం నిరంతర సేవ కోసం ఉపయోగిస్తాము.";
+"edit_category_headline" = "మీ ఆవశ్యకతలు లేదా అభిరుచులను ఉత్తమంగా వ్యక్తం చేసే విభాగాన్ని క్రింది ఎంపికల నుండి ఎంచుకోండి.";
+"sub_category" = "ఉపవర్గ";
+"sent_verfication_code" = "మేము 5 అంకెల ధృవీకరణ కోడ్ ను పంపించాము ";
+"review_uploaded_successfully" = "సమీక్ష విజయవంతంగా అప్‌లోడ్ చేయబడింది";
+"done" = "ముగిసింది";
+"please_wait_while_your_selected_video_is_being_processed..." = "మీ ఎంచుకున్న వీడియోను ప్రాసెస్ చేస్తున్నంత వరకు దయచేసి వేచి ఉండండి...";
+"post_uploaded_successfully" = "పోస్ట్ విజయవంతంగా అప్‌లోడ్ చేయబడింది";
+"event_uploaded_successfully" = "ఈవెంట్ విజయవంతంగా అప్‌లోడ్ చేయబడింది";
+"start_date" = "ప్రారంభ తేదీ";
+"end_date" = "ముగింపు తేదీ";
+"start_time" = "ప్రారంభ సమయం";
+"end_time" = "ముగింపు సమయం";
+"event_name" = "ఈవెంట్ పేరు";
+"please_select_an_image_from_gallery" = "దయచేసి గ్యాలరీ నుండి ఒక చిత్రం ఎంచుకోండి.";
+"please_enter_the_event_name" = "దయచేసి ఈవెంట్ పేరు నమోదు చేయండి.";
+"please_select_end_date_and_end_time" = "దయచేసి ముగింపు తేదీ మరియు సమయం ఎంచుకోండి.";
+"please_select_an_event_type" = "దయచేసి ఈవెంట్ రకం ఎంచుకోండి.";
+"please_enter_the_streaming_link_for_the_event" = "దయచేసి ఈవెంట్ కోసం స్ట్రీమింగ్ లింక్ నమోదు చేయండి.";
+"please_enter_a_valid_streaming_link" = "దయచేసి సరైన స్ట్రీమింగ్ లింక్ నమోదు చేయండి.";
+"please_select_venue_for_the_event" = "దయచేసి ఈవెంట్ కోసం వేదిక ఎంచుకోండి.";
+"please_enter_description_about_the_event" = "దయచేసి ఈవెంట్ గురించి వివరణ నమోదు చేయండి.";
+"please_fill_all_the_required_fields" = "దయచేసి అన్ని అవసరమైన ఫీల్డ్స్‌ను భర్తీ చేయండి.";
+"there_is_an_error_uploading_your_event_at_this_moment" = "ఈ క్షణంలో మీ ఈవెంట్‌ను అప్‌లోడ్ చేయడంలో ఒక లోపం జరిగింది.";
+"choose_an_option" = "ఒక ఎంపికను ఎంచుకోండి.";
+"send_message" = "సందేశం పంపండి";
+"failed_to_send_media" = "మీడియా పంపడంలో విఫలమైంది.";
+"individual" = "వ్యక్తిగత";
+"business" = "వ్యాపారం";
+"enter_your_full_name" = "మీ పూర్తి పేరు నమోదు చేయండి.";
+"your_name_cannot_contain_numeric_values" = "మీ పేరులో సంఖ్యలు ఉండకూడదు.";
+"enter_your_email_address" = "మీ ఇమెయిల్ చిరునామా నమోదు చేయండి.";
+"please_enter_a_valid_email_address" = "దయచేసి సరైన ఇమెయిల్ చిరునామా నమోదు చేయండి.";
+"enter_your_password" = "మీ పాస్వర్డ్ నమోదు చేయండి.";
+"please_enter_a_valid_contact_number" = "దయచేసి సరైన సంప్రదింపు సంఖ్యను నమోదు చేయండి.";
+"please_enter_your_password" = "దయచేసి మీ పాస్వర్డ్ నమోదు చేయండి.";
+"cancel" = "రద్దు";
+
+// Password Validation Messages
+"password_must_be_at_least_8_characters" = "పాస్వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి.";
+"password_must_contain_at_least_one_uppercase_letter" = "పాస్వర్డ్ కనీసం ఒక హెచ్చుతగ్గు అక్షరం ఉండాలి.";
+"password_must_contain_at_least_one_lowercase_letter" = "పాస్వర్డ్ కనీసం ఒక చిన్న అక్షరం ఉండాలి.";
+"password_must_contain_at_least_one_number" = "పాస్వర్డ్ కనీసం ఒక సంఖ్య ఉండాలి.";
+"password_must_contain_at_least_one_special_character" = "పాస్వర్డ్ కనీసం ఒక ప్రత్యేక చిహ్నం ఉండాలి.";
+
+// IndividualSignupLogoView
+"please_choose_an_image_from_gallery_or_camera" = "దయచేసి గ్యాలరీ లేదా కెమెరా నుండి ఒక చిత్రం ఎంచుకోండి.";
+"skip" = "దాటవేయి";
+
+// SelectBusinessTypeView
+"skip" = "దాటవేయి";
+"select_business_type" = "వ్యాపార రకం ఎంచుకోండి";
+
+// BusinessDetailView
+"upload_high_quality" = "ఉన్నత నాణ్యతను అప్‌లోడ్ చేయండి";
+"browse" = "బ్రౌజ్";
+"select_your_business_address" = "మీ వ్యాపార చిరునామా ఎంచుకోండి.";
+"enter_business_name" = "వ్యాపారం పేరు నమోదు చేయండి.";
+"please_enter_a_valid_website_link" = "దయచేసి సరైన వెబ్సైట్ లింక్ నమోదు చేయండి.";
+"please_enter_a_valid_GSTIN" = "దయచేసి సరైన GSTIN నమోదు చేయండి.";
+"please_select_a_subtype" = "దయచేసి ఉపవర్గాన్ని ఎంచుకోండి.";
+"enter_your_bio" = "మీ బయో నమోదు చేయండి.";
+
+// BusinessLogoDetailView
+"please_choose_an_image_from_gallery" = "దయచేసి గ్యాలరీ నుండి చిత్రం ఎంచుకోండి.";
+
+// SupportingDocumentsView
+"please_select_documents" = "దయచేసి డాక్యుమెంట్స్ ఎంచుకోండి.";
+
+// BusinessQuestionView
+"please_select_an_answer_for_all_the_questions" = "దయచేసి అన్ని ప్రశ్నలకు ఒక సమాధానం ఎంచుకోండి.";
+
+// Intro Screen
+"Find the Best Hotels" = "ఉత్తమ హోటల్స్ కనుగొనండి";
+"Rate and Review Hotels" = "హోటల్స్ ను రేట్ చేయండి మరియు సమీక్షించండి";
+"Share Your Moments" = "మీ క్షణాలను పంచుకోండి";
+"Connect with Friends" = "మిత్రులతో కనెక్ట్ అవ్వండి";
+"Search and discover top-rated hotels around the world." = "ప్రపంచవ్యాప్తంగా టాప్-రేటెడ్ హోటల్స్ ని వెతకండి మరియు కనుగొనండి.";
+"Share your experiences and help others choose the best hotels." = "మీ అనుభవాలను పంచుకోండి మరియు ఇతరులకు ఉత్తమ హోటల్స్ ఎంచుకోవడంలో సహాయం చేయండి.";
+"Upload photos and videos of your hotel stays." = "మీ హోటల్ మాస్టర్‌ల ఫోటోలు మరియు వీడియోలను అప్‌లోడ్ చేయండి.";
+"Follow friends and see their hotel reviews and photos." = "మిత్రులను అనుసరించి, వారి హోటల్ సమీక్షలు మరియు ఫోటోలను చూడండి.";
+
+// SinglePostView
+"report" = "రిపోర్టు";
+"an_error_occured_while_loading_the_post" = "పోస్ట్ లోడ్ చేస్తుండగా ఒక లోపం వచ్చింది.";
+
+// StorySeenView (pending)
+"block" = "బ్లాక్ చేయండి";
+"remove_follower" = "ఫాలోవర్‌ని తొలగించు";
+
+// Enter Email Screen(Forgot password)
+"email_address" = "ఇమెయిల్ చిరునామా";
+"enter_email_address" = "ఇమెయిల్ చిరునామా నమోదు చేయండి";
+"reset_your_password" = "మీ పాస్వర్డ్ ను రీసెట్ చేయండి";
+"enter_your_email_address_below_and_we’ll_send_you_a_link_with_instructions" = "మీ ఇమెయిల్ చిరునామాను క్రింద నమోదు చేయండి మరియు మేము మిమ్మల్ని మార్గనిర్దేశక లింక్‌తో పంపిస్తాము";
+
+// Change Password Screen(Forgot password)
+"enter_new_password" = "కొత్త పాస్వర్డ్ ఎంటర్ చేయండి";
+"please_enter_the_same_password_in_both_the_fields" = "దయచేసి రెండింటి ఫీల్డ్స్‌లో ఒకే పాస్వర్డ్ ఎంటర్ చేయండి.";
+"your_password_must_be_different_from_previous\n_used_password" = "మీ పాస్వర్డ్ మునుపటి ఉపయోగించిన పాస్వర్డ్‌తో భిన్నంగా ఉండాలి.";
+
+// Event Detail Screen
+"nobody_has_joined_yet" = "ఇప్పటికీ ఎవ్వరూ చేరలేదు.";
+"1_person_has_joined" = "1 వ్యక్తి చేరారు.";
+"people_have_joined" = "ప్రజలు చేరారు:";
+"nobody_has_joined_yet" = "ఇప్పటికీ ఎవ్వరూ చేరలేదు.";
+"about_the_event_venue" = "ఈవెంట్ స్థలంపై";
+"distance_from_your_location" = "మీ స్థలానికి దూరం";
+"streaming_link" = "స్ట్రీమింగ్ లింక్";
+"joining ?" = "చేరడానికి ?";
+"joined" = "చేరారు";
+"...Read less" = "...తక్కువ చదవండి";
+"...Read more" = "...మరింత చదవండి";
+
+// Followers List Screen
+"no_user_found" = "ఏ వినియోగదారూ కనుగొనబడలేదు";
+"send_message" = "సందేశం పంపండి";
+
+// Story Detail Screen
+"are_you_sure_you_want_to_delete_this_story?" = "మీరు ఈ కథను తొలగించాలనుకుంటున్నారా?";
+"view_profile" = "ప్రొఫైల్ చూడండి";
+
+// Check in Screen
+"suggested_nearby_places" = "పరిశీలించిన సమీప ప్రాంతాలు";
+
+// Edit Story Image View
+"edit_story" = "కథను సవరించండి";
+"add" = "చేరుస్తు";
+"type_here" = "ఇక్కడ టైప్ చేయండి";
+"delete" = "తొలగించండి";
+
+// Edit Image View
+"edit_image" = "చిత్రాన్ని సవరించండి";
+
+// Notification View
+"no_notifications_yet" = "ఇప్పటివరకు ఏ నోటిఫికేషన్లు లేవు";
+"you_have_no_notifications_right_now_come_back_later" = "ప్రస్తుతం మీకు ఏ నోటిఫికేషన్లు లేవు.\n తరువాత తిరిగి రా";
+"decline" = "అంగీకరించండి";
+"accept" = "అంగీకరించండి";
+"following" = "అనుసరించటం";
+"follow" = "అనుసరించండి";
+"requested" = "కోరింది";
+
+// Comment Section View
+"no_comments_yet" = "ఇప్పటివరకు ఏ వ్యాఖ్యలు లేవు";
+"comments" = "వ్యాఖ్యలు";
+"no_comments" = "ఎవరు కూడా వ్యాఖ్యలు చేయలేదు";
+"add_comment" = "వ్యాఖ్య జోడించండి";
+
+// Blocked Users View
+"do_really_want_to_unblock_this_user" = "మీరు నిజంగా ఈ వినియోగదారుని అన్‌బ్లాక్ చేయాలనుకుంటున్నారా?";
+
+// Help and Support View
+"privacy" = "గోప్యత";
+"content" = "విషయం";
+"share" = "హంచండి";
+
+// Report View
+"why_are_you_reporting_this_user" = "మీరు ఈ వినియోగదారుని ఎందుకు నివేదిస్తున్నారు?";
+"why_are_you_reporting_this_post" = "మీరు ఈ పోస్ట్‌ను ఎందుకు నివేదిస్తున్నారు?";
+"Your report is anonymous. If someone is in immediate danger, call the local emergency services – don't wait." = "మీ నివేదన అనామికంగా ఉంటుంది. ఎవరైనా తక్షణ ముప్పులో ఉంటే, స్థానిక అత్యవసర సేవలకు కాల్ చేయండి – వేచి ఉండకండి.";
+"I just don't like it" = "నాకు ఇది నచ్చదు";
+"Bullying or unwanted contact" = "బుల్లింగ్ లేదా అనేకమైన సంబంధం";
+"Suicide, self-injury or eating disorders" = "ఆత్మహత్య, ఆత్మహానీ లేదా ఆహార సంబంధిత వ్యాధులు";
+"Violence, hate or exploitation" = "హింస, ద్వేషం లేదా దోపిడీ";
+"Selling or promoting restricted items" = "నిషేధించిన వస్తువులను అమ్మడం లేదా ప్రచారం చేయడం";
+"Nudity or sexual activity" = "నగ్నత్వం లేదా లైంగిక చర్య";
+"Scam, fraud or spam" = "మోసం, దొంగతనం లేదా స్పామ్";
+"False information" = "తప్పుడు సమాచారం";
+"Fake account" = "నకిలీ ఖాతా";
+"Impersonation" = "పోషకత్వం";
+"Harassment or bullying" = "హరాస్మెంట్ లేదా బుల్లింగ్";
+"Hate speech or symbols" = "హేట్ స్పీచ్ లేదా చిహ్నాలు";
+"Scam or fraud" = "మోసం లేదా దోపిడీ";
+"Posting inappropriate content" = "అసభ్యకరమైన విషయాన్ని పోస్ట్ చేయడం";
+"Violating community guidelines" = "సమూహ మార్గదర్శకాలను ఉల్లంఘించడం";
+
+"story_uploaded_successfully" = "కథను విజయవంతంగా అప్‌లోడ్ చేయబడింది";
+"you_have_logged_in_successfully" = "మీరు విజయవంతంగా లాగిన్ అయ్యారు.";
+"upload" = "అప్‌లోడ్";
+"no_video_uploaded_yet" = "ఇప్పటికీ ఏ వీడియో అప్‌లోడ్ చేయలేదు";
+"no_reviews_yet" = "ఇప్పటికీ ఏ సమీక్షలు లేవు";
+"no_post_uploaded_yet" = "ఇప్పటికీ ఏ పోస్ట్ అప్‌లోడ్ చేయలేదు";
+"no_photos_uploaded_yet" = "ఇప్పటికీ ఏ ఫోటోలు అప్‌లోడ్ చేయలేదు";
+"write_a_review" = "సమీక్షను రాయండి";
+"your_inbox_is_empty" = "మీ ఇన్‌బాక్స్ ఖాళీ";
+"no_one_send_a_message_to_you_yet" = "ఇప్పటివరకు ఎవరూ మీకు సందేశం పంపలేదు.";
+"Loading pdf..." = "PDF లోడ్ అవుతోంది...";
+
+"no_result_found" = "ఏ ఫలితము కనుగొనబడలేదు";
+"please_write_a_brief_message" = "దయచేసి సంక్షిప్త సందేశాన్ని రాయండి.";
+
+"this_account_is_private" = "ఈ ఖాతా ప్రైవేట్";
+"follow_this_account_to_see_their_photos_and_videos" = "వారి ఫోటోలు మరియు వీడియోలను చూడటానికి ఈ ఖాతాను అనుసరించండి.";
+"do_you_really_want_to_block_this_user" = "మీరు నిజంగా ఈ వినియోగదారుని బ్లాక్ చేయాలనుకుంటున్నారా?";
+
+"about_us_text" = "హోటల్ మీడియా అనేది ఒక మొబైల్ యాప్, ఇది హోటల్ సమీక్షలను మరియు సామాజిక మీడియా ఫీచర్లను కలుపుతుంది. వినియోగదారులు హోటళ్లు, బార్లు, పబ్‌లు, నైట్‌క్లబ్‌లు, రెస్టోరెంట్లు, కేఫ్‌లు, హోమ్‌స్టేలు, మరియు వివాహ భోజనాల banquetలు రేటింగ్ చేయగలుగుతారు, ఫీడ్‌బ్యాక్‌ను పంచుకోవచ్చు, ఫోటోలను పోస్ట్ చేయవచ్చు, మరియు ఇతర ప్రయాణికులతో అనుసంధానించవచ్చు. ఈ యాప్ హోటల్ శోధన, ఈవెంట్ సృష్టి, మరియు వ్యక్తిగత అనుకూల అనుభవాన్ని అందిస్తుంది. ఇది ప్రయాణాల కోసం సమర్థమైన నిర్ణయాలను తీసుకోవడంలో సహాయపడటానికి రూపొందించబడింది.";
+
+"number" = "సంఖ్య";
+"Hotel" = "హోటల్";
+"Bars / Clubs" = "బార్లు / క్లబ్బులు";
+"Home Stays" = "హోమ్ స్టేస్";
+"Marriage Banquets" = "వివాహ భోజనశాలలు";
+"Restaurant" = "రెస్టారెంట్";
+"type" = "రకం";
+"profession" = "వృత్తి";
+"Please enter a profession name." = "దయచేసి వృత్తి పేరును నమోదు చేయండి.";
+"Please select a profession." = "దయచేసి వృత్తిని ఎంచుకోండి.";
+"Others" = "ఇతరులు";
+"Business Person/ Man" = "వ్యాపారి/ పురుషుడు";
+"Government Sector/ Employee" = "ప్రభుత్వ రంగం/ ఉద్యోగి";
+"Self Employee/ Private Job" = "స్వయం ఉద్యోగి/ ప్రైవేట్ ఉద్యోగం";
+"Belongs To Hotel Industry" = "హోటల్ పరిశ్రమకు సంబంధించినది";
+"name" = "పేరు";
+"do_you_really_want_to_delete_this_post" = "మీరు నిజంగా ఈ పోస్ట్‌ను తొలగించాలనుకుంటున్నారా?";
+"you_cannot_select_more_than_10_items" = "మీరు 10 కంటే ఎక్కువ అంశాలను ఎంచుకోలేరు.";
+"remove" = "काढून टाका";
+
+"export_chat" = "చాట్ ఎగుమతి చేయండి";
+"delete_chat" = "చాట్ తొలగించండి";
+"user_blocked_successfully" = "వాడుకరిని విజయవంతంగా బ్లాక్ చేశారు.";
+"failed_to_block_the_user" = "వాడుకరిని బ్లాక్ చేయడంలో విఫలమయ్యింది.";
+"internal_server_error_please_try_again" = "ఆంతరిక సర్వర్ దోషం. దయచేసి మళ్ళీ ప్రయత్నించండి.";
+"chat_deleted_successfully" = "చాట్ విజయవంతంగా తొలగించబడింది.";
+"failed_to_delete_chat" = "చాట్ తొలగించడంలో విఫలమయ్యింది.";
+"chat_exported_successfully" = "చాట్ విజయవంతంగా ఎగుమతి చేయబడింది.";
+"failed_to_export_chat" = "చాట్ ఎగుమతి చేయడంలో విఫలమయ్యింది.";
+"offensive_language" = "ఆగ్రహకర భాష";
+"spam" = "స్పామ్";
+"hate_speech" = "ద్వేషపూరిత ప్రసంగం";
+"harassment" = "నిరసనం";
+"bullying" = "బుల్లీయింగ్";
+"personal_attacks" = "వ్యక్తిగత దాడులు";
+"false_information" = "తప్పుడు సమాచారం";
+"misinformation" = "భ్రాంతికర సమాచారం";
+"promoting_violence" = "హింసను ప్రోత్సహించడం";
+"inappropriate_content" = "అశోభన విషయాలు";
+"self_harm_or_suicide" = "ఆత్మహత్య లేదా స్వీయ దెబ్బలు";
+"scam_or_fraud" = "మోసం లేదా కటంకం";
+"irrelevant_content" = "అప్రసంగిక విషయాలు";
+"threatening_behavior" = "హమీల పూర్వక ప్రవర్తన";
+"graphic_content" = "గ్రాఫిక్ కంటెంట్";
+"why_are_you_reporting_this_comment" = "మీరు ఈ వ్యాఖ్యను ఎందుకు నివేదిస్తున్నారు?";
+"you_cannot_select_larger_than_5_MB" = "మీరు 5 MB కంటే పెద్ద ఫైల్‌ని ఎంచుకోలేరు.";
+"gstn" = "జీఎస్టీఐఎన్ నంబర్";
+"nearby" = "సమీపంలో";
+"suggestions" = "సూచనలు";
+"show_in_map" = "మ్యాప్‌లో చూపించు";
+"attachment" = "అటాచ్‌మెంట్";
+"this_user_is_not_registered_with_THM." = "ఈ వినియోగదారు THMతో నమోదు చేయబడలేదు.";
+"suggested_for_you" = "మీకోసం సూచించబడినవి";
+"feeling_angry" = "కోపంగా ఉంది";
+"feeling_excited" = "ఆతృతగా ఉంది";
+"feeling_surprised" = "ఆశ్చర్యంగా ఉంది";
+"feeling_scared" = "భయంగా ఉంది";
+"feeling_confused" = "గందరగోళంగా ఉంది";
+"feeling_tired" = "అలసిపోయినట్టు ఉంది";
+"feeling_nervous" = "ఆందోళనగా ఉంది";
+"feeling_bored" = "వేడుకగా లేదు";
+"feeling_anxious" = "ఆత్రుతగా ఉంది";
+"feeling_embarrassed" = "సిగ్గుగా ఉంది";
+"feeling_grateful" = "కృతజ్ఞతగా ఉంది";
+"feeling_proud" = "గర్వంగా ఉంది";
+"feeling_lonely" = "ఏకాంతంగా ఉంది";
+"feeling_hopeful" = "ఆశతో ఉంది";
+"feeling_love" = "ప్రేమగా ఉంది";
+"feeling_jealous" = "అసూయగా ఉంది";
+"feeling_curious" = "ఆసక్తిగా ఉంది";
+"feeling_ashamed" = "చీకటిగా ఉంది";
+"feeling_guilty" = "తప్పుగా ఉంది";
+"feeling_determined" = "దృఢ సంకల్పంగా ఉంది";
+"feeling_relieved" = "విడుదలగా ఉంది";
+"feeling_shocked" = "శాక్ అయ్యాను";
+"feeling_disappointed" = "నిరాశగా ఉంది";
+"feeling_frustrated" = "గందరగోళంగా ఉంది";
+"feeling_amazed" = "ఆశ్చర్యపోయాను";
+"feeling_confident" = "ఆత్మవిశ్వాసంగా ఉంది";
+"feeling_indifferent" = "అసంగతంగా ఉంది";
+"feeling_hilarious" = "వినోదంగా ఉంది";
+"feeling_rolling_with_laughter" = "చిరునవ్వులతో ఉంటోంది";
+"feeling_loved" = "ప్రీతిగా ఉంది";
+"feeling_caring" = "కార్యదక్షతగా ఉంది";
+"feeling_miserable" = "తక్కువగా ఉంది";
+"feeling_exhausted" = "గొంతుకలిగి ఉంది";
+"feeling_overwhelmed" = "అధికభారం ఉంది";
+"feeling_celebratory" = "పండుగలా ఉంది";
+"feeling_mind_blown" = "మైండ్-బ్లోన్ అయ్యాను";
+"feeling_worried" = "చింతగా ఉంది";
+"feeling_hungry" = "ఆకలిగా ఉంది";
+"feeling_happy" = "ఆనందంగా ఉన్నాను";
+"feeling_sad" = "దుఃఖంగా ఉన్నాను";
+"feeling_angry" = "కోపంగా ఉన్నాను";
+"feeling_excited" = "ఆకాంక్షతో ఉన్నాను";
+"feeling_surprised" = "ఆశ్చర్యంగా ఉన్నాను";
+"feeling_scared" = "భయంతో ఉన్నాను";
+"feeling_confused" = "సందిగ్ధంగా ఉన్నాను";
+"users" = "వినియోగదారులు";
+"day ago" = "రోజు క్రితం";
+"days ago" = "రోజుల క్రితం";
+"hour ago" = "గంట క్రితం";
+"hours ago" = "గంటల క్రితం";
+"min ago" = "నిమిషం క్రితం";
+"sec ago" = "సెకన్ల క్రితం";
+"no_internet_connection" = "ఇంటర్నెట్ కనెక్షన్ లేదు.";
+"your_post_has_been_uploaded_and_will_be_live_shortly" = "మీ పోస్ట్ అప్లోడ్ చేయబడింది మరియు త్వరలో లైవ్ అవుతుంది.";
+"language_changed_successfully" = "భాష విజయవంతంగా మార్చబడింది.";
+"do_you_really_want_to_delete_the_chat_with_this_user" = "మీరు నిజంగానే ఈ వినియోగదారునితో ఉన్న చాట్‌ని తొలగించాలనుకుంటున్నారా?";
+"this_is_a_free_plan" = "ఇది ఒక ఉచిత ప్రణాళిక.";
+"there_is_an_error_performing_your_request" = "మీ అభ్యర్థనను ప్రాసెస్ చేసే సమయంలో పొరపాటు జరిగింది!";
+"Dark Mode" = "డార్క్ మోడ్";
+"Theme" = "థీమ్";
+"add_details" = "వివరాలు జోడించండి";
+"guest" = "అతిథి";
+"Check-in" = "చెక్-ఇన్";
+"Check-out" = "చెక్-అవుట్";
+"Guest and room" = "అతిథి మరియు గది";
+"Traveling with pet" = "పెట్‌తో ప్రయాణం";
+"Children" = "పిల్లలు";
+"Proceed" = "కొనసాగించు";
+"Next" = "తర్వాత";
+"Select Age" = "వయసును ఎంచుకోండి";
+"Plan Details" = "ప్లాన్ వివరాలు";
+"Available Rooms" = "అందుబాటులో గదులు";
+"Room Details" = "గదుల వివరాలు";
+"Some helpful facts" = "కొన్ని ఉపయోగకరమైన విషయాలు";
+"Check-in-out" = "చెక్-ఇన్-అవుట్";
+"Check-in/ Check-out" = "చెక్-ఇన్/చెక్-అవుట్";
+"Check-in from:" = "చెక్-ఇన్ ప్రారంభం:";
+"Check-out from:" = "చెక్-అవుట్ ప్రారంభం:";
+"Languages spoken" = "మాట్లాడే భాషలు";
+"Amenities" = "సౌకర్యాలు";
+"See all" = "అన్నీ చూడండి";
+"Property Images" = "ప్రాపర్టీ చిత్రాలు";
+"Booking Confirmation" = "బుకింగ్ నిర్ధారణ";
+"Change Room" = "గదిని మార్చండి";
+"Room type" = "గదుల రకం";
+"Convenience charges" = "సౌలభ్య రుసుము";
+"Phone Number" = "ఫోన్ నంబర్";
+"Email" = "ఇమెయిల్";
+"Name" = "పేరు";
+"Change" = "మార్చు";
+"Pay now" = "ఇప్పుడే చెల్లించండి";
+"Guest Details" = "అతిథి వివరాలు";
+"Please select all the children ages before proceeding." = "దయచేసి ముందుకు వెళ్లే ముందు అన్ని పిల్లల వయస్సును ఎంచుకోండి.";
+"Booking History" = "బుకింగ్ చరిత్ర";
+"No booking history" = "బుకింగ్ చరిత్ర లేదు";
+"Cancel Booking" = "బుకింగ్ రద్దు చేయండి";
+"Free Cancellation till" = "ఉచిత రద్దు వరకు";
+"Booking Details" = "బుకింగ్ వివరాలు";
+"Night" = "రాత్రి";
+"Nights" = "రాత్రులు";
+"Room" = "గది";
+"Booked on " = "బుక్ చేయబడిన తేదీ ";
+"Booking ID" = "బుకింగ్ ఐడీ";
+"Payment Method" = "చెల్లింపు విధానం";
+"Date & time" = "తేదీ & సమయం";
+"Total" = "మొత్తం";
+"Book a table" = "టేబుల్ బుక్ చేయండి";
+"Time slot" = "సమయ స్లాట్";
+"Number of guest" = "అతిథుల సంఖ్య";
+"Submit" = "సమర్పించండి";
+"Please select a time slot before proceeding." = "దయచేసి ముందుకు వెళ్లే ముందు సమయ స్లాట్ ఎంచుకోండి.";
+"Book a Banquet" = "బాంక్వెట్ బుక్ చేయండి";
+"Type of Event" = "ఈవెంట్ రకం";
+"Number of Guests" = "అతిథుల సంఖ్య";
+"Please select an event type." = "దయచేసి ఈవెంట్ రకం ఎంచుకోండి.";
+"Please enter other event name in the field." = "దయచేసి ఫీల్డ్‌లో ఇతర ఈవెంట్ పేరు నమోదు చేయండి.";
+"Please select check-in/check-out dates." = "దయచేసి చెక్-ఇన్/చెక్-అవుట్ తేదీలు ఎంచుకోండి.";
+"Please select number of guests." = "దయచేసి అతిథుల సంఖ్య ఎంచుకోండి.";
+"Other Occasion" = "ఇతర సందర్భం";
+"Post Job" = "ఉద్యోగాన్ని పోస్ట్ చేయండి";
+"Job Title" = "ఉద్యోగ శీర్షిక";
+"Job Description" = "ఉద్యోగ వివరణ";
+"Joining Date" = "చేరే తేదీ";
+"Designation" = "హోదా";
+"Job Type" = "ఉద్యోగ రకం";
+"Experience" = "అనుభవం";
+"Salary Offer" = "జీతం ఆఫర్";
+"Number of Vacancies" = "ఖాళీల సంఖ్య";
+"Number of guests" = "అతిథుల సంఖ్య";
+"Booking For" = "ఎవరికి బుకింగ్";
+"Table Booking Details" = "పుటపెట్టే బుకింగ్ వివరాలు";
+"Type of Event" = "ఈవెంట్ రకం";
+"Please enter a title for the job." = "దయచేసి ఉద్యోగానికి శీర్షికను నమోదు చేయండి.";
+"Please select a job designation." = "దయచేసి ఉద్యోగ హోదాను ఎంచుకోండి.";
+"Please enter a brief job description." = "దయచేసి ఉద్యోగ వివరణను సంక్షిప్తంగా నమోదు చేయండి.";
+"Please select a job type." = "దయచేసి ఉద్యోగ రకాన్ని ఎంచుకోండి.";
+"Please select a minimum required experience for the job." = "దయచేసి ఉద్యోగానికి కావాల్సిన కనీస అనుభవాన్ని ఎంచుకోండి.";
+"Please select an offered salary range for the job." = "దయచేసి ఉద్యోగానికి ఆఫర్ చేసిన జీత శ్రేణిని ఎంచుకోండి.";
+"Please select number of vacancies available for the job." = "దయచేసి ఉద్యోగానికి అందుబాటులో ఉన్న ఖాళీల సంఖ్యను ఎంచుకోండి.";
+"Job Detail" = "ఉద్యోగ వివరాలు";
+"Change Location" = "ప్రాంతం మార్చండి";
+"No Businesses Found Nearby" = "పక్కన వ్యాపారాలు కనబడలేదు";
+"Hi, I'd like to apply for the job you shared. Let me know the next steps!" = "హాయ్, మీరు షేర్ చేసిన ఉద్యోగానికి నేను అప్లై చేయాలనుకుంటున్నాను. దయచేసి తదుపరి చర్యలు తెలియజేయండి!";
+"Booking Cancelled!" = "బుకింగ్ రద్దు చేయబడింది!";
+"Booking Summary" = "బుకింగ్ సారాంశం";
+"Try changing location!" = "స్థానాన్ని మార్చడానికి ప్రయత్నించండి!";
+"Book now" = "ఇప్పుడే బుక్ చేయండి";
+"Book Table" = "టేబుల్ బుక్ చేయండి";
+"Book Banquet" = "బాంకెట్ బుక్ చేయండి";
+"No rooms available" = "గదులు అందుబాటులో లేవు";
+"Skip" = "ముందుకు వెళ్లండి";  // Munduku veḷḷaṇḍi – means "Go forward"
+"Please select start date and start time." = "దయచేసి ప్రారంభ తేదీ మరియు ప్రారంభ సమయాన్ని ఎంచుకోండి.";
+"reject" = "తిరస్కరించు";
+"Please choose a logo image from gallery." = "దయచేసి గ్యాలరీ నుండి లోగో చిత్రం ఎంచుకోండి.";

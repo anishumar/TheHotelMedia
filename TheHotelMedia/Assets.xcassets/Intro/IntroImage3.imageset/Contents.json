@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "husband-wife-taking-selfie-while-kissing 1.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "husband-wife-taking-selfie-while-kissing 1@2x.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "husband-wife-taking-selfie-while-kissing 1@3x.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

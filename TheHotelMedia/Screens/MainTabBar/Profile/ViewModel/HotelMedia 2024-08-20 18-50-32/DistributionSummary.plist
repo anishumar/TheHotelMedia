@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>HotelMedia.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>1</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>0755FDF3907C2EAAF41C065ACB285015901837BF</string>
+				<key>dateExpires</key>
+				<string>13/08/25</string>
+				<key>type</key>
+				<string>Apple Development</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>GDT6V8X9B7.com.thehotelmedia.ios</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>GDT6V8X9B7</string>
+				<key>get-task-allow</key>
+				<true/>
+			</dict>
+			<key>name</key>
+			<string>HotelMedia.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>28767e65-3822-47c0-b6e0-84e59660fab3</string>
+				<key>dateExpires</key>
+				<string>13/08/25</string>
+				<key>name</key>
+				<string>THM Development Provisioning</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>GDT6V8X9B7</string>
+				<key>name</key>
+				<string>Amit Kesle</string>
+			</dict>
+			<key>versionNumber</key>
+			<string>1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>

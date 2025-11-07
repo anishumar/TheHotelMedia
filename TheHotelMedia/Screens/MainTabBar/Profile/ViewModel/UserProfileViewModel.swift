@@ -1,0 +1,1104 @@
+//
+//  BusinessProfileViewModel.swift
+//  HotelMedia
+//
+//  Created by MAC on 20/08/24.
+//
+
+import SwiftUI
+import SwiftfulRouting
+import Combine
+
+
+struct Amenity: Identifiable {
+    let id = UUID().uuidString
+    var title: String
+    var image: String
+}
+
+class UserProfileViewModel: ObservableObject {
+    
+    var router: AnyRouter
+    let dataManager = ProfileDataManager()
+    let connectionDataManager = UserConnectionsDataManager()
+    let checkInDataManager = PlacesDataManager()
+    let postDataManager = PostDataManager()
+    var cancellables = Set<AnyCancellable>()
+    @Published var isPrivateAccount: Bool = false
+    @Published var publicProfileID: String = ""
+    @Published var sharedByProfileID: String? = nil
+    var userProfileID: String = ""
+    @Published var currentTab: ProfileTab = .photos
+    @Published var photosArray: [MediaRef] = []
+    @Published var reviewsArray: [String] = []
+    var currentPage = 20
+    @Published var height: CGFloat = 200
+    @Published var profileData: ProfileData? = nil
+    var errorText: String = ""
+    @Published var showLoadingIndicator: Bool = false
+    var loadPostData: Bool = true
+    @Published var loadingPostData: Bool = false
+    @Published var totalPostData: [PostData] = []
+    var postDataPageNo: Int = 1
+    var postDataTotalPages: Int = 1
+    var imageDataPageNo: Int = 1
+    var imageDataTotalPages: Int = 1
+    var loadImageData: Bool = true
+    @Published var loadingImageData: Bool = false
+    @Published var videosArray: [MediaRef] = []
+    //    @Published var videosArray2: [MediaRef] = []
+    @Published var followButtonEnabled: Bool = true
+    @Published var showOptionView: Bool = false
+    @Published var isBlockedByMe: Bool = false
+    @Published var isOfficial: Bool = false
+    @Published var showBlockModalView: Bool = false
+    @Published var toShowLocationString: String = ""
+    @Published var showMapOptions: Bool = false
+    var businessReviewProfile: ProfileData? = nil
+    
+    var videoDataPageNo: Int = 1
+    var videoDataTotalPages: Int = 1
+    var loadVideoData: Bool = true
+    @Published var loadingVideoData: Bool = false
+    @Published var savedByMe: Bool = false
+    
+    
+    @Published var totalReviewData: [PostData] = []
+    var reviewDataPageNo: Int = 1
+    var reviewDataTotalPages: Int = 1
+    var loadReviewData: Bool = true
+    @Published var loadingReviewData: Bool = false
+    
+    var userFullName: String = ""
+    @Published var userProfilePic: String = ""
+    var userLocationString: String = ""
+    @Published var userIsIndividual: Bool = false
+    
+    @Published var selectedMedia: MediaType = .image(urlString: "")
+    @Published var selectedVideoMedia: MediaType = .video(urlString: "")
+    @Published var showPreview: Bool = false
+    @Published var showVideoPreview: Bool = false
+    
+    @Published var showPostOptionView: Bool = false
+    @Published var isReviewPost: Bool = false
+    @Published var postOptionYOffset: CGFloat = 0
+    @Published var selectedPostID: String = ""
+    
+    @AppStorage("name") var name: String = ""
+    @AppStorage("profilePic") var profilePic: String = ""
+    @AppStorage("emailID") var emailID: String = ""
+    @AppStorage("locationString") var locationString: String = ""
+    @AppStorage("isIndividual") var isIndividual: Bool = false
+    @AppStorage("ownUserID") var ownUserID: String = ""
+    @AppStorage("privateAccount") var privateAccount: Bool = false
+    @AppStorage("notificationEnabled") var notificationEnabled: Bool = true
+    
+    @Published var isSharePresented: Bool = false
+    @Published var shareURL: URL = URL(string: "https://thehotelmedia.com")!
+    
+    @Published var reportType: String = "user"
+    @Published var reportID: String = ""
+    @Published var showReportScreen: Bool = false
+    
+    @Published var showBigProfilePic: Bool = false
+    
+    var weatherIcon: CurrentValueSubject<String?, Never> = .init(nil)
+    var weatherTitle: CurrentValueSubject<String?, Never> = .init(nil)
+    @Published var showWeatherAmenity: Bool = false
+    
+    private var timerCancellable: AnyCancellable?
+    
+    var tempRangeTitle: String? = nil
+    var aqiTitle: String? = nil
+    var currentWeatherDetail = ""
+    
+    let localizationManager = LocalizationManager.shared
+    
+    
+    init(router: AnyRouter, publicProfileID: String = "", sharedByProfileID: String? = nil) {
+        self.router = router
+        self.publicProfileID = publicProfileID
+        self.sharedByProfileID = sharedByProfileID
+        addSubscribers()
+        startTimer()
+        if !publicProfileID.isEmpty {
+            getProfileData()
+        }
+        if let sharedByProfileID, !publicProfileID.isEmpty {
+            if let encryptedSharedID = EncryptionHelper.encrypt(publicProfileID),
+               let encryptedSharedByID = EncryptionHelper.encrypt(sharedByProfileID) {
+                sharedProfile(sharedID: encryptedSharedID, sharedByID: encryptedSharedByID)
+            }
+        }
+    }
+    
+    
+    func startTimer() {
+        timerCancellable = Timer
+            .publish(every: 3.0, on: .main, in: .common) // every 1 second
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                if currentWeatherDetail == "temp" {
+                    if let aqiTitle, aqiTitle.isNotEmpty {
+                        weatherTitle.send(aqiTitle)
+                        weatherIcon.send("AQI")
+                        currentWeatherDetail = "aqi"
+                    }
+                    
+                } else if currentWeatherDetail == "aqi" {
+                    if let tempRangeTitle, tempRangeTitle.isNotEmpty {
+                        weatherTitle.send(tempRangeTitle)
+                        weatherIcon.send("summer")
+                        currentWeatherDetail = "temp"
+                    }
+                } else {
+                    if let tempRangeTitle, tempRangeTitle.isNotEmpty {
+                        weatherTitle.send(tempRangeTitle)
+                        weatherIcon.send("summer")
+                        currentWeatherDetail = "temp"
+                        return
+                    }
+                    
+                    if let aqiTitle, aqiTitle.isNotEmpty {
+                        weatherTitle.send(aqiTitle)
+                        weatherIcon.send("AQI")
+                        currentWeatherDetail = "aqi"
+                        return
+                    }
+                }
+                
+                guard showWeatherAmenity != currentWeatherDetail.isNotEmpty else { return }
+                showWeatherAmenity = currentWeatherDetail.isNotEmpty
+            }
+    }
+    
+    deinit {
+        timerCancellable?.cancel()
+    }
+    
+    
+    func addSubscribers() {
+        $profileData
+            .sink { [weak self] data in
+                guard let self else { return }
+                if let data {
+                    
+                    if publicProfileID.isEmpty {
+                        if data.accountType == "individual" {
+                            profilePic = data.profilePic?.small ?? ""
+                            name = data.name ?? ""
+                            isIndividual = true
+                            emailID = data.email ?? ""
+                            
+                            if let address = data.address {
+                                locationString = "\(address.street ?? ""), \(address.city ?? ""), \(address.state ?? ""), \(address.zipCode ?? ""), \(address.country ?? "")"
+                            } else {
+                                locationString = ""
+                            }
+                            
+                        } else if data.accountType == "business" {
+                            profilePic = data.businessProfileRef?.profilePic?.small ?? ""
+                            name = data.businessProfileRef?.name ?? ""
+                            
+                            if let address = data.businessProfileRef?.address {
+                                locationString = "\(address.street ?? ""), \(address.city ?? ""), \(address.state ?? ""), \(address.zipCode ?? ""), \(address.country ?? "")"
+                                
+                                
+                            } else {
+                                locationString = ""
+                            }
+                            isIndividual = false
+                            
+                            emailID = data.email ?? ""
+                        }
+                        
+                        ownUserID = data.id ?? ""
+                        privateAccount = data.privateAccount ?? true
+                        notificationEnabled = data.notificationEnabled ?? true
+                    }
+                    
+                    
+                    if !publicProfileID.isEmpty {
+                        if let role = data.role, role == "official" {
+                            isOfficial = true
+                        }
+                    }
+                    
+                    
+                    
+                    if data.accountType == "individual" {
+                        userProfilePic = data.profilePic?.small ?? ""
+                        userFullName = data.name ?? ""
+                        userIsIndividual = true
+                        
+                    } else if data.accountType == "business"{
+                        userProfilePic = data.businessProfileRef?.profilePic?.small ?? ""
+                        userFullName = data.businessProfileRef?.name ?? ""
+                        
+                        if let address = data.businessProfileRef?.address {
+                            userLocationString = "\(address.street ?? ""), \(address.city ?? ""), \(address.state ?? ""), \(address.zipCode ?? ""), \(address.country ?? "")"
+                            
+                            toShowLocationString = "\(address.city ?? ""), \(address.state ?? ""), \(address.country ?? "")"
+                        }
+                        userIsIndividual = false
+                        
+                        viewedProfile(id: data.businessProfileID ?? "")
+                    }
+                    
+                    isBlockedByMe = data.isBlockedByMe ?? false
+                    
+                    let degreeSymbol = "\u{00B0}"
+                    let minTemp = data.weather?.main?.feelsLike ?? 273.15
+                    let maxTemp = data.weather?.main?.tempMax ?? 273.15
+                    
+                    let minTempInC = Int(minTemp - 273.15)
+                    let maxTempInC = Int(maxTemp - 273.15)
+                    
+                    
+                    
+                    if data.weather == nil {
+                        tempRangeTitle = "N/A"
+                    } else {
+                        tempRangeTitle = "\(minTempInC)\(degreeSymbol)C - \(maxTempInC)\(degreeSymbol)C"
+                    }
+                    
+                    weatherTitle.send(tempRangeTitle)
+                    weatherIcon.send("summer")
+                    currentWeatherDetail = "temp"
+                    showWeatherAmenity = true
+                    
+                    if let list = data.weather?.airPollution?.list, list.isNotEmpty {
+                        let aqiData = list[0]
+                        if let components = aqiData.components {
+                            if let pm2_5 = components["pm2_5"] {
+                                let aqiInt = pm2_5.toAQI()
+                                aqiTitle = "AQI \(aqiInt)"
+                            }
+                        }
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        //        $videosArray
+        //            .sink { [weak self] mediaArray in
+        //                guard let self else { return }
+        //
+        //                self.loadingVideoData = true
+        //
+        //                Task {
+        //
+        //                    let mediaWithThumbnails = await self.fetchThumbnailImages(mediaArray: mediaArray)
+        //
+        //                    await MainActor.run {
+        //                        self.loadingVideoData = false
+        //                        var newArray = mediaArray
+        //
+        //                        for mediaWithThumbnail in mediaWithThumbnails {
+        //                            for (index,media) in self.videosArray.enumerated() {
+        //                                if media.id == mediaWithThumbnail.id {
+        //                                    newArray[index] = mediaWithThumbnail
+        //                                    break
+        //                                }
+        //
+        //                            }
+        //                        }
+        //                        print(self.videosArray)
+        //                        self.videosArray2 = newArray
+        //                    }
+        //                }
+        //            }
+        //            .store(in: &cancellables)
+    }
+    
+    
+    func fetchThumbnailImages(mediaArray: [MediaRef]) async -> [MediaRef] {
+        await withTaskGroup(of: MediaRef?.self) { group -> [MediaRef] in
+            var results: [MediaRef] = []
+            
+            for media in mediaArray {
+                group.addTask { await self.generateImage(media: media) }
+            }
+            
+            // Collect results as tasks complete
+            for await result in group {
+                if let validMedia = result {
+                    results.append(validMedia)
+                }
+            }
+            return results
+        }
+    }
+    
+    
+    func generateImage(media: MediaRef) async -> MediaRef? {
+        
+        var newMedia = media
+        
+        guard media.mediaType == "video" else { return nil }
+        
+        if let image = try? await URL(string: media.sourceURL ?? "")!.generateVideoThumbnail() {
+            newMedia.videoThumbnail = image
+            return newMedia
+        } else {
+            return nil
+        }
+    }
+    
+    
+    
+    func changeHeight() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            self.height = 800
+        }
+    }
+    
+    
+    func showSettingScreen() {
+        router.showScreen(.push) { router in
+            SettingsViews(viewModel: SettingsViewsModel(router: router))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    func showEditProfileScreen(profileData: ProfileData) {
+        router.showScreen(.push) { router in
+            EditProfileView(viewModel: EditProfileViewModel(router: router, profileData: profileData))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    func showFollowersListScreen(show: String) {
+        if publicProfileID.isEmpty {
+            router.showScreen(.push) { router in
+                FollowerListView(viewModel: FollowerListViewModel(router: router, id: self.userProfileID, username: self.profileData?.username ?? "", currentTab: show))
+                    .environmentObject(ThemeManager.shared)
+                    .navigationBarBackButtonHidden()
+            }
+        } else {
+            if isPrivateAccount {
+                if let isConnected = profileData?.isConnected {
+                    if isConnected {
+                        router.showScreen(.push) { router in
+                            FollowerListView(viewModel: FollowerListViewModel(router: router, id: self.publicProfileID, username: self.profileData?.username ?? "", currentTab: show))
+                                .environmentObject(ThemeManager.shared)
+                                .navigationBarBackButtonHidden()
+                        }
+                    }
+                }
+            } else {
+                router.showScreen(.push) { router in
+                    FollowerListView(viewModel: FollowerListViewModel(router: router, id: self.publicProfileID, username: self.profileData?.username ?? "", currentTab: show))
+                        .environmentObject(ThemeManager.shared)
+                        .navigationBarBackButtonHidden()
+                }
+            }
+        }
+        
+    }
+    
+    
+    func showCreateReviewScreen(profile: ProfileData) {
+        router.showScreen(.push) { router in
+            CreateReviewView(viewModel: CreateReviewViewModel(router: router, reviewPlace: profile))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    func dismissScreen() {
+        router.dismissScreen()
+    }
+    
+    
+    func showBlockModal() {
+        BottomModalManager.horizontalStyleModal(
+            router: router,
+            title: "do_you_really_want_to_block_this_user".localized(localizationManager.language),
+            rightButtonTitle: "no".localized(localizationManager.language),
+            leftButtonTitle: "yes".localized(localizationManager.language)) {
+                self.blockUser()
+            } onRightButtonPressed: {
+                
+            } onDismiss: {
+                
+            }
+    }
+    
+    
+    func showUnblockModal() {
+        BottomModalManager.horizontalStyleModal(
+            router: router,
+            title: "do_really_want_to_unblock_this_user".localized(localizationManager.language),
+            rightButtonTitle: "no".localized(localizationManager.language),
+            leftButtonTitle: "yes".localized(localizationManager.language)) {
+                self.blockUser()
+            } onRightButtonPressed: {
+                
+            } onDismiss: {
+                
+            }
+    }
+    
+    
+    func showShareView() {
+        
+        let baseURLString = "https://thehotelmedia.com/share/users"
+        
+        if !publicProfileID.isEmpty && !ownUserID.isEmpty {
+            
+            if let encryptedToShareProfileID = EncryptionHelper.encrypt(publicProfileID),
+               let encryptedSharedByProfileID = EncryptionHelper.encrypt(ownUserID) {
+                
+                shareURL = URL(string: "\(baseURLString)?id=\(encryptedToShareProfileID)&userID=\(encryptedSharedByProfileID)")!
+                isSharePresented.toggle()
+                
+            }
+            
+        } else if !ownUserID.isEmpty {
+            
+            if let encryptedProfileID = EncryptionHelper.encrypt(ownUserID) {
+                shareURL = URL(string: "\(baseURLString)?id=\(encryptedProfileID)&userID=\(encryptedProfileID)")!
+                isSharePresented.toggle()
+            }
+        }
+    }
+    
+    
+    func showChatScreen() {
+        router.showScreen(.push) { router in
+            if let username = self.profileData?.username {
+                ChatView(viewModel: ChatViewModel(router: router, username: username, userID: self.profileData?.id ?? "", profilePic: self.userProfilePic, name: self.userFullName, lastScreen: "profile"), onLeaveChat: { returnedUsername in
+                    SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                })
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+            }
+        }
+    }
+    
+    
+    func showUserProfileScreen(id: String) {
+        router.showScreen(.push) { router in
+            UserProfileView(createPostOn:  .constant(false), viewModel: UserProfileViewModel(router: router, publicProfileID: id))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    
+    
+    func showEventDetailScreen(id: String) {
+        router.showScreen(.push) { router in
+            EventDetailView(viewModel: EventDetailViewModel(router: router, postID: id), onPressedJoin: { [weak self] eventID in
+                guard let self else { return }
+                
+                if var event = totalPostData.first(where: {$0.id == eventID}) {
+                    if let imJoining = event.imJoining {
+                        event.imJoining = !imJoining
+                    } else {
+                        event.imJoining = true
+                    }
+                    
+                    if let index = totalPostData.firstIndex(where: { $0.id == eventID }) {
+                        totalPostData[index] = event
+                    }
+                }
+                
+                
+            }, onPressedShare: { [weak self] eventID in
+                guard let self else { return }
+                
+                if var event = totalPostData.first(where: {$0.id == eventID}) {
+                    if let savedByMe = event.savedByMe {
+                        event.savedByMe = !savedByMe
+                    } else {
+                        event.savedByMe = true
+                    }
+                    
+                    if let index = totalPostData.firstIndex(where: { $0.id == eventID }) {
+                        totalPostData[index] = event
+                    }
+                }
+            })
+            .environmentObject(ThemeManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    func showDeletePostModal() {
+        BottomModalManager.horizontalStyleModal(
+            router: router,
+            title: "do_you_really_want_to_delete_this_post".localized(localizationManager.language),
+            rightButtonTitle: "no".localized(localizationManager.language),
+            leftButtonTitle: "yes".localized(localizationManager.language)) {
+                self.deletePost(id: self.selectedPostID) {
+                    if let index = self.totalPostData.firstIndex(where: {$0.id == self.selectedPostID}) {
+                        self.totalPostData.remove(at: index)
+                    }
+                }
+                
+            } onRightButtonPressed: {
+                
+            } onDismiss: {
+                
+            }
+    }
+    
+    
+    func showCreatePostScreen() {
+        router.showScreen(.push) { router in
+            CreatePostScreen(viewModel: CreatePostViewModel(router: router, onPostCreated: { [weak self] in
+                guard let self else { return }
+                
+            }))
+            .environmentObject(ThemeManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
+    
+    func showCreateReviewScreen(id: String? = nil, placeID: String? = nil) {
+        router.showScreen(.push) { router in
+            CreateReviewView(viewModel: CreateReviewViewModel(router: router, businessProfileID: id, placeID: placeID, onReviewCreated: { [weak self] in
+                guard let self else { return }
+                //                refreshHomeData = true
+            }))
+            .environmentObject(ThemeManager.shared)
+            .navigationBarBackButtonHidden()
+            
+        }
+    }
+    
+    
+    func showCreateEventScreen() {
+        router.showScreen(.push) { router in
+            CreateEventScreen(viewModel: CreateEventViewModel(router: router, onEventCreated: { [weak self] in
+                guard let self else { return }
+                //                refreshHomeData = true
+            }))
+            .environmentObject(ThemeManager.shared)
+            .navigationBarBackButtonHidden()
+            
+        }
+    }
+    
+    
+    func showBookingInfoScreen() {
+        router.showScreen(.push) { router in
+            BookingInfoView(viewModel: BookingInfoViewModel(router: router, profileData: self.profileData))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    func showBookTableScreen() {
+        if let profileData {
+            router.showScreen(.push) { router in
+                BookingTableInfoView(viewModel: BookingTableInfoViewModel(router: router, profileData: profileData))
+                    .environmentObject(ThemeManager.shared)
+                    .navigationBarBackButtonHidden()
+            }
+        }
+    }
+    
+    
+    func showBookBanquetScreen() {
+        if let profileData {
+            router.showScreen(.push) { router in
+                BookingBanquetInfoView(viewModel: BookingBanquetInfoViewModel(router: router, profileData: profileData))
+                    .environmentObject(ThemeManager.shared)
+                    .navigationBarBackButtonHidden()
+            }
+        }
+    }
+}
+
+
+// MARK: - Networking
+extension UserProfileViewModel {
+    func getProfileData() {
+        if profileData == nil {
+            showLoadingIndicator = true
+        }
+        
+        Task {
+            do {
+                if publicProfileID.isEmpty {
+                    let result = try await dataManager.getProfile()
+                    
+                    await MainActor.run {
+                        showLoadingIndicator = false
+                        
+                        if result.status && result.statusCode == 200 || result.status && result.statusCode == 201 {
+                            if let data = result.data {
+                                profileData = data
+                                userProfileID = data.id ?? ""
+                                isPrivateAccount = false
+                                getImages()
+                            }
+                        } else {
+                            errorText = result.message
+                            ErrorModalManager.showErrorModal(router: router, errorText: errorText)
+                        }
+                    }
+                } else {
+                    let result = try await dataManager.getPublicProfile(id: publicProfileID)
+                    
+                    await MainActor.run {
+                        showLoadingIndicator = false
+                        
+                        if result.status && result.statusCode == 200 || result.status && result.statusCode == 201 {
+                            if let data = result.data {
+                                isPrivateAccount = data.privateAccount ?? true
+                                profileData = data
+                                userProfileID = publicProfileID
+                                
+                                if !isPrivateAccount || data.isConnected ?? false {
+                                    getImages()
+                                }
+                            }
+                        } else {
+                            errorText = result.message
+                            ErrorModalManager.showErrorModal(router: router, errorText: errorText)
+                        }
+                    }
+                }
+                
+                
+            } catch {
+                await MainActor.run {
+                    showLoadingIndicator = false
+                }
+                print(error)
+            }
+        }
+    }
+    
+    
+    func getPostData() {
+        
+        guard !userProfileID.isEmpty else { return }
+        
+        guard loadPostData else { return }
+        
+        guard postDataPageNo <= postDataTotalPages else { return }
+        
+        loadingPostData = true
+        
+        Task {
+            do {
+                let result = try await dataManager.getProfilePosts(id: userProfileID, pageNo: postDataPageNo)
+                    
+                await MainActor.run {
+                    loadingPostData = false
+                    
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            totalPostData += data
+                            loadPostData = false
+                            postDataPageNo = result.pageNo ?? 1
+                            postDataTotalPages = result.totalPages ?? 1
+                        }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    loadingPostData = false
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    
+    func getImages() {
+        guard !userProfileID.isEmpty else { return }
+        
+        guard loadImageData else { return }
+        
+        guard imageDataPageNo <= imageDataTotalPages else { return }
+        
+        loadingImageData = true
+        
+        Task {
+            do {
+                let result = try await dataManager.getProfilePostImages(id: userProfileID, pageNo: imageDataPageNo)
+                    
+                await MainActor.run {
+                    loadingImageData = false
+                    
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            if let firstMedia = result.data?.first {
+                                if photosArray.contains([firstMedia]) {
+                                    loadImageData = false
+                                    return
+                                } else {
+                                    photosArray += data
+                                    imageDataPageNo = result.pageNo ?? 1
+                                    imageDataTotalPages = result.totalPages ?? 1
+                                    loadImageData = false
+                                }
+                            }
+                        }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    loadingImageData = false
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    
+    func getVideos() {
+        guard !userProfileID.isEmpty else { return }
+        
+        guard loadVideoData else { return }
+        
+        guard videoDataPageNo <= videoDataTotalPages else { return }
+        
+        loadingVideoData = true
+        
+        Task {
+            do {
+                let result = try await dataManager.getProfilePostVideos(id: userProfileID, pageNo: videoDataPageNo)
+                    
+                await MainActor.run {
+                    loadingVideoData = false
+                    
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            if let firstMedia = result.data?.first {
+                                if videosArray.contains([firstMedia]) {
+                                    loadVideoData = false
+                                    return
+                                } else {
+                                    videosArray += data
+                                    videoDataPageNo = result.pageNo ?? 1
+                                    videoDataTotalPages = result.totalPages ?? 1
+                                    loadVideoData = false
+                                }
+                            }
+                        }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    loadingVideoData = false
+                    print(error)
+                }
+            }
+        }
+        
+    }
+    
+    
+    func getReviewsData() {
+        
+        guard !userProfileID.isEmpty else { return }
+        
+        guard loadReviewData else { return }
+        
+        guard reviewDataPageNo <= reviewDataTotalPages else { return }
+        
+        loadingReviewData = true
+        
+        Task {
+            do {
+                let result = try await dataManager.getBusinessReviews(id: userProfileID, pageNo: reviewDataPageNo)
+                    
+                await MainActor.run {
+                    loadingReviewData = false
+                    
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            totalReviewData += data
+                            loadReviewData = false
+                            reviewDataPageNo = result.pageNo ?? 1
+                            reviewDataTotalPages = result.totalPages ?? 1
+                        }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    loadingReviewData = false
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    
+    func followUser() {
+        followButtonEnabled = false
+        
+        Task {
+            do {
+                let result = try await connectionDataManager.followUser(id: publicProfileID)
+                
+                await MainActor.run {
+                    followButtonEnabled = true
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            if data.status == "pending" {
+                                profileData?.isRequested = true
+                            } else if data.status == "accepted" {
+                                profileData?.isRequested = false
+                                profileData?.isConnected = true
+                            }
+                        }
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    followButtonEnabled = true
+                }
+                print(error)
+            }
+        }
+    }
+    
+    
+    func unfollowUser() {
+        followButtonEnabled = false
+        
+        Task {
+            do {
+                let result = try await connectionDataManager.unFollowUser(id: publicProfileID)
+                
+                await MainActor.run {
+                    followButtonEnabled = true
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        profileData?.isRequested = false
+                        profileData?.isConnected = false
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    followButtonEnabled = true
+                }
+                print(error)
+            }
+        }
+    }
+    
+    
+    func getReviewProfile(placeID: String, businessProfileID: String = "") {
+        
+        if let businessReviewProfile {
+            showCreateReviewScreen(profile: businessReviewProfile)
+            return
+        }
+        
+        showLoadingIndicator = true
+        
+        Task {
+            do {
+                let result = try await checkInDataManager.getBusinessProfile(placeID: placeID, businessProfileID: businessProfileID)
+                
+                await MainActor.run {
+                    showLoadingIndicator = false
+                    if result.status && result.statusCode == 200 || result.status && result.statusCode == 201 {
+                        if var data = result.data {
+                            data.businessProfileRef?.placeID = placeID
+                            businessReviewProfile = data
+                            showCreateReviewScreen(profile: data)
+                        }
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    showLoadingIndicator = false
+                }
+                print(error)
+            }
+        }
+    }
+    
+    
+    func blockUser() {
+        Task {
+            do {
+                let result = try await dataManager.blockUser(id: publicProfileID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    
+                    if result.status && range.contains(result.statusCode) {
+                        getProfileData()
+                    }
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func redirectedToWebsite(id: String) {
+        let parameters: [String: Any] = [
+            "type" : "website-redirection",
+            "businessProfileID" : id
+        ]
+        
+        Task {
+            do {
+                let result = try await dataManager.collectData(parameters: parameters)
+                
+                await MainActor.run {
+                    let range = 200...204
+                        
+                    if result.status && range.contains(result.statusCode) {
+                        print("Redirected to website")
+                    }
+                }
+                
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func viewedProfile(id: String) {
+        let parameters: [String: Any] = [
+            "type" : "account-reach",
+            "businessProfileID" : id
+        ]
+        
+        Task {
+            do {
+                let result = try await dataManager.collectData(parameters: parameters)
+                
+                await MainActor.run {
+                    let range = 200...204
+                        
+                    if result.status && range.contains(result.statusCode) {
+                        print("Redirected to website")
+                    }
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func reportPost(id: String) {
+        Task {
+            do {
+                let result = try await postDataManager.reportPost(id: id)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    
+                    if result.status  && range.contains(result.statusCode) {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func sharedProfile(sharedID: String, sharedByID: String) {
+        Task {
+            do {
+                let result = try await dataManager.profileShared(sharedID: sharedID, sharedByID: sharedByID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        print("Profile Shared Api Hit Successfully !!!")
+                    }
+                }
+                
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func reportProfile() {
+        guard !publicProfileID.isEmpty else { return }
+        
+        Task {
+            do {
+                let result = try await dataManager.reportProfile(id: publicProfileID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func deletePost(id: String, completionHandler: (() -> Void)?) {
+        showLoadingIndicator = true
+        Task {
+            do {
+                let result = try await postDataManager.deletePost(postID: id)
+                
+                await MainActor.run {
+                    showLoadingIndicator = false
+                    let range = 200...204
+                    
+                    if result.status && range.contains(result.statusCode) {
+                        completionHandler?()
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    showLoadingIndicator = false
+                }
+                print(error)
+            }
+        }
+    }
+}
