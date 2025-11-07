@@ -170,6 +170,10 @@ extension SinglePostView {
                         viewModel.commentFieldText = ""
                         viewModel.newComment = ""
                         viewModel.replyingComment = nil
+                    }, onDeletingComment: { postID in
+                        if let commentsCount = viewModel.data?.comments {
+                            viewModel.data?.comments = max(0, commentsCount - 1)
+                        }
                     }), isEmbedded: true, onPressedProfile: { profileID in
                         viewModel.showProfileScreen(userID: profileID)
                         

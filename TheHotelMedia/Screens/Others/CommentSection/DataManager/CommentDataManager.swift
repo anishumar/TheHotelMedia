@@ -44,4 +44,16 @@ class CommentDataManager {
         
         return result
     }
+    
+    
+    func deleteComment(commentID: String) async throws -> DeleteCommentResponse {
+        
+        guard let url = URL(string: "\(URL.deleteComment.absoluteString)\(commentID)") else { throw NetworkError.badURL }
+        
+        let resource = Resource<DeleteCommentResponse>(url: url, method: .delete)
+        
+        let result = try await baseNetworkManager.accessLoad(resource)
+        
+        return result
+    }
 }

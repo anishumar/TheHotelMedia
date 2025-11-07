@@ -16,6 +16,7 @@ class CommentSectionViewModel: ObservableObject {
     var postID: String
     @Published var totalComments: Int
     var onAddingComment: ((String) -> Void)?
+    var onDeletingComment: ((String) -> Void)?
     let dataManager = CommentDataManager()
     var cancellables = Set<AnyCancellable>()
     @Published var comments: [Comment] = []
@@ -38,10 +39,11 @@ class CommentSectionViewModel: ObservableObject {
     @Published var showReportScreen: Bool = false
     @Published var showReportMessage: Bool = false
     
-    init(postID: String, totalComments: Int, isEmbedded: Bool = false, onAddingComment:((String) -> Void)? = nil){
+    init(postID: String, totalComments: Int, isEmbedded: Bool = false, onAddingComment:((String) -> Void)? = nil, onDeletingComment:((String) -> Void)? = nil){
         self.postID = postID
         self.totalComments = totalComments
         self.onAddingComment = onAddingComment
+        self.onDeletingComment = onDeletingComment
         addSubscribers()
         if totalComments != 0 {
             getComments(showLoadingIndicator: !isEmbedded)
@@ -211,6 +213,27 @@ extension CommentSectionViewModel {
         Task {
             do {
                 let _ = try await dataManager.likeAComment(commentID: commentID)
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    func deleteComment(commentID: String) {
+        Task {
+            do {
+                let result = try await dataManager.deleteComment(commentID: commentID)
+                
+                await MainActor.run {
+                    if result.status {
+                        // Remove comment from local array
+                        comments.removeAll { $0.id == commentID }
+                        totalComments = max(0, totalComments - 1)
+                        // Call deletion callback to update parent view
+                        onDeletingComment?(postID)
+                    }
+                }
             } catch {
                 print(error)
             }

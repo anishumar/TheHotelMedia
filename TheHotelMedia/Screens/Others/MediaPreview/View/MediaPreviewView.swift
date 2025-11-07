@@ -669,6 +669,11 @@ extension MediaPreviewView {
                                 onAddingComment?()
                             }
                             
+                        }, onDeletingComment: { id in
+                            if var count = Int(comments) {
+                                count = max(0, count - 1)
+                                comments = String(count)
+                            }
                         }), onPressedProfile: { userID in
                             
                         })
@@ -683,6 +688,11 @@ extension MediaPreviewView {
                                 count += 1
                                 comments = String(count)
                                 onAddingComment?()
+                            }
+                        }, onDeletingComment: { id in
+                            if var count = Int(comments) {
+                                count = max(0, count - 1)
+                                comments = String(count)
                             }
                         }), onPressedProfile: { userID in
                             

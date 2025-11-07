@@ -292,6 +292,15 @@ struct PostView2<Content: View>: View {
                         posts.insert( post ,at: index)
                     }
                     
+                }, onDeletingComment: { id in
+                    if let index = posts.firstIndex(where: {$0.id == id}) {
+                        var post = posts[index]
+                        if post.comments != nil {
+                            post.comments! = max(0, (post.comments ?? 0) - 1)
+                        }
+                        posts.remove(at: index)
+                        posts.insert( post ,at: index)
+                    }
                 }), onPressedProfile: { userID in
                     onNavigate?()
                     viewModel.showSheet.toggle()
@@ -313,6 +322,15 @@ struct PostView2<Content: View>: View {
                         var post = posts[index]
                         if post.comments != nil {
                             post.comments! += 1
+                        }
+                        posts.remove(at: index)
+                        posts.insert( post ,at: index)
+                    }
+                }, onDeletingComment: { id in
+                    if let index = posts.firstIndex(where: {$0.id == id}) {
+                        var post = posts[index]
+                        if post.comments != nil {
+                            post.comments! = max(0, (post.comments ?? 0) - 1)
                         }
                         posts.remove(at: index)
                         posts.insert( post ,at: index)

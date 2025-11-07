@@ -117,6 +117,12 @@ struct CommentSectionView: View {
                                             viewModel.showReportScreen = true
                                             viewModel.showCommentOptions.toggle()
                                         }
+                                    
+                                    capsuleButtonView(title: "delete".localized(localizationManager.language))
+                                        .onTapGesture {
+                                            viewModel.deleteComment(commentID: viewModel.selectedCommentID)
+                                            viewModel.showCommentOptions.toggle()
+                                        }
                                 }
                                 .padding(6)
                                 .background(

@@ -181,6 +181,10 @@ extension URL {
         URL(string: "\(URL.default)/posts/comments/likes/")!
     }
     
+    static var deleteComment: URL {
+        URL(string: "\(URL.default)/posts/comments/")!
+    }
+    
     static var uploadPropertyImages: URL {
         URL(string: "\(URL.default)/user/business-profile/property-picture")!
     }
