@@ -291,14 +291,14 @@ class PostViewModel2: ObservableObject {
     
     
     func startVideo() {
-        if let visiblePostIndex {
+        if let visiblePostIndex, visiblePostIndex < isPausedArray.count {
             isPausedArray[visiblePostIndex] = false
         }
     }
     
     
     func stopVideo() {
-        if let visiblePostIndex {
+        if let visiblePostIndex, visiblePostIndex < isPausedArray.count {
             isPausedArray[visiblePostIndex] = true
 //            
 //            if visiblePostIndex > 0 {

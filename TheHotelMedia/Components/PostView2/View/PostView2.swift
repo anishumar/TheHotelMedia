@@ -56,156 +56,11 @@ struct PostView2<Content: View>: View {
     
     
     var body: some View {
-        TrackableListView(isScrollingChanged: { isScrolling in
-            
-        }, onViewedPost: {
-            
-            if let index = viewModel.visiblePostIndex {
-                guard index < posts.count, index != -1 else { return }
-                if let id = posts[index].id, !id.isEmpty {
-                    guard !idsManager.retrieveArray().contains(id) else { return }
-                    idsManager.updateArray(with: id)
-                }
-            }
-            
-        }, content: {
-            
-            content
-            //                .background(themeManager.currentTheme.backgroundColor)
-                .listRowSeparator(.hidden)
-                .listRowBackground(themeManager.currentTheme.backgroundColor)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                .background(
-                    GeometryReader { geo in
-                        Color.clear.preference(key: PostVisibilityPreferenceKey.self, value: [-1: geo.frame(in: .global)])
-                    }
-                )
-            
-            ForEach(posts, id: \.usingID) { post in
-                if let index = posts.firstIndex(where: { $0.usingID == post.usingID }) {
-                    GenericPostView(
-                        isPaused: $viewModel.isPausedArray[index],
-                        postData: $posts[index],
-                        index: index,
-                        viewModel: GenericPostViewModel(postData: post),
-                        onCommentPressed: { id in
-                            viewModel.commentSectionPostID = id
-                            viewModel.totalComments = posts[index].comments ?? 0
-                            viewModel.showSheet = true
-                        },
-                        onPressedShare: { id, name in
-                            onSharePressed?(index)
-                            viewModel.showShareView(id: id)
-                        },
-                        onPressedEllpsis: { id in
-                            viewModel.visibleOptionPostIndex = index
-                            let yOffset = viewModel.yOffsetArray[viewModel.visibleOptionPostIndex] ?? 0
-                            onEllipsisPressed?(yOffset, id)
-                            
-                        },
-                        onPressedLike: {
-                            viewModel.likeAPost(id: posts[index].id ?? "")
-                        },
-                        onPressedBookmark: {
-                            viewModel.saveAPost(id: posts[index].id ?? "")
-                        },
-                        onPressedProfile: { id in
-                            onNavigate?()
-                            onPressedProfile?(id)
-                            viewModel.selectedProfileID = id
-                            viewModel.pauseVideoOnNavigate()
-                            viewModel.showProfileScreen = true
-                            
-                        }, onTapMedia: { mediaIndex in
-                            viewModel.pauseVideoOnNavigate()
-                            viewModel.currentPostIndex = index
-                            viewModel.currentMediaIndex = mediaIndex
-                            onNavigate?()
-                            viewModel.showMediaPreview = true
-                        }, onTapReview: { id in
-                            onTappedReview?(id)
-                            viewModel.selectedSinglePostID = id
-                            
-                            if let index = viewModel.currentPostIndex {
-                                viewModel.isPausedArray[index] = true
-                            }
-                            viewModel.pauseVideoOnNavigate()
-                            onNavigate?()
-                            viewModel.showSinglePostScreen = true
-                            
-                        }, onUserNotFound: {
-                            if let router = viewModel.router {
-                                ErrorModalManager.showErrorModal(router: router, errorText: "this_user_is_not_registered_with_THM.".localized(localizationManager.language))
-                            }
-                        }, onPressedJoin: { id in
-                            viewModel.joinEvent(id: id)
-                            
-                        }, onPressedEvent: { id in
-                            onPressedEvent?(id)
-                            viewModel.selectedEventID = id
-                            viewModel.pauseVideoOnNavigate()
-                            onNavigate?()
-                            if let index = viewModel.currentPostIndex {
-                                viewModel.isPausedArray[index] = true
-                            }
-                            
-                            viewModel.showEventDetailScreen = true
-                        }, onPressedCross: { id in
-                            onPressedSuggestionCross?(posts[index].id ?? "", id)
-                            
-                        }, onViewAll: {
-                            onPressedViewAll?()
-                            onNavigate?()
-                            if let index = viewModel.currentPostIndex {
-                                viewModel.isPausedArray[index] = true
-                            }
-                            
-                            viewModel.showAllSuggestionScreen = true
-                            
-                        }, onPressedTag: { ref in
-                            viewModel.currentTaggedRef = ref
-                            viewModel.showTagList = true
-                            
-                        }
-                    )
-                    .environmentObject(viewModel)
-                    .id(posts[index])
-                    .padding(.horizontal, post.postType == "suggestion" ? 0 : 12)
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(themeManager.currentTheme.backgroundColor)
-                    //                    .listRowBackground(randomColor())
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    .onAppear {
-                        if index >= posts.count - 3 {
-                            onPagination?()
-                        }
-                    }
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(key: PostVisibilityPreferenceKey.self, value: [index: geo.frame(in: .global)])
-                        }
-                    )
-                   
-//                    GenericPostView2(post: post, index: index)
-//                        .listRowSeparator(.hidden)
-//                        .listRowBackground(themeManager.currentTheme.backgroundColor)
-//                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-//                        .onAppear {
-//                            if index >= posts.count - 3 {
-//                                onPagination?()
-//                            }
-//                        }
-                }
-            }
-            
-            Rectangle()
-                .fill(.clear)
-                .frame(height: 70)
-                .listRowSeparator(.hidden)
-                .listRowBackground(themeManager.currentTheme.backgroundColor)
-                //                    .listRowBackground(randomColor())
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-        })
+        TrackableListView(
+            isScrollingChanged: { _ in },
+            onViewedPost: handleViewedPost,
+            content: { listContent }
+        )
         .listRowSpacing(12)
         .onReceive(viewModel.$currentPostIndex, perform: { index in
             if let index, posts.count > index {
@@ -275,7 +130,7 @@ struct PostView2<Content: View>: View {
                                 }
                             }
                         }, onDismiss: {
-                            if let index = viewModel.currentPostIndex {
+                            if let index = viewModel.currentPostIndex, index < viewModel.isPausedArray.count {
                                 viewModel.isPausedArray[index] = false
                             }
                         })
@@ -523,6 +378,159 @@ struct PostView2<Content: View>: View {
     
     extension PostView2 {
         
+        private func handleViewedPost() {
+            if let index = viewModel.visiblePostIndex {
+                guard index < posts.count, index != -1 else { return }
+                if let id = posts[index].id, !id.isEmpty {
+                    guard !idsManager.retrieveArray().contains(id) else { return }
+                    idsManager.updateArray(with: id)
+                }
+            }
+        }
+        
+        @ViewBuilder
+        private var listContent: some View {
+            content
+                .listRowSeparator(.hidden)
+                .listRowBackground(themeManager.currentTheme.backgroundColor)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(key: PostVisibilityPreferenceKey.self, value: [-1: geo.frame(in: .global)])
+                    }
+                )
+            
+            ForEach(0..<posts.count, id: \.self) { index in
+                postRowView(for: index)
+            }
+            
+            Rectangle()
+                .fill(.clear)
+                .frame(height: 70)
+                .listRowSeparator(.hidden)
+                .listRowBackground(themeManager.currentTheme.backgroundColor)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+        }
+        
+        @ViewBuilder
+        private func postRowView(for index: Int) -> some View {
+            let post = posts[index]
+            
+            GenericPostView(
+                    isPaused: $viewModel.isPausedArray[index],
+                    postData: $posts[index],
+                    index: index,
+                    viewModel: GenericPostViewModel(postData: post),
+                    onCommentPressed: { id in
+                        viewModel.commentSectionPostID = id
+                        viewModel.totalComments = posts[index].comments ?? 0
+                        viewModel.showSheet = true
+                    },
+                    onPressedShare: { id, name in
+                        onSharePressed?(index)
+                        viewModel.showShareView(id: id)
+                    },
+                    onPressedEllpsis: { id in
+                        viewModel.visibleOptionPostIndex = index
+                        let yOffset = viewModel.yOffsetArray[viewModel.visibleOptionPostIndex] ?? 0
+                        onEllipsisPressed?(yOffset, id)
+                    },
+                    onPressedLike: {
+                        viewModel.likeAPost(id: posts[index].id ?? "")
+                    },
+                    onPressedBookmark: {
+                        viewModel.saveAPost(id: posts[index].id ?? "")
+                    },
+                    onPressedProfile: { id in
+                        onNavigate?()
+                        onPressedProfile?(id)
+                        viewModel.selectedProfileID = id
+                        viewModel.pauseVideoOnNavigate()
+                        viewModel.showProfileScreen = true
+                    },
+                    onTapMedia: { mediaIndex in
+                        viewModel.pauseVideoOnNavigate()
+                        viewModel.currentPostIndex = index
+                        viewModel.currentMediaIndex = mediaIndex
+                        onNavigate?()
+                        viewModel.showMediaPreview = true
+                    },
+                    onTapReview: { id in
+                        onTappedReview?(id)
+                        viewModel.selectedSinglePostID = id
+                        if let index = viewModel.currentPostIndex, index < viewModel.isPausedArray.count {
+                            viewModel.isPausedArray[index] = true
+                        }
+                        viewModel.pauseVideoOnNavigate()
+                        onNavigate?()
+                        viewModel.showSinglePostScreen = true
+                    },
+                    onUserNotFound: {
+                        if let router = viewModel.router {
+                            ErrorModalManager.showErrorModal(router: router, errorText: "this_user_is_not_registered_with_THM.".localized(localizationManager.language))
+                        }
+                    },
+                    onPressedJoin: { id in
+                        viewModel.joinEvent(id: id)
+                    },
+                    onPressedEvent: { id in
+                        onPressedEvent?(id)
+                        viewModel.selectedEventID = id
+                        viewModel.pauseVideoOnNavigate()
+                        onNavigate?()
+                        if let index = viewModel.currentPostIndex, index < viewModel.isPausedArray.count {
+                            viewModel.isPausedArray[index] = true
+                        }
+                        viewModel.showEventDetailScreen = true
+                    },
+                    onPressedCross: { id in
+                        onPressedSuggestionCross?(posts[index].id ?? "", id)
+                    },
+                    onViewAll: {
+                        onPressedViewAll?()
+                        onNavigate?()
+                        if let index = viewModel.currentPostIndex, index < viewModel.isPausedArray.count {
+                            viewModel.isPausedArray[index] = true
+                        }
+                        viewModel.showAllSuggestionScreen = true
+                    },
+                    onPressedTag: { ref in
+                        viewModel.currentTaggedRef = ref
+                        viewModel.showTagList = true
+                    }
+                )
+                .environmentObject(viewModel)
+                .id(posts[index])
+                .padding(.horizontal, post.postType == "suggestion" ? 0 : 12)
+                .listRowSeparator(.hidden)
+                .listRowBackground(themeManager.currentTheme.backgroundColor)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                .onAppear {
+                    // Ensure arrays have enough elements before accessing by index
+                    if viewModel.isPausedArray.count <= index {
+                        let additionalCount = index - viewModel.isPausedArray.count + 1
+                        viewModel.isPausedArray.append(contentsOf: Array(repeating: true, count: additionalCount))
+                    }
+                    if viewModel.yOffsetArray.count <= index {
+                        let additionalCount = index - viewModel.yOffsetArray.count + 1
+                        viewModel.yOffsetArray.append(contentsOf: Array(repeating: 0 as CGFloat?, count: additionalCount))
+                    }
+                    if viewModel.postSizeArray.count <= index {
+                        let additionalCount = index - viewModel.postSizeArray.count + 1
+                        viewModel.postSizeArray.append(contentsOf: Array(repeating: .zero, count: additionalCount))
+                    }
+                    
+                    if index >= posts.count - 3 {
+                        onPagination?()
+                    }
+                }
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(key: PostVisibilityPreferenceKey.self, value: [index: geo.frame(in: .global)])
+                    }
+                )
+        }
+        
         func randomColor() -> Color {
             return Color(
                 red: Double.random(in: 0...1),
@@ -539,6 +547,11 @@ struct PostView2<Content: View>: View {
             // Update yOffset for every post in the frames dictionary
             for (index, frame) in frames {
                 if index >= 0 {
+                    // Ensure yOffsetArray has enough elements
+                    if viewModel.yOffsetArray.count <= index {
+                        let additionalCount = index - viewModel.yOffsetArray.count + 1
+                        viewModel.yOffsetArray.append(contentsOf: Array(repeating: 0 as CGFloat?, count: additionalCount))
+                    }
                     viewModel.yOffsetArray[index] = frame.minY
 //                    let visibleHeight = frame.intersection(screenBounds).height
 //                    if visibleHeight > (frame.height * 0.7) || visibleHeight >= frame.height * 0.8, !gotVisibleFrame {
@@ -762,3 +775,4 @@ struct PostView2<Content: View>: View {
 //        
 //    }
 //}
+
