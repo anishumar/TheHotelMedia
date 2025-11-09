@@ -99,6 +99,8 @@
 "resend" = "Resend";
 "resend_in" = "Resend in ";
 "tag_people" = "Tag people";
+"invite_collaborator" = "Invite collaborator";
+"collaborate" = "Collaborate";
 "feeling_activity" = "Feeling/activity";
 "check_in" = "Check in";
 "photo_video" = "Photo/video";
@@ -324,6 +326,11 @@
 
 // Check in Screen
 "suggested_nearby_places" = "Suggested Nearby Places";
+
+// Collaboration
+"accept" = "Accept";
+"decline" = "Decline";
+"accepted" = "Accepted";
 
 // Edit Story Image View
 "edit_story" = "Edit Story";

@@ -17,6 +17,7 @@ final class CreatePostViewModel: ObservableObject {
     
     let router: AnyRouter
     let dataManager = CreatePostDataManager()
+    let collaborationDataManager = CollaborationDataManager()
     var cancellables = Set<AnyCancellable>()
     @Published var descriptionFieldText: String = ""
     @Published var photoPickerItem: PhotosPickerItem? = nil
@@ -39,6 +40,7 @@ final class CreatePostViewModel: ObservableObject {
         "@Kirishima"
     ]
     @Published var tagProfiles: [SearchProfile] = []
+    @Published var collaboratorProfiles: [SearchProfile] = []
     @Published var showPicker = false
     @Published var feeling: Feeling?
     @Published var showCameraPicker: Bool = false
@@ -321,11 +323,21 @@ extension CreatePostViewModel {
             do {
                 let result = try await dataManager.createPost(attachments: mediaAttachments, tagged: tagged, parameters: parameters)
                 
-                await MainActor.run {
-                    showLoadingAnimation = false
-                    let range = 200...204
+                let range = 200...204
+                
+                if result.status && range.contains(result.statusCode) {
+                    // Send collaboration invites if any collaborators are selected
+                    if !collaboratorProfiles.isEmpty {
+                        if let postID = result.data?.postID {
+                            await sendCollaborationInvites(postID: postID)
+                        } else {
+                            // If postID is not in response, try to extract from message or handle differently
+                            print("PostID not found in response. Cannot send collaboration invites.")
+                        }
+                    }
                     
-                    if result.status && range.contains(result.statusCode) {
+                    await MainActor.run {
+                        showLoadingAnimation = false
                         postUploaded = true
                         newPostCreated = true
                         onPostCreated?()
@@ -333,7 +345,10 @@ extension CreatePostViewModel {
                             guard let self else { return }
                             dismissScreen()
                         }
-                    } else {
+                    }
+                } else {
+                    await MainActor.run {
+                        showLoadingAnimation = false
                         messageText = result.message
                         ErrorModalManager.showErrorModal(router: router, errorText: messageText)
                     }
@@ -378,5 +393,24 @@ extension CreatePostViewModel {
         
         dataManager.createPostBackground(attachments: mediaAttachments, tagged: tagged, parameters: parameters)
         print("Uploading started")
+        
+        // Note: For background uploads, collaboration invites cannot be sent immediately
+        // as we don't have the postID. This would need to be handled server-side or
+        // through a different mechanism if collaboration is needed for background uploads.
+    }
+    
+    private func sendCollaborationInvites(postID: String) async {
+        for profile in collaboratorProfiles {
+            do {
+                let result = try await collaborationDataManager.inviteCollaborator(postID: postID, invitedUserID: profile.id)
+                if result.status {
+                    print("Collaboration invite sent to \(profile.name ?? profile.username ?? "user")")
+                } else {
+                    print("Failed to send collaboration invite to \(profile.name ?? profile.username ?? "user"): \(result.message)")
+                }
+            } catch {
+                print("Error sending collaboration invite to \(profile.name ?? profile.username ?? "user"): \(error)")
+            }
+        }
     }
 }

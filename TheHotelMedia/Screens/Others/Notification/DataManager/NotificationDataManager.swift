@@ -59,6 +59,12 @@ class NotificationDataManager {
     }
     
     
+    func respondCollaboration(postID: String, action: String) async throws -> RespondCollaborationResponse {
+        let collaborationDataManager = CollaborationDataManager()
+        return try await collaborationDataManager.respondCollaboration(postID: postID, action: action)
+    }
+    
+    
     func getNotificationStatus() async throws -> NotificationStatusResponse {
         let resource = Resource<NotificationStatusResponse>(url: URL.notificationStatus, method: .get([]))
         

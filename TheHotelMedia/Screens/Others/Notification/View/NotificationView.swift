@@ -166,6 +166,8 @@ extension NotificationView {
                         viewModel.showPostScreen(postID: postID)
                     } else if type == "event-join" {
                         viewModel.showEventDetailScreen(eventID: postID)
+                    } else if type == "collaboration-invite" || type == "collaborate" || type == "collaboration-accepted" || type == "collaboration-invite-accepted" {
+                        viewModel.showPostScreen(postID: postID)
                     }
                 }
             }
@@ -261,6 +263,32 @@ extension NotificationView {
                     }
                 }
                 
+            } else if notification.type == "collaboration-invite" || notification.type == "collaborate" {
+                // This is for the person RECEIVING the invite - show Accept/Decline buttons
+                // Check if collaboration is already accepted by checking description or type
+                let isAccepted = notification.description?.lowercased().contains("accepted") ?? false || notification.type == "collaboration-accepted"
+                
+                if isAccepted {
+                    actionButton(title: "accepted".localized(localizationManager.language), image: "checkmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                } else {
+                    HStack(spacing: 6) {
+                        actionButton(title: "decline".localized(localizationManager.language), image: "xmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                            .onTapGesture {
+                                if let postID = notification.metadata?.postID {
+                                    viewModel.declineCollaboration(postID: postID)
+                                }
+                            }
+                        actionButton(title: "accept".localized(localizationManager.language), image: "checkmark", isSystemImage: true, buttonColor: themeManager.currentTheme.hmIndigo_hmIndigo05)
+                            .onTapGesture {
+                                if let postID = notification.metadata?.postID {
+                                    viewModel.acceptCollaboration(postID: postID)
+                                }
+                            }
+                    }
+                }
+            } else if notification.type == "collaboration-accepted" || notification.type == "collaboration-invite-accepted" || (notification.description?.lowercased().contains("accepted your collaboration invite") ?? false) {
+                // This is for the person who SENT the invite - show "Accepted" status button
+                actionButton(title: "accepted".localized(localizationManager.language), image: "checkmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
             }
         }
         .padding(10)

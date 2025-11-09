@@ -228,5 +228,61 @@ extension NotificationViewModel {
             }
         }
     }
+    
+    
+    func acceptCollaboration(postID: String) {
+        showLoadingIndicator = true
+        Task {
+            do {
+                let result = try await dataManager.respondCollaboration(postID: postID, action: "accept")
+                
+                try? await Task.sleep(nanoseconds: 1500_000_000)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    showLoadingIndicator = false
+                    if result.status && range.contains(result.statusCode) {
+                        getNotifications(isRefreshed: true)
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                print(error)
+                await MainActor.run {
+                    showLoadingIndicator = false
+                }
+            }
+        }
+    }
+    
+    
+    func declineCollaboration(postID: String) {
+        showLoadingIndicator = true
+        Task {
+            do {
+                let result = try await dataManager.respondCollaboration(postID: postID, action: "reject")
+                
+                try? await Task.sleep(nanoseconds: 1500_000_000)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    showLoadingIndicator = false
+                    if result.status && range.contains(result.statusCode) {
+                        getNotifications(isRefreshed: true)
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                print(error)
+                await MainActor.run {
+                    showLoadingIndicator = false
+                }
+            }
+        }
+    }
 }
 

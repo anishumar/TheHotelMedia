@@ -93,6 +93,7 @@ struct CreatePostScreen: View {
     @EnvironmentObject var localizationManager: LocalizationManager
     @EnvironmentObject var themeManager: ThemeManager
     @State var showTagScreen: Bool = false
+    @State var showCollaborateScreen: Bool = false
     @State var showFeelingScreen: Bool = false
     
     @AppStorage("name") var name: String = ""
@@ -167,6 +168,18 @@ struct CreatePostScreen: View {
                                 TagPeopleView(
                                     viewModel: TagPeopleViewModel(router: viewModel.router, selectedProfiles: viewModel.tagProfiles),
                                     selectedProfiles: $viewModel.tagProfiles
+                                )
+                                .environmentObject(localizationManager)
+                            })
+                        customButton(icon: themeManager.currentTheme.TagIcon, title: "invite_collaborator".localized(localizationManager.language))
+                            .onTapGesture {
+                                showCollaborateScreen.toggle()
+                            }
+                            .fullScreenCover(isPresented: $showCollaborateScreen,
+                                             content: {
+                                CollaborateView(
+                                    viewModel: CollaborateViewModel(router: viewModel.router, selectedProfiles: viewModel.collaboratorProfiles),
+                                    selectedProfiles: $viewModel.collaboratorProfiles
                                 )
                                 .environmentObject(localizationManager)
                             })

@@ -472,4 +472,21 @@ extension URL {
     static var getJobDetail: URL {
         URL(string: "\(URL.default)/jobs/")!
     }
+    
+    // Collaboration URLs
+    static var inviteCollaborator: URL {
+        URL(string: "\(URL.default)/collaboration/invite")!
+    }
+    
+    static var respondCollaboration: URL {
+        URL(string: "\(URL.default)/collaboration/respond")!
+    }
+    
+    static var getCollaborations: URL {
+        URL(string: "\(URL.default)/collaboration")!
+    }
+    
+    static var getCollaborators: URL {
+        URL(string: "\(URL.default)/collaboration/")!
+    }
 }
