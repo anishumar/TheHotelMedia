@@ -7,9 +7,11 @@
 
 import SwiftUI
 import Flow
+import SwiftfulRouting
 import PhotosUI
 import SDWebImageSwiftUI
 import Lottie
+import Combine
 
 
 
@@ -43,6 +45,439 @@ struct PHPickerSwiftUI: UIViewControllerRepresentable {
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             self.parent.completion(results)
             parent.dismiss.callAsFunction()
+        }
+    }
+}
+
+
+// MARK: - Invite Collaborator
+
+struct InviteCollaboratorView: View {
+    
+    @StateObject var viewModel: InviteCollaboratorViewModel
+    @Binding var selectedCollaborators: [SearchProfile]
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var localizationManager: LocalizationManager
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            searchField
+            selectedSection
+                .frame(height: viewModel.selectedProfiles.isEmpty ? 0 : 70)
+            
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(spacing: 12) {
+                    ForEach(viewModel.profiles) { profile in
+                        profileRow(profile: profile)
+                            .onTapGesture {
+                                withAnimation(.smooth) {
+                                    viewModel.didToggleProfile(profile: profile)
+                                }
+                            }
+                            .onAppear {
+                                if let lastProfile = viewModel.profiles.last,
+                                   lastProfile.id == profile.id {
+                                    viewModel.pageNumber += 1
+                                    viewModel.isPagination = true
+                                    viewModel.getProfiles(pageNo: viewModel.pageNumber)
+                                }
+                            }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 60)
+        .background(
+            themeManager.currentTheme.backgroundColor
+                .ignoresSafeArea()
+        )
+        .overlay(
+            header
+                .padding(.bottom, 4)
+                .padding(.horizontal, 12)
+                .background(
+                    themeManager.currentTheme.backgroundColor
+                )
+            , alignment: .top
+        )
+        .overlay {
+            CustomProgressView(showIndicator: $viewModel.showLoadingIndicator)
+        }
+        .onChange(of: selectedCollaborators) { newValue in
+            viewModel.syncSelectedProfiles(with: newValue)
+        }
+        .onAppear {
+            viewModel.syncSelectedProfiles(with: selectedCollaborators)
+        }
+    }
+}
+
+
+// MARK: - Invite Collaborator Components
+extension InviteCollaboratorView {
+    
+    private var header: some View {
+        HStack {
+            Image(systemName: "chevron.left")
+                .font(.title2)
+                .foregroundColor(themeManager.currentTheme.label)
+                .fontWeight(.bold)
+                .scaledToFit()
+                .frame(width: 28, height: 28)
+                .onTapGesture {
+                    dismiss.callAsFunction()
+                }
+            
+            Text("invite_collaborator".localized(localizationManager.language))
+                .font(.custom(Constants.comicBold, size: 18))
+                .foregroundColor(themeManager.currentTheme.label)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 10)
+            
+            Button(action: {
+                selectedCollaborators = viewModel.selectedProfiles
+                dismiss.callAsFunction()
+            }, label: {
+                Circle()
+                    .fill(themeManager.currentTheme.hmIndigo_hmIndigo05)
+                    .frame(width: 28)
+                    .overlay(
+                        Image("Tick")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                    )
+            })
+        }
+        .padding(.top, 16)
+    }
+    
+    
+    private var searchField: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 17))
+                .fontWeight(.semibold)
+                .foregroundColor(themeManager.currentTheme.white06_darkGray06)
+            
+            TextField(
+                "",
+                text: $viewModel.searchFieldText,
+                prompt: Text("search".localized(localizationManager.language))
+                    .font(.custom(Constants.comicFont, size: 14))
+                    .foregroundColor(themeManager.currentTheme.white06_darkGray06)
+            )
+            .foregroundStyle(themeManager.currentTheme.label)
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: 46)
+        .padding(.horizontal, 16)
+        .background(
+            CapsuleBackground(backgroundColor: themeManager.currentTheme.darkGray05_white)
+        )
+    }
+    
+    
+    private var selectedSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(viewModel.selectedProfiles) { profile in
+                    profileImage(profile: profile)
+                        .overlay(
+                            xmarkButton
+                                .frame(width: 24, height: 24)
+                                .background(Color.black.opacity(0.001))
+                                .onTapGesture {
+                                    withAnimation(.smooth) {
+                                        viewModel.didDeselectProfile(profile: profile)
+                                    }
+                                }
+                                .offset(x: 4, y: -4)
+                            , alignment: .topTrailing
+                        )
+                }
+            }
+            .animation(.none, value: viewModel.selectedProfiles)
+        }
+    }
+    
+    
+    private func profileRow(profile: SearchProfile) -> some View {
+        HStack(spacing: 15) {
+            WebImage(url: URL(string: profile.accountType == "business" ? profile.businessProfileRef?.profilePic?.small ?? "" : profile.profilePic?.small ?? ""), content: { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 41, height: 41)
+                    .clipShape(Circle())
+                    .padding(.leading, 8)
+            }, placeholder: {
+                Image("NoProfilePic")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 41, height: 41)
+                    .clipShape(Circle())
+                    .padding(.leading, 8)
+            })
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    Text(profile.accountType == "individual" ? profile.name ?? "" : profile.businessProfileRef?.name ?? "")
+                        .font(.custom(Constants.comicFont, size: 16))
+                        .foregroundColor(themeManager.currentTheme.label)
+                    
+                    if profile.role == "official" {
+                        Image(systemName: "checkmark.seal.fill")
+                            .resizable()
+                            .foregroundColor(.hmIndigo)
+                            .frame(width: 16, height: 16)
+                    }
+                }
+                
+                if profile.accountType == "individual" {
+                    Text(profile.username ?? "")
+                        .font(.custom(Constants.comicFont, size: 11))
+                        .foregroundColor(themeManager.currentTheme.white04_darkGray07)
+                        .lineLimit(1)
+                }
+                
+                if profile.accountType == "business" {
+                    HStack(spacing: 2) {
+                        WebImage(url: URL(string: profile.businessProfileRef?.businessTypeRef?.icon ?? ""))
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 11, height: 11)
+                        
+                        Text(profile.businessProfileRef?.businessTypeRef?.name ?? "")
+                            .font(.custom(Constants.comicFont, size: 11))
+                            .foregroundColor(themeManager.currentTheme.white04_darkGray07)
+                    }
+                    .padding(.horizontal, 6)
+                    .frame(height: 20)
+                    .background(
+                        CapsuleBackground(height: 20, borderColor: themeManager.currentTheme.mediumGray_hmIndigo05, backgroundColor: themeManager.currentTheme.darkGray05_hmIndigo02)
+                    )
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.trailing, 30)
+            .frame(height: 46, alignment: .top)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 58, alignment: .center)
+        .background(
+            CustomShape3()
+                .fill(themeManager.currentTheme.black09_white)
+                .overlay(
+                    Circle()
+                        .fill(themeManager.currentTheme.backgroundColor)
+                        .frame(width: 24)
+                        .offset(x: -4, y: 4)
+                        .overlay(
+                            VStack {
+                                Image("Tick")
+                                    .resizable()
+                                    .renderingMode(.template)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(themeManager.currentTheme.white_hmIndigo)
+                                    .scaledToFit()
+                                    .opacity(profile.isSelected ?? false ? 1.0 : 0.0)
+                                    .frame(width: 13)
+                                    .offset(x: -4, y: 4)
+                                    .animation(.smooth, value: profile.isSelected)
+                            }
+                        )
+                    , alignment: .topTrailing
+                )
+        )
+        .padding(3)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(themeManager.currentTheme.hmIndigo_hmIndigo05)
+        )
+    }
+    
+    
+    private func profileImage(profile: SearchProfile) -> some View {
+        VStack {
+            WebImage(url: URL(string: profile.accountType == "business" ? profile.businessProfileRef?.profilePic?.small ?? "" : profile.profilePic?.small ?? ""), content: { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 60)
+                    .clipShape(Circle())
+            }, placeholder: {
+                Image("NoProfilePic")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 60)
+                    .clipShape(Circle())
+            })
+            
+            Text(profile.accountType == "individual" ? profile.name ?? "" : profile.businessProfileRef?.name ?? "")
+                .font(.custom(Constants.comicFont, size: 9))
+                .foregroundColor(themeManager.currentTheme.label)
+        }
+    }
+    
+    
+    private var xmarkButton: some View {
+        ZStack {
+            Circle()
+                .fill(themeManager.currentTheme.hmIndigo_hmIndigo05)
+                .frame(width: 16)
+            
+            Image(systemName: "xmark")
+                .renderingMode(.template)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
+        }
+    }
+}
+
+
+// MARK: - Invite Collaborator ViewModel
+
+final class InviteCollaboratorViewModel: ObservableObject {
+    
+    let router: AnyRouter
+    let dataManager = TagPeopleDataManager()
+    var cancellables = Set<AnyCancellable>()
+    var task: Task<(), Never>? = nil
+    
+    @Published var searchFieldText: String = ""
+    @Published var profiles: [SearchProfile] = []
+    @Published var newProfiles: [SearchProfile] = []
+    @Published var selectedProfiles: [SearchProfile]
+    @Published var isPagination: Bool = false
+    @Published var showLoadingIndicator: Bool = false
+    @Published var pageNumber: Int = 1
+    @Published var totalPageNumber: Int = 1
+    @Published var recentQuery: String = ""
+    
+    
+    init(router: AnyRouter, selectedProfiles: [SearchProfile] = []) {
+        self.router = router
+        self.selectedProfiles = selectedProfiles
+        addSubscribers()
+        getProfiles(pageNo: 1)
+    }
+    
+    
+    private func addSubscribers() {
+        $searchFieldText
+            .debounce(for: 0.5, scheduler: RunLoop.main)
+            .sink { [weak self] query in
+                guard let self else { return }
+                
+                guard recentQuery != query else { return }
+                recentQuery = query
+                
+                isPagination = false
+                pageNumber = 1
+                totalPageNumber = 1
+                
+                getProfiles(query: query, pageNo: pageNumber)
+            }
+            .store(in: &cancellables)
+        
+        $newProfiles
+            .map { [weak self] profiles -> [SearchProfile] in
+                guard let self else { return [] }
+                
+                return profiles.map { profile in
+                    var mutableProfile = profile
+                    if self.selectedProfiles.contains(where: { $0.id == profile.id }) {
+                        mutableProfile.isSelected = true
+                    } else {
+                        mutableProfile.isSelected = false
+                    }
+                    return mutableProfile
+                }
+            }
+            .sink { [weak self] profiles in
+                guard let self else { return }
+                
+                if isPagination {
+                    self.profiles += profiles
+                } else {
+                    self.profiles = profiles
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    
+    func didToggleProfile(profile: SearchProfile) {
+        guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
+        
+        var updatedProfile = profiles[index]
+        let currentlySelected = updatedProfile.isSelected ?? false
+        updatedProfile.isSelected = !currentlySelected
+        profiles[index] = updatedProfile
+        
+        if updatedProfile.isSelected ?? false {
+            if !selectedProfiles.contains(where: { $0.id == updatedProfile.id }) {
+                selectedProfiles.append(updatedProfile)
+            }
+        } else {
+            selectedProfiles.removeAll(where: { $0.id == updatedProfile.id })
+        }
+    }
+    
+    
+    func didDeselectProfile(profile: SearchProfile) {
+        selectedProfiles.removeAll(where: { $0.id == profile.id })
+        if let index = profiles.firstIndex(where: { $0.id == profile.id }) {
+            profiles[index].isSelected = false
+        }
+    }
+    
+    
+    func syncSelectedProfiles(with profiles: [SearchProfile]) {
+        selectedProfiles = profiles
+        
+        self.profiles = self.profiles.map { profile in
+            var mutableProfile = profile
+            mutableProfile.isSelected = profiles.contains(where: { $0.id == profile.id })
+            return mutableProfile
+        }
+    }
+}
+
+
+// MARK: - Networking
+extension InviteCollaboratorViewModel {
+    
+    func getProfiles(query: String = "", pageNo: Int) {
+        guard pageNumber <= totalPageNumber else { return }
+        
+        showLoadingIndicator = true
+        
+        task = Task {
+            do {
+                let result = try await dataManager.getTagPeople(pageNo: pageNo, query: query)
+                
+                let range = 200...204
+                
+                await MainActor.run {
+                    showLoadingIndicator = false
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            newProfiles = data
+                        }
+                        pageNumber = result.pageNo ?? 1
+                        totalPageNumber = result.totalPages ?? 1
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    showLoadingIndicator = false
+                    print(error)
+                }
+            }
         }
     }
 }
@@ -93,6 +528,7 @@ struct CreatePostScreen: View {
     @EnvironmentObject var localizationManager: LocalizationManager
     @EnvironmentObject var themeManager: ThemeManager
     @State var showTagScreen: Bool = false
+    @State var showCollaboratorScreen: Bool = false
     @State var showFeelingScreen: Bool = false
     
     @AppStorage("name") var name: String = ""
@@ -170,6 +606,17 @@ struct CreatePostScreen: View {
                                 )
                                 .environmentObject(localizationManager)
                             })
+                        customButton(systemIcon: "person.2.circle", title: "invite_collaborator".localized(localizationManager.language))
+                            .onTapGesture {
+                                showCollaboratorScreen.toggle()
+                            }
+                            .fullScreenCover(isPresented: $showCollaboratorScreen) {
+                                InviteCollaboratorView(
+                                    viewModel: InviteCollaboratorViewModel(router: viewModel.router, selectedProfiles: viewModel.collaboratorProfiles),
+                                    selectedCollaborators: $viewModel.collaboratorProfiles
+                                )
+                                .environmentObject(localizationManager)
+                            }
                         customButton(icon: themeManager.currentTheme.HappyIcon, title: "feeling_activity".localized(localizationManager.language))
                             .onTapGesture {
                                 showFeelingScreen.toggle()
@@ -329,16 +776,22 @@ extension CreatePostScreen {
     }
     
     
-    private func customButton(icon: String, title: String) -> some View {
+    private func customButton(icon: String? = nil, systemIcon: String? = nil, title: String) -> some View {
         HStack {
-            Image(icon)
-                .resizable()
-//                .renderingMode(.template)
-//                .font(.system(size: 32))
-//                .foregroundColor(themeManager.currentTheme.hmIndigo_hmIndigo05)
-                .scaledToFit()
-                .frame(width: 32, height: 32)
-                .padding(.leading, 8)
+            if let icon {
+                Image(icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .padding(.leading, 8)
+            } else if let systemIcon {
+                Image(systemName: systemIcon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 26, height: 26)
+                    .foregroundColor(themeManager.currentTheme.white08_darkGray08)
+                    .padding(.leading, 12)
+            }
             Text(title)
                 .font(.custom(Constants.comicFont, size: 13))
                 .foregroundColor(themeManager.currentTheme.white08_darkGray08)

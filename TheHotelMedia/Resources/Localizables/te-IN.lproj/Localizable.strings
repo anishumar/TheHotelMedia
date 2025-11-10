@@ -99,6 +99,7 @@
 "resend" = "మళ్లీ పంపు";
 "resend_in" = "మళ్లీ పంపడానికి";
 "tag_people" = "ప్రజలను ట్యాగ్ చేయండి";
+"invite_collaborator" = "Invite collaborator";
 "feeling_activity" = "భావన/క్రియ";
 "check_in" = "చెక్ ఇన్";
 "photo_video" = "ఫోటో/వీడియో";
@@ -161,6 +162,8 @@
 "transactions" = "ట్రాన్సాక్షన్లు";
 "yes" = "అవును";
 "no" = "కాదు";
+"accepted" = "అంగీకరించబడింది";
+"declined" = "తిరస్కరించబడింది";
 "logout_alert_title" = "మీ ఖాతా నుండి లాగ్ అవుట్ అవ్వాలా?";
 "delete_acount_alert_title" = "మీ ఖాతాను శాశ్వతంగా తొలగించాలా?";
 "deactivate_acount_alert_title" = "మీ ఖాతాను నిలిపివేయాలా?";

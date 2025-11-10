@@ -99,6 +99,7 @@
 "resend" = "Resend";
 "resend_in" = "Resend in ";
 "tag_people" = "Tag people";
+"invite_collaborator" = "Invite collaborator";
 "feeling_activity" = "Feeling/activity";
 "check_in" = "Check in";
 "photo_video" = "Photo/video";
@@ -161,6 +162,8 @@
 "transactions" = "Transactions";
 "yes" = "Yes";
 "no" = "No";
+"accepted" = "Accepted";
+"declined" = "Declined";
 "logout_alert_title" = "Do you really want to Log out your account ?";
 "delete_acount_alert_title" = "Do you really want to permanently delete your account ?";
 "deactivate_acount_alert_title" = "Do you really want to deactivate your account ?";

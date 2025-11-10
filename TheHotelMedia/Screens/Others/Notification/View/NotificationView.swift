@@ -92,6 +92,8 @@ struct NotificationView: View {
             viewModel.clearNotifications()
             hasReadNotifcation = true
             viaOtherNotification = false
+            // Refresh notifications when screen appears
+            viewModel.getNotifications(isRefreshed: true)
         }
         .onDisappear {
             viewModel.clearNotifications()
@@ -261,6 +263,29 @@ extension NotificationView {
                     }
                 }
                 
+            } else if notification.isCollaborationInvite {
+                let status = notification.collaborationStatus
+                
+                if status == .pending {
+                    HStack {
+                        actionButton(title: "decline".localized(localizationManager.language), image: "xmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                            .onTapGesture {
+                                if let postID = notification.metadata?.postID {
+                                    viewModel.respondToCollaboration(postID: postID, action: .reject)
+                                }
+                            }
+                        actionButton(title: "accept".localized(localizationManager.language), image: "checkmark", isSystemImage: true, buttonColor: themeManager.currentTheme.hmIndigo_hmIndigo05)
+                            .onTapGesture {
+                                if let postID = notification.metadata?.postID {
+                                    viewModel.respondToCollaboration(postID: postID, action: .accept)
+                                }
+                            }
+                    }
+                } else if status == .accepted {
+                    actionButton(title: "accepted".localized(localizationManager.language), image: "person.fill.checkmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                } else if status == .rejected {
+                    actionButton(title: "declined".localized(localizationManager.language), image: "person.fill.xmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                }
             }
         }
         .padding(10)

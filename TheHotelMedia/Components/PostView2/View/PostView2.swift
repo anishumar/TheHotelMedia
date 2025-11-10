@@ -98,6 +98,15 @@ struct PostView2<Content: View>: View {
 //                .environmentObject(viewModel)
 //        })
         .frame(maxHeight: .infinity, alignment: .top)
+        .onAppear {
+            viewModel.ensureArrayCapacity(for: posts.count)
+        }
+        .onChange(of: posts) { _ in
+            viewModel.ensureArrayCapacity(for: posts.count)
+        }
+        .onChange(of: posts.count) { newCount in
+            viewModel.ensureArrayCapacity(for: newCount)
+        }
         .onPreferenceChange(PostVisibilityPreferenceKey.self) { frames in
             updateVisiblePostIndex(frames: frames)
         }
@@ -417,6 +426,10 @@ struct PostView2<Content: View>: View {
                         Color.clear.preference(key: PostVisibilityPreferenceKey.self, value: [-1: geo.frame(in: .global)])
                     }
                 )
+                .onAppear {
+                    // Ensure arrays are sized before ForEach renders
+                    viewModel.ensureArrayCapacity(for: posts.count)
+                }
             
             ForEach(0..<posts.count, id: \.self) { index in
                 postRowView(for: index)
@@ -430,12 +443,34 @@ struct PostView2<Content: View>: View {
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         }
         
+        private func safeIsPausedBinding(for index: Int) -> Binding<Bool> {
+            return Binding(
+                get: {
+                    guard index >= 0, index < viewModel.isPausedArray.count else {
+                        return true // Default to paused if out of bounds
+                    }
+                    return viewModel.isPausedArray[index]
+                },
+                set: { newValue in
+                    guard index >= 0, index < viewModel.isPausedArray.count else {
+                        // If out of bounds, ensure capacity and then set
+                        viewModel.ensureArrayCapacity(for: index + 1)
+                        if index < viewModel.isPausedArray.count {
+                            viewModel.isPausedArray[index] = newValue
+                        }
+                        return
+                    }
+                    viewModel.isPausedArray[index] = newValue
+                }
+            )
+        }
+        
         @ViewBuilder
         private func postRowView(for index: Int) -> some View {
             let post = posts[index]
             
             GenericPostView(
-                    isPaused: $viewModel.isPausedArray[index],
+                    isPaused: safeIsPausedBinding(for: index),
                     postData: $posts[index],
                     index: index,
                     viewModel: GenericPostViewModel(postData: post),

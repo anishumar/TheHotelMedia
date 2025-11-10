@@ -99,6 +99,7 @@
 "resend" = "पुन्हा पाठवा";
 "resend_in" = "पुन्हा पाठवा";
 "tag_people" = "लोकांना टॅग करा";
+"invite_collaborator" = "Invite collaborator";
 "feeling_activity" = "भावना/क्रियाकलाप";
 "check_in" = "चेक इन";
 "photo_video" = "फोटो/व्हिडिओ";
@@ -161,6 +162,8 @@
 "transactions" = "व्यवहार";
 "yes" = "होय";
 "no" = "नाही";
+"accepted" = "स्वीकारले";
+"declined" = "नाकारले";
 "logout_alert_title" = "आपण खरोखरच आपले खाते लॉगआउट करू इच्छिता?";
 "delete_acount_alert_title" = "आपण खरोखरच आपले खाते कायमचे हटवू इच्छिता?";
 "deactivate_acount_alert_title" = "आपण खरोखरच आपले खाते निष्क्रिय करू इच्छिता?";

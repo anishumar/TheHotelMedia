@@ -210,17 +210,43 @@ class BackgroundNetworkManager: NSObject, URLSessionDelegate, URLSessionTaskDele
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         let json = JSON(data)
         print(json)
+        print("🟡 [BACKGROUND UPLOAD] Response received")
         do {
             let decodedData = try JSONDecoder().decode(CreatePostResponse.self, from: data)
+            
+            print("🟡 [BACKGROUND UPLOAD] Decoded response:")
+            print("🟡 [BACKGROUND UPLOAD]   Status: \(decodedData.status)")
+            print("🟡 [BACKGROUND UPLOAD]   StatusCode: \(decodedData.statusCode)")
+            print("🟡 [BACKGROUND UPLOAD]   Message: \(decodedData.message)")
+            print("🟡 [BACKGROUND UPLOAD]   Data: \(decodedData.data != nil ? "Present" : "Nil")")
+            if let data = decodedData.data {
+                print("🟡 [BACKGROUND UPLOAD]   Data.postID: \(data.postID ?? "Nil")")
+            }
+            print("🟡 [BACKGROUND UPLOAD]   Root postID: \(decodedData.postID ?? "Nil")")
             
             let range = 200...204
             if decodedData.status && range.contains(decodedData.statusCode) {
                 sendProgressNotification(isInProgress: false, success: true)
+                
+                // Extract postID and post notification for collaboration invites
+                let postID = decodedData.data?.postID ?? decodedData.postID
+                if let postID = postID, !postID.isEmpty {
+                    print("🟡 [BACKGROUND UPLOAD] ✅ Post created successfully! PostID: \(postID)")
+                    print("🟡 [BACKGROUND UPLOAD] Posting notification with postID...")
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("PostCreatedBackground"),
+                        object: nil,
+                        userInfo: ["postID": postID]
+                    )
+                } else {
+                    print("🔴 [BACKGROUND UPLOAD] ⚠️ Could not extract postID from response!")
+                }
             } else {
                 sendProgressNotification(isInProgress: false, success: false, errorMessage: decodedData.message)
             }
             
         } catch {
+            print("🔴 [BACKGROUND UPLOAD] ❌ Failed to decode response: \(error)")
             sendProgressNotification(isInProgress: false, success: false)
         }
     }

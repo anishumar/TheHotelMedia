@@ -17,7 +17,9 @@ final class CreatePostViewModel: ObservableObject {
     
     let router: AnyRouter
     let dataManager = CreatePostDataManager()
+    let collaborationDataManager = NotificationDataManager()
     var cancellables = Set<AnyCancellable>()
+    var postCreatedObserver: NSObjectProtocol?
     @Published var descriptionFieldText: String = ""
     @Published var photoPickerItem: PhotosPickerItem? = nil
     @Published var hasSelectedSomeMedia: Bool = false
@@ -39,6 +41,7 @@ final class CreatePostViewModel: ObservableObject {
         "@Kirishima"
     ]
     @Published var tagProfiles: [SearchProfile] = []
+    @Published var collaboratorProfiles: [SearchProfile] = []
     @Published var showPicker = false
     @Published var feeling: Feeling?
     @Published var showCameraPicker: Bool = false
@@ -70,6 +73,38 @@ final class CreatePostViewModel: ObservableObject {
         addSubscriber()
         onPhotoPickerSelection()
         print(videoLimit, "Limit")
+        
+        // Listen for background post creation completion
+        postCreatedObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("PostCreatedBackground"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self,
+                  let userInfo = notification.userInfo,
+                  let postID = userInfo["postID"] as? String else {
+                return
+            }
+            
+            print("🔵 [CREATE POST] Background upload completed, postID: \(postID)")
+            print("🔵 [CREATE POST] Collaborator profiles count: \(self.collaboratorProfiles.count)")
+            
+            // Send collaboration invites if any collaborators were selected
+            if !self.collaboratorProfiles.isEmpty {
+                print("🔵 [CREATE POST] Collaborators found, sending invites...")
+                Task {
+                    await self.sendCollaborationInvites(postID: postID)
+                }
+            } else {
+                print("🔵 [CREATE POST] No collaborators selected, skipping invite sending.")
+            }
+        }
+    }
+    
+    deinit {
+        if let observer = postCreatedObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     func dismissScreen() {
@@ -289,6 +324,15 @@ extension CreatePostViewModel {
     
     func createPost() {
         
+        print("🔵 [CREATE POST] Starting post creation...")
+        print("🔵 [CREATE POST] Collaborator profiles count: \(collaboratorProfiles.count)")
+        if !collaboratorProfiles.isEmpty {
+            print("🔵 [CREATE POST] Collaborators selected:")
+            for (index, collaborator) in collaboratorProfiles.enumerated() {
+                print("🔵 [CREATE POST]   \(index + 1). ID: \(collaborator.id), Name: \(collaborator.name ?? "N/A"), Username: \(collaborator.username ?? "N/A")")
+            }
+        }
+        
         showLoadingAnimation = true
         
         Task {
@@ -318,14 +362,54 @@ extension CreatePostViewModel {
                 }
             }
             
+            print("🔵 [CREATE POST] Parameters: \(parameters)")
+            print("🔵 [CREATE POST] Tagged users count: \(tagged.count)")
+            print("🔵 [CREATE POST] Media attachments count: \(mediaAttachments.count)")
+            
             do {
+                print("🔵 [CREATE POST] Calling dataManager.createPost...")
                 let result = try await dataManager.createPost(attachments: mediaAttachments, tagged: tagged, parameters: parameters)
+                
+                print("🔵 [CREATE POST] Post creation response received:")
+                print("🔵 [CREATE POST]   Status: \(result.status)")
+                print("🔵 [CREATE POST]   StatusCode: \(result.statusCode)")
+                print("🔵 [CREATE POST]   Message: \(result.message)")
+                print("🔵 [CREATE POST]   Data: \(result.data != nil ? "Present" : "Nil")")
+                if let data = result.data {
+                    print("🔵 [CREATE POST]   Data.postID: \(data.postID ?? "Nil")")
+                }
+                print("🔵 [CREATE POST]   Root postID: \(result.postID ?? "Nil")")
                 
                 await MainActor.run {
                     showLoadingAnimation = false
                     let range = 200...204
                     
                     if result.status && range.contains(result.statusCode) {
+                        print("🔵 [CREATE POST] ✅ Post created successfully!")
+                        
+                        // Send collaboration invites if any collaborators were selected
+                        if !collaboratorProfiles.isEmpty {
+                            print("🔵 [CREATE POST] Collaborators found, attempting to send invites...")
+                            // Try to get postID from data field first, then root level
+                            let postID = result.data?.postID ?? result.postID
+                            print("🔵 [CREATE POST] Extracted postID: \(postID ?? "NIL")")
+                            
+                            if let postID = postID, !postID.isEmpty {
+                                print("🔵 [CREATE POST] PostID is valid, sending collaboration invites...")
+                                Task {
+                                    await sendCollaborationInvites(postID: postID)
+                                }
+                            } else {
+                                print("🔴 [CREATE POST] ⚠️ ERROR: Could not get postID from response!")
+                                print("🔴 [CREATE POST] Response data: \(result)")
+                                print("🔴 [CREATE POST] Data field: \(result.data?.postID ?? "nil")")
+                                print("🔴 [CREATE POST] Root postID: \(result.postID ?? "nil")")
+                                print("🔴 [CREATE POST] Collaboration invites NOT sent.")
+                            }
+                        } else {
+                            print("🔵 [CREATE POST] No collaborators selected, skipping invite sending.")
+                        }
+                        
                         postUploaded = true
                         newPostCreated = true
                         onPostCreated?()
@@ -334,22 +418,35 @@ extension CreatePostViewModel {
                             dismissScreen()
                         }
                     } else {
+                        print("🔴 [CREATE POST] ❌ Post creation failed!")
+                        print("🔴 [CREATE POST] Status: \(result.status), StatusCode: \(result.statusCode)")
+                        print("🔴 [CREATE POST] Message: \(result.message)")
                         messageText = result.message
                         ErrorModalManager.showErrorModal(router: router, errorText: messageText)
                     }
                 }
                 
             } catch {
+                print("🔴 [CREATE POST] ❌ Exception occurred: \(error)")
+                print("🔴 [CREATE POST] Error details: \(error.localizedDescription)")
                 await MainActor.run {
                     showLoadingAnimation = false
                 }
-                print(error)
             }
         }
     }
     
     
     func createPostBackground() {
+        print("🔵 [CREATE POST] Starting background post creation...")
+        print("🔵 [CREATE POST] Collaborator profiles count: \(collaboratorProfiles.count)")
+        if !collaboratorProfiles.isEmpty {
+            print("🔵 [CREATE POST] Collaborators selected:")
+            for (index, collaborator) in collaboratorProfiles.enumerated() {
+                print("🔵 [CREATE POST]   \(index + 1). ID: \(collaborator.id), Name: \(collaborator.name ?? "N/A"), Username: \(collaborator.username ?? "N/A")")
+            }
+        }
+        
         var parameters: [String: Any] = [:]
         var tagged : [String] = []
         
@@ -376,7 +473,64 @@ extension CreatePostViewModel {
             }
         }
         
+        print("🔵 [CREATE POST] Starting background upload...")
         dataManager.createPostBackground(attachments: mediaAttachments, tagged: tagged, parameters: parameters)
         print("Uploading started")
+    }
+    
+    
+    private func sendCollaborationInvites(postID: String) async {
+        print("🟢 [COLLAB INVITE] ========================================")
+        print("🟢 [COLLAB INVITE] Starting collaboration invite process")
+        print("🟢 [COLLAB INVITE] PostID: \(postID)")
+        
+        guard !collaboratorProfiles.isEmpty else {
+            print("🔴 [COLLAB INVITE] ❌ No collaborators to invite!")
+            return
+        }
+        
+        print("🟢 [COLLAB INVITE] Total collaborators to invite: \(collaboratorProfiles.count)")
+        
+        for (index, collaborator) in collaboratorProfiles.enumerated() {
+            print("🟢 [COLLAB INVITE] ----------------------------------------")
+            print("🟢 [COLLAB INVITE] Sending invite \(index + 1)/\(collaboratorProfiles.count)")
+            print("🟢 [COLLAB INVITE]   Collaborator ID: \(collaborator.id)")
+            print("🟢 [COLLAB INVITE]   Collaborator Name: \(collaborator.name ?? "N/A")")
+            print("🟢 [COLLAB INVITE]   Collaborator Username: \(collaborator.username ?? "N/A")")
+            print("🟢 [COLLAB INVITE]   PostID: \(postID)")
+            
+            do {
+                print("🟢 [COLLAB INVITE] Calling collaborationDataManager.inviteCollaborator...")
+                let result = try await collaborationDataManager.inviteCollaborator(postID: postID, invitedUserID: collaborator.id)
+                
+                print("🟢 [COLLAB INVITE] API Response received:")
+                print("🟢 [COLLAB INVITE]   Status: \(result.status)")
+                print("🟢 [COLLAB INVITE]   StatusCode: \(result.statusCode)")
+                print("🟢 [COLLAB INVITE]   Message: \(result.message)")
+                
+                let range = 200...204
+                if result.status && range.contains(result.statusCode) {
+                    print("🟢 [COLLAB INVITE] ✅ SUCCESS: Collaboration invite sent!")
+                    print("🟢 [COLLAB INVITE] ✅ To: \(collaborator.name ?? collaborator.id)")
+                    print("🟢 [COLLAB INVITE] ✅ Message: \(result.message)")
+                } else {
+                    print("🔴 [COLLAB INVITE] ⚠️ FAILED: Invalid response!")
+                    print("🔴 [COLLAB INVITE] ⚠️ Status: \(result.status)")
+                    print("🔴 [COLLAB INVITE] ⚠️ StatusCode: \(result.statusCode)")
+                    print("🔴 [COLLAB INVITE] ⚠️ Message: \(result.message)")
+                }
+            } catch {
+                print("🔴 [COLLAB INVITE] ❌ EXCEPTION: Failed to send invite!")
+                print("🔴 [COLLAB INVITE] ❌ Error: \(error)")
+                print("🔴 [COLLAB INVITE] ❌ Error Description: \(error.localizedDescription)")
+                if let urlError = error as? URLError {
+                    print("🔴 [COLLAB INVITE] ❌ URLError Code: \(urlError.code.rawValue)")
+                    print("🔴 [COLLAB INVITE] ❌ URLError Description: \(urlError.localizedDescription)")
+                }
+            }
+        }
+        
+        print("🟢 [COLLAB INVITE] ========================================")
+        print("🟢 [COLLAB INVITE] Collaboration invite process completed")
     }
 }

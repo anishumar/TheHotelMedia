@@ -99,6 +99,7 @@
 "resend" = "ಮರು ಕಳುಹಿಸು";
 "resend_in" = "ಮರು ಕಳುಹಿಸುವ ಸಮಯದಲ್ಲಿ";
 "tag_people" = "ಜನರನ್ನು ಟ್ಯಾಗ್ ಮಾಡಿ";
+"invite_collaborator" = "Invite collaborator";
 "feeling_activity" = "ಭಾವನೆ/ಕ್ರಿಯೆ";
 "check_in" = "ಚೆಕ್ ಇನ್";
 "photo_video" = "ಫೋಟೋ/ವೀಡಿಯೋ";
@@ -161,6 +162,8 @@
 "transactions" = "ವಹಿವಾಟುಗಳು";
 "yes" = "ಹೌದು";
 "no" = "ಇಲ್ಲ";
+"accepted" = "ಸ್ವೀಕರಿಸಲಾಗಿದೆ";
+"declined" = "ನಿರಾಕರಿಸಲಾಗಿದೆ";
 "logout_alert_title" = "ನೀವು ಲಾಗ್‌ಔಟ್ ಮಾಡಲು ನಿಜವಾಗಿಯೂ ಬಯಸುತ್ತೀರಾ?";
 "delete_acount_alert_title" = "ನೀವು ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲು ಬಯಸುತ್ತೀರಾ?";
 "deactivate_acount_alert_title" = "ನೀವು ನಿಮ್ಮ ಖಾತೆಯನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲು ಬಯಸುತ್ತೀರಾ?";

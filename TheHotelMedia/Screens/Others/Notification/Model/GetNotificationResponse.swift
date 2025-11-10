@@ -42,6 +42,108 @@ struct Metadata: Codable, Hashable {
     let commentID: String?
 }
 
+struct CollaborationRespondResponse: Codable, Refreshable {
+    let status: Bool
+    let statusCode: Int
+    let message: String
+}
+
+struct CollaborationInviteResponse: Codable, Refreshable {
+    let status: Bool
+    let statusCode: Int
+    let message: String
+}
+
+
+enum CollaborationStatus {
+    case pending
+    case accepted
+    case rejected
+}
+
+
+extension NotificationModel {
+    
+    var isCollaborationInvite: Bool {
+        // Check type field
+        if let type = type {
+            let lowerType = type.lowercased()
+            
+            // Check for various collaboration invite type patterns
+            if lowerType.contains("collaboration") || lowerType.contains("collab") || lowerType.contains("invite") {
+                print("🔍 [NOTIF CHECK] ✅ Found collaboration in type: '\(type)'")
+                return true
+            }
+        }
+        
+        // Check metadata type
+        if let metadataType = metadata?.type?.lowercased() {
+            if metadataType.contains("collaboration") || metadataType.contains("collab") || metadataType.contains("invite") {
+                print("🔍 [NOTIF CHECK] ✅ Found collaboration in metadata.type: '\(metadata?.type ?? "N/A")'")
+                return true
+            }
+        }
+        
+        // Check title for collaboration-related text
+        if let title = title?.lowercased() {
+            if title.contains("collaboration") || title.contains("collab") || title.contains("invite") {
+                print("🔍 [NOTIF CHECK] ✅ Found collaboration in title: '\(self.title ?? "N/A")'")
+                return true
+            }
+        }
+        
+        // Check description for collaboration-related text
+        if let description = description?.lowercased() {
+            if description.contains("collaboration") || description.contains("collab") || description.contains("invite") {
+                print("🔍 [NOTIF CHECK] ✅ Found collaboration in description: '\(self.description ?? "N/A")'")
+                return true
+            }
+        }
+        
+        // Check if metadata has postID (collaboration invites typically have postID in metadata)
+        if let metadata = metadata, metadata.postID != nil {
+            // If it has postID and type/invite keywords, it might be a collaboration invite
+            let typeLower = (type ?? "").lowercased()
+            let metaTypeLower = (metadata.type ?? "").lowercased()
+            if typeLower.contains("invite") || metaTypeLower.contains("invite") {
+                print("🔍 [NOTIF CHECK] ✅ Found postID in metadata with invite keyword: postID=\(metadata.postID ?? "N/A")")
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    var collaborationStatus: CollaborationStatus {
+        if let metadataType = metadata?.type?.lowercased() {
+            if metadataType.contains("accept") {
+                return .accepted
+            } else if metadataType.contains("reject") || metadataType.contains("decline") {
+                return .rejected
+            } else if metadataType.contains("pending") {
+                return .pending
+            }
+        }
+        
+        if let type = type?.lowercased() {
+            if type.contains("accept") {
+                return .accepted
+            } else if type.contains("reject") || type.contains("decline") {
+                return .rejected
+            }
+        }
+        
+        if let description = description?.lowercased() {
+            if description.contains("accepted") {
+                return .accepted
+            } else if description.contains("declined") || description.contains("rejected") {
+                return .rejected
+            }
+        }
+        
+        return .pending
+    }
+}
 
 // MARK: - UsersRef
 struct UsersRef: Codable, Hashable {

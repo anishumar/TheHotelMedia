@@ -126,6 +126,39 @@ class PostViewModel2: ObservableObject {
     }
     
     
+    func ensureArrayCapacity(for count: Int) {
+        let safeCount = max(count, 0)
+        
+        if safeCount == 0 {
+            isPausedArray = []
+            yOffsetArray = []
+            postSizeArray = []
+            return
+        }
+        
+        if isPausedArray.count < safeCount {
+            let additional = safeCount - isPausedArray.count
+            isPausedArray.append(contentsOf: Array(repeating: true, count: additional))
+        } else if isPausedArray.count > safeCount {
+            isPausedArray = Array(isPausedArray.prefix(safeCount))
+        }
+        
+        if yOffsetArray.count < safeCount {
+            let additional = safeCount - yOffsetArray.count
+            yOffsetArray.append(contentsOf: Array(repeating: 0 as CGFloat?, count: additional))
+        } else if yOffsetArray.count > safeCount {
+            yOffsetArray = Array(yOffsetArray.prefix(safeCount))
+        }
+        
+        if postSizeArray.count < safeCount {
+            let additional = safeCount - postSizeArray.count
+            postSizeArray.append(contentsOf: Array(repeating: .zero, count: additional))
+        } else if postSizeArray.count > safeCount {
+            postSizeArray = Array(postSizeArray.prefix(safeCount))
+        }
+    }
+    
+    
     func addPlayerItem(forKey key: String, item: AVPlayerItem) {
         if avPlayerItemDic.count >= 10 {
             // Remove the oldest entry (first key in the array)

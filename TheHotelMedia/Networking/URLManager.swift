@@ -233,6 +233,14 @@ extension URL {
         URL(string: "\(URL.default)/notifications")!
     }
     
+    static var collaborationRespond: URL {
+        URL(string: "\(URL.default)/collaboration/respond")!
+    }
+    
+    static var collaborationInvite: URL {
+        URL(string: "\(URL.default)/collaboration/invite")!
+    }
+    
     static var follow: URL {
         URL(string: "\(URL.default)/user/follow/")!
     }
