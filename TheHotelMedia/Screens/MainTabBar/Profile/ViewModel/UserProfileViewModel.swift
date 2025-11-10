@@ -78,6 +78,9 @@ class UserProfileViewModel: ObservableObject {
     @Published var selectedVideoMedia: MediaType = .video(urlString: "")
     @Published var showPreview: Bool = false
     @Published var showVideoPreview: Bool = false
+    @Published var showPhotoDetailScreen: Bool = false
+    @Published var selectedPhotoIndex: Int = 0
+    @Published var selectedPhotoMediaID: String? = nil
     
     @Published var showPostOptionView: Bool = false
     @Published var isReviewPost: Bool = false
@@ -361,6 +364,15 @@ class UserProfileViewModel: ObservableObject {
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
         }
+    }
+    
+    
+    func openPhotoDetail(at index: Int) {
+        guard photosArray.indices.contains(index) else { return }
+        let mediaID = photosArray[index].id
+        selectedPhotoIndex = index
+        selectedPhotoMediaID = mediaID
+        showPhotoDetailScreen = true
     }
     
     
@@ -735,6 +747,22 @@ extension UserProfileViewModel {
         
         Task {
             do {
+                // First, ensure we have posts data to match media with postIDs
+                if totalPostData.isEmpty {
+                    // Load multiple pages of posts to ensure we can match all media
+                    for page in 1...3 {
+                        let postsResult = try await dataManager.getProfilePosts(id: userProfileID, pageNo: page)
+                        await MainActor.run {
+                            if postsResult.status && (200...204).contains(postsResult.statusCode) {
+                                if let postsData = postsResult.data {
+                                    totalPostData += postsData
+                                    print("📝 [Profile] Loaded page \(page) of posts, total posts now: \(totalPostData.count)")
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 let result = try await dataManager.getProfilePostImages(id: userProfileID, pageNo: imageDataPageNo)
                     
                 await MainActor.run {
@@ -748,7 +776,24 @@ extension UserProfileViewModel {
                                     loadImageData = false
                                     return
                                 } else {
-                                    photosArray += data
+                                    // Populate postID from totalPostData if available
+                                    var enrichedData = data
+                                    print("🔍 [Profile] Enriching \(enrichedData.count) media items with postIDs from \(totalPostData.count) posts")
+                                    
+                                    for (index, media) in enrichedData.enumerated() {
+                                        if let mediaID = media.id {
+                                            // Find the post that contains this media
+                                            if let post = totalPostData.first(where: { post in
+                                                post.mediaRef?.contains(where: { $0.id == mediaID }) ?? false
+                                            }) {
+                                                enrichedData[index].postID = post.id
+                                                print("✅ [Profile] Media \(mediaID) matched to post \(post.id ?? "nil")")
+                                            } else {
+                                                print("⚠️ [Profile] No post found for media \(mediaID)")
+                                            }
+                                        }
+                                    }
+                                    photosArray += enrichedData
                                     imageDataPageNo = result.pageNo ?? 1
                                     imageDataTotalPages = result.totalPages ?? 1
                                     loadImageData = false

@@ -92,10 +92,10 @@ struct UserProfileView: View {
                     if !viewModel.isPrivateAccount || viewModel.profileData?.isConnected ?? false {
                         if viewModel.currentTab == .photos {
                             photosTab
-                                .fullScreenCover(isPresented: $viewModel.showPreview, onDismiss: {
-                                    modifyOrientation(.portrait)
-                                },  content: {
-                                    MediaPreviewView(media: viewModel.selectedMedia)
+                                .fullScreenCover(isPresented: $viewModel.showPhotoDetailScreen, content: {
+                                    ProfilePhotoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedPhotoMediaID, profileData: viewModel.profileData)
+                                        .environmentObject(themeManager)
+                                        .environmentObject(localizationManager)
                                         .background(BackgroundClearView())
                                 })
                                 .transaction { transaction in
@@ -545,8 +545,9 @@ extension UserProfileView {
                     .frame(maxWidth: .infinity)
                     .frame(height: UIScreen.main.bounds.width / 3.5)
                     .onTapGesture {
-                        viewModel.selectedMedia = .image(urlString: media.sourceURL ?? "")
-                        viewModel.showPreview.toggle()
+                        if let index = viewModel.photosArray.firstIndex(where: { $0.id == media.id }) {
+                            viewModel.openPhotoDetail(at: index)
+                        }
                     }
                     .overlay {
                         WebImage(url: URL(string: media.sourceURL ?? ""))
