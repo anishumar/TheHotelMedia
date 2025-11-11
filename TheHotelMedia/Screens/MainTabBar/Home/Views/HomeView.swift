@@ -61,6 +61,7 @@ struct HomeView: View {
     @State var posts: [PostData] = []
     var plusButtonPressed: (() -> Void)?
     var onStoryButtonPressed: (() -> Void)?
+    var onOpenCamera: (() -> Void)?
     var onScrollChange: ((Bool) -> Void)?
     
     @EnvironmentObject var localizationManager: LocalizationManager
@@ -290,7 +291,7 @@ struct HomeView: View {
             .presentationDragIndicator(.hidden)
             .presentationDetents([.fraction(Constants.getReportSheetHeight())])
         })
-        .simultaneousGesture(swipeToChatGesture)
+        .simultaneousGesture(homeSwipeGesture)
     }
 }
 
@@ -307,7 +308,7 @@ struct HomeView_Previews: PreviewProvider {
 
 // MARK: - Gestures
 extension HomeView {
-    private var swipeToChatGesture: some Gesture {
+    private var homeSwipeGesture: some Gesture {
         DragGesture(minimumDistance: 25, coordinateSpace: .local)
             .updating($dragState) { value, state, _ in
                 let horizontal = value.translation.width
@@ -318,21 +319,25 @@ extension HomeView {
                 }
             }
             .onEnded { value in
-                handleSwipeToChat(translation: value.translation)
+                handleHomeSwipe(translation: value.translation)
             }
     }
     
-    private func handleSwipeToChat(translation: CGSize) {
+    private func handleHomeSwipe(translation: CGSize) {
         let horizontal = translation.width
         let vertical = translation.height
         let horizontalMagnitude = abs(horizontal)
         let verticalMagnitude = abs(vertical)
         
-        guard horizontal < -120 else { return }
         guard horizontalMagnitude > verticalMagnitude * 1.2 else { return }
         
-        haptics(.light)
-        openChatTab()
+        if horizontal < -120 {
+            haptics(.light)
+            openChatTab()
+        } else if horizontal > 120 {
+            haptics(.light)
+            onOpenCamera?()
+        }
     }
 }
 

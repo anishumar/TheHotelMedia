@@ -431,6 +431,10 @@ extension MainTabBarView {
                 withAnimation(.bouncy(duration: 0.3)) {
                     viewModel.showDialogBox.toggle()
                 }
+            }, onOpenCamera: {
+                viewModel.createPostOn = false
+                viewModel.showDialogBox = false
+                viewModel.shouldPresentCamera = true
             }, onScrollChange: { isScrolling in
                 viewModel.isScrolling.send(isScrolling)
             })
