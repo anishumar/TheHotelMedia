@@ -290,6 +290,7 @@ struct HomeView: View {
             .presentationDragIndicator(.hidden)
             .presentationDetents([.fraction(Constants.getReportSheetHeight())])
         })
+        .simultaneousGesture(swipeToChatGesture)
     }
 }
 
@@ -300,6 +301,38 @@ struct HomeView_Previews: PreviewProvider {
         @Environment(\.router) var router
         HomeView( hideTabBar: .constant(false), uploadedNewStory: .constant(false), refreshHomeData: .constant(false), createPostOn: .constant(false), onDoubleTap: .constant(false), viewModel: HomeViewModel(router: router))
             .environmentObject(LocalizationManager.shared)
+    }
+}
+
+
+// MARK: - Gestures
+extension HomeView {
+    private var swipeToChatGesture: some Gesture {
+        DragGesture(minimumDistance: 25, coordinateSpace: .local)
+            .updating($dragState) { value, state, _ in
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+                
+                if abs(horizontal) > abs(vertical) {
+                    state = .dragging(translation: value.translation)
+                }
+            }
+            .onEnded { value in
+                handleSwipeToChat(translation: value.translation)
+            }
+    }
+    
+    private func handleSwipeToChat(translation: CGSize) {
+        let horizontal = translation.width
+        let vertical = translation.height
+        let horizontalMagnitude = abs(horizontal)
+        let verticalMagnitude = abs(vertical)
+        
+        guard horizontal < -120 else { return }
+        guard horizontalMagnitude > verticalMagnitude * 1.2 else { return }
+        
+        haptics(.light)
+        openChatTab()
     }
 }
 

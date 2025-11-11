@@ -22,6 +22,7 @@ struct AllChatListView: View {
     @Environment(\.scenePhase) var scenePhase
     
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var tabBarViewModel: MainTabBarViewModel
     
     var onStoryButtonPressed: (() -> Void)?
     
@@ -321,11 +322,28 @@ extension AllChatListView {
     
     
     private var header: some View {
-        HStack {
-//            Text("Hotel Media")
-//                .font(.custom(Constants.fascinateFont, size: 24))
-//                .foregroundStyle(.white)
-//                .frame(maxWidth: .infinity, alignment: .leading)
+        let showBackButton = tabBarViewModel.chatNavigationSource == .homeShortcut
+        
+        return HStack(spacing: 12) {
+            if showBackButton {
+                Button {
+                    haptics(.light)
+                    withAnimation(.smooth(duration: 0.2)) {
+                        tabBarViewModel.createPostOn = false
+                        tabBarViewModel.chatNavigationSource = .tab
+                        tabBarViewModel.selectedTab = .home
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentTheme.label)
+                        .frame(width: 32, height: 32)
+                }
+            } else {
+                Color.clear
+                    .frame(width: 32, height: 32)
+            }
             
             Image(themeManager.currentTheme.Title)
                 .resizable()

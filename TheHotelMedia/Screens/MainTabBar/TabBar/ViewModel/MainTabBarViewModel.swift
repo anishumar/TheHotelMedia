@@ -12,6 +12,11 @@ import PhotosUI
 import Mantis
 
 
+enum ChatNavigationSource {
+    case tab
+    case homeShortcut
+}
+
 final class MainTabBarViewModel: ObservableObject {
     
     
@@ -52,6 +57,7 @@ final class MainTabBarViewModel: ObservableObject {
     @Published var transformation: Transformation?
     @Published var homeScreenNavigateTo: String? = nil
     @Published var deepLink: URL? = nil
+    @Published var chatNavigationSource: ChatNavigationSource = .tab
     
     var isScrolling: CurrentValueSubject<Bool, Never> = .init(false)
     var selectedLat: String = ""
@@ -93,6 +99,10 @@ final class MainTabBarViewModel: ObservableObject {
             
             self.currentTab = tab
             sendNotificationOfCurrentTab(currentTab: tab)
+            
+            if tab != .chat {
+                chatNavigationSource = .tab
+            }
         }
         .store(in: &cancellables)
         

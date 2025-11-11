@@ -149,6 +149,7 @@ struct MainTabBarView: View {
             if viaOtherNotification {
                 viewModel.showNotificationScreen()
             } else if viaMessage {
+                viewModel.chatNavigationSource = .tab
                 viewModel.selectedTab = .chat
                 viaMessage = false
             }
@@ -169,6 +170,7 @@ struct MainTabBarView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("openChatTab"))) { notification in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                viewModel.chatNavigationSource = .homeShortcut
                 viewModel.selectedTab = .chat
             }
         }
@@ -466,6 +468,7 @@ extension MainTabBarView {
             })
                 .environmentObject(localizationManager)
                 .environmentObject(themeManager)
+            .environmentObject(viewModel)
                 .tag(TabbedItem.chat)
             
             UserProfileView(createPostOn: $viewModel.createPostOn, viewModel: UserProfileViewModel(router: viewModel.router), onStoryButtonPressed: {
@@ -537,6 +540,9 @@ extension MainTabBarView {
             withAnimation(.smooth(duration: 0.2)) {
                 viewModel.createPostOn = false
 //                viewModel.navigateTo(screen: viewModel.currentTab.title, open: viewModel.createPostOn)
+            }
+            if item == .chat {
+                viewModel.chatNavigationSource = .tab
             }
             viewModel.sendNotificationOfCurrentTab(currentTab: item)
             viewModel.selectedTab = item
