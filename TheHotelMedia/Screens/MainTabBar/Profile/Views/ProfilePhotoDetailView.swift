@@ -16,6 +16,7 @@ struct ProfilePhotoDetailView: View {
     @EnvironmentObject private var localizationManager: LocalizationManager
     
     @StateObject private var viewModel: ProfilePhotoDetailViewModel
+    @State private var hasScrolledToInitial = false
     
     init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil) {
         _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData))
@@ -43,46 +44,53 @@ struct ProfilePhotoDetailView: View {
                     Spacer()
                 }
             } else {
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 14) {
-                        ForEach($viewModel.posts) { $post in
-                            PostCardView(
-                                isPaused: .constant(true),
-                                postData: $post,
-                                viewModel: PostCardViewModel(data: post),
-                                onPressedComment: { postID in
-                                    // Handle comment
-                                },
-                                onPressedShare: { postID, name in
-                                    // Handle share
-                                },
-                                onPressedEllpsis: { postID in
-                                    // Handle ellipsis
-                                },
-                                onPressedLike: { liked, count in
-                                    // Update handled by binding
-                                },
-                                onPressedBookmark: { saved in
-                                    // Update handled by binding
-                                },
-                                onPressedProfile: { userID in
-                                    // Handle profile tap
-                                }
-                            )
-                            .onAppear {
-                                if let lastPost = viewModel.posts.last, lastPost.id == post.id {
-                                    viewModel.loadPosts()
+                ScrollViewReader { proxy in
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: 14) {
+                            ForEach(viewModel.posts.indices, id: \.self) { index in
+                                let post = viewModel.posts[index]
+                                let postID = postIdentifier(for: post, index: index)
+                                
+                                PostCardView(
+                                    isPaused: .constant(true),
+                                    postData: $viewModel.posts[index],
+                                    viewModel: PostCardViewModel(data: post),
+                                    onPressedComment: { _ in },
+                                    onPressedShare: { _, _ in },
+                                    onPressedEllpsis: { _ in },
+                                    onPressedLike: { _, _ in },
+                                    onPressedBookmark: { _ in },
+                                    onPressedProfile: { _ in }
+                                )
+                                .id(postID)
+                                .onAppear {
+                                    if index == viewModel.posts.indices.last {
+                                        viewModel.loadPosts()
+                                    }
                                 }
                             }
+                            
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .padding()
+                            }
                         }
-                        
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .padding()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 16)
+                    }
+                    .onChange(of: viewModel.shouldAutoScroll) { shouldScroll in
+                        guard shouldScroll,
+                              !hasScrolledToInitial,
+                              let targetID = viewModel.targetPostID else { return }
+                        scrollToInitialPost(proxy: proxy, targetID: targetID)
+                    }
+                    .onAppear {
+                        if viewModel.shouldAutoScroll,
+                           !hasScrolledToInitial,
+                           let targetID = viewModel.targetPostID {
+                            scrollToInitialPost(proxy: proxy, targetID: targetID)
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 16)
                 }
             }
         }
@@ -116,6 +124,26 @@ struct ProfilePhotoDetailView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(themeManager.currentTheme.backgroundColor)
+    }
+    
+    private func postIdentifier(for post: PostData, index: Int) -> String {
+        if let id = post.id, !id.isEmpty {
+            return id
+        }
+        if let mediaID = post.mediaRef?.first?.id, !mediaID.isEmpty {
+            return mediaID
+        }
+        return "post-\(index)"
+    }
+    
+    private func scrollToInitialPost(proxy: ScrollViewProxy, targetID: String) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.easeInOut) {
+                proxy.scrollTo(targetID, anchor: .top)
+            }
+            hasScrolledToInitial = true
+            viewModel.shouldAutoScroll = false
+        }
     }
 }
 

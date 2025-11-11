@@ -13,6 +13,8 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var currentPage: Int = 1
     @Published var hasMorePages: Bool = true
+    @Published var targetPostID: String?
+    @Published var shouldAutoScroll: Bool = false
     
     let profileData: ProfileData?
     let userProfileID: String
@@ -39,6 +41,8 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
             do {
                 let result = try await dataManager.getProfilePosts(id: userProfileID, pageNo: currentPage)
                 
+                var shouldFetchNextPage = false
+                
                 await MainActor.run {
                     isLoading = false
                     
@@ -54,10 +58,25 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                             posts += postsWithImages
                             currentPage = (result.pageNo ?? currentPage) + 1
                             hasMorePages = currentPage <= (result.totalPages ?? 1)
+                            
+                            if let initialMediaID, targetPostID == nil {
+                                if let targetPost = posts.first(where: { post in
+                                    post.mediaRef?.contains(where: { $0.id == initialMediaID }) ?? false
+                                }) {
+                                    targetPostID = targetPost.id ?? targetPost.mediaRef?.first?.id
+                                    shouldAutoScroll = targetPostID != nil
+                                } else if hasMorePages {
+                                    shouldFetchNextPage = true
+                                }
+                            }
                         }
                     } else {
                         print("❌ [PhotoDetail] Failed to load posts: \(result.message)")
                     }
+                }
+                
+                if shouldFetchNextPage {
+                    loadPosts()
                 }
                 
             } catch {
