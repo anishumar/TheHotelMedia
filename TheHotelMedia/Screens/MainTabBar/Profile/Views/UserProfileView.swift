@@ -104,10 +104,10 @@ struct UserProfileView: View {
                             
                         } else if viewModel.currentTab == .videos {
                             videosTab
-                                .fullScreenCover(isPresented: $viewModel.showVideoPreview, onDismiss: {
-                                    modifyOrientation(.portrait)
-                                }, content: {
-                                    MediaPreviewView(media: viewModel.selectedVideoMedia)
+                                .fullScreenCover(isPresented: $viewModel.showVideoDetailScreen, content: {
+                                    ProfileVideoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedVideoMediaID, profileData: viewModel.profileData)
+                                        .environmentObject(themeManager)
+                                        .environmentObject(localizationManager)
                                         .background(BackgroundClearView())
                                 })
                                 .transaction { transaction in
@@ -628,8 +628,8 @@ extension UserProfileView {
                                 .frame(width: 52, height: 52)
                                 .onTapGesture {
                                     print("Video Tapped...")
-                                    viewModel.selectedVideoMedia = .video(urlString: media.sourceURL ?? "")
-                                    viewModel.showVideoPreview.toggle()
+                                    viewModel.selectedVideoMediaID = media.id
+                                    viewModel.showVideoDetailScreen.toggle()
                                 }
                         }
                         

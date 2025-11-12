@@ -81,6 +81,8 @@ class UserProfileViewModel: ObservableObject {
     @Published var showPhotoDetailScreen: Bool = false
     @Published var selectedPhotoIndex: Int = 0
     @Published var selectedPhotoMediaID: String? = nil
+    @Published var showVideoDetailScreen: Bool = false
+    @Published var selectedVideoMediaID: String? = nil
     
     @Published var showPostOptionView: Bool = false
     @Published var isReviewPost: Bool = false

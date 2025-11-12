@@ -61,6 +61,10 @@
 		04442A1A2C745742004E676C /* UserProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04442A192C745742004E676C /* UserProfileViewModel.swift */; };
 		04FFF1012E00000100AA1234 /* ProfilePhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */; };
 		04FFF1052E00000200AA1234 /* ProfilePhotoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */; };
+		04FFF1062E00000300AA1234 /* ProfileVideoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */; };
+		04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */; };
+		04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10B2E00000500AA1234 /* ReelsViewController.swift */; };
+		04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */; };
 		0445BB042C609EE700FF2085 /* RandomProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB032C609EE700FF2085 /* RandomProfile.swift */; };
 		0445BB072C60A69E00FF2085 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB062C60A69E00FF2085 /* SDWebImageSwiftUI */; };
 		0445BB0A2C60E93C00FF2085 /* CreatePostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */; };
@@ -693,6 +697,10 @@
 		04442A192C745742004E676C /* UserProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewModel.swift; sourceTree = "<group>"; };
 		04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoDetailView.swift; sourceTree = "<group>"; };
 		04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoDetailViewModel.swift; sourceTree = "<group>"; };
+		04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailView.swift; sourceTree = "<group>"; };
+		04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailViewModel.swift; sourceTree = "<group>"; };
+		04FFF10B2E00000500AA1234 /* ReelsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewController.swift; sourceTree = "<group>"; };
+		04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewRepresentable.swift; sourceTree = "<group>"; };
 		0445BB032C609EE700FF2085 /* RandomProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomProfile.swift; sourceTree = "<group>"; };
 		0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostScreen.swift; sourceTree = "<group>"; };
 		044C2D652D37C9450078843F /* SuggestionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionListView.swift; sourceTree = "<group>"; };
@@ -1461,6 +1469,9 @@
 			children = (
 				04442A172C74572E004E676C /* UserProfileView.swift */,
 				04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */,
+				04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */,
+				04FFF10B2E00000500AA1234 /* ReelsViewController.swift */,
+				04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */,
 				04A4CCAD2D6ECF78009A15E1 /* UserProfileView2.swift */,
 			);
 			path = Views;
@@ -1471,6 +1482,7 @@
 			children = (
 				04442A192C745742004E676C /* UserProfileViewModel.swift */,
 				04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */,
+				04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -5006,6 +5018,9 @@
 				04A464D22C900B4C00CE839A /* TextBox.swift in Sources */,
 				04442A182C74572E004E676C /* UserProfileView.swift in Sources */,
 				04FFF1012E00000100AA1234 /* ProfilePhotoDetailView.swift in Sources */,
+				04FFF1062E00000300AA1234 /* ProfileVideoDetailView.swift in Sources */,
+				04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */,
+				04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */,
 				04A3135F2D76CA6B00E1AB97 /* BookingSummaryViewModel.swift in Sources */,
 				04BF79602C6C8C3E00EF2B9E /* SearchViewModel.swift in Sources */,
 				04CDDB812CB903290020786C /* ReplyCommentViewModel.swift in Sources */,
@@ -5034,6 +5049,7 @@
 				04B2F8AF2CA6648700C6F5F2 /* ErrorModalManager.swift in Sources */,
 				04442A1A2C745742004E676C /* UserProfileViewModel.swift in Sources */,
 				04FFF1052E00000200AA1234 /* ProfilePhotoDetailViewModel.swift in Sources */,
+				04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */,
 				04B0FE472D0819B8003F0655 /* GoogleAuthViewModel.swift in Sources */,
 				04AA97A42CE315AD00696EF9 /* DeleteStoryResponse.swift in Sources */,
 				04F26A2E2CB7F09E00EA681E /* DateManager.swift in Sources */,
