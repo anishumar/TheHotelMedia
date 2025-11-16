@@ -8,6 +8,11 @@
 import SwiftUI
 import SwiftfulRouting
 
+// MARK: - CollaborationState (for persistence)
+private struct CollaborationState: Codable {
+    let action: String
+    let timestamp: Date
+}
 
 class NotificationViewModel: ObservableObject {
     
@@ -20,9 +25,92 @@ class NotificationViewModel: ObservableObject {
     @Published var pageNo: Int = 1
     @Published var totalPages: Int = 1
     
+    // UserDefaults key for persisting locally updated collaborations
+    private let locallyUpdatedCollaborationsKey = "locallyUpdatedCollaborations"
+    
+    // Track locally updated collaboration notifications to preserve their state during server refresh
+    // Structure: [postID: (action: "accept"/"reject", timestamp: Date)]
+    private var locallyUpdatedCollaborations: [String: (action: String, timestamp: Date)] = [:]
+    
+    // Maximum age for local state before cleanup (48 hours)
+    private let maxLocalStateAge: TimeInterval = 48 * 60 * 60
+    
     init(router: AnyRouter) {
         self.router = router
+        loadLocallyUpdatedCollaborations()
+        cleanupStaleCollaborations()
         getNotifications()
+    }
+    
+    // MARK: - Persistence Methods
+    
+    private func loadLocallyUpdatedCollaborations() {
+        if let data = UserDefaults.standard.data(forKey: locallyUpdatedCollaborationsKey),
+           let decoded = try? JSONDecoder().decode([String: CollaborationState].self, from: data) {
+            let now = Date()
+            var validEntries: [String: (action: String, timestamp: Date)] = [:]
+            
+            for (postID, state) in decoded {
+                let age = now.timeIntervalSince(state.timestamp)
+                if age < maxLocalStateAge {
+                    validEntries[postID] = (action: state.action, timestamp: state.timestamp)
+                } else {
+                    print("🟣 [NOTIFICATIONS] Removing stale collaboration state for postID: \(postID) (age: \(Int(age/3600)) hours)")
+                }
+            }
+            
+            locallyUpdatedCollaborations = validEntries
+            
+            if validEntries.count != decoded.count {
+                saveLocallyUpdatedCollaborations()
+            }
+            
+            print("🟣 [NOTIFICATIONS] Loaded \(locallyUpdatedCollaborations.count) persisted collaboration updates from UserDefaults")
+        } else {
+            locallyUpdatedCollaborations = [:]
+            print("🟣 [NOTIFICATIONS] No persisted collaboration updates found, starting fresh")
+        }
+    }
+    
+    private func saveLocallyUpdatedCollaborations() {
+        let statesToSave: [String: CollaborationState] = locallyUpdatedCollaborations.mapValues { value in
+            CollaborationState(action: value.action, timestamp: value.timestamp)
+        }
+        
+        if let encoded = try? JSONEncoder().encode(statesToSave) {
+            UserDefaults.standard.set(encoded, forKey: locallyUpdatedCollaborationsKey)
+            print("🟣 [NOTIFICATIONS] Saved \(locallyUpdatedCollaborations.count) collaboration updates to UserDefaults")
+        }
+    }
+    
+    private func removeLocallyUpdatedCollaboration(postID: String) {
+        locallyUpdatedCollaborations.removeValue(forKey: postID)
+        saveLocallyUpdatedCollaborations()
+    }
+    
+    private func addLocallyUpdatedCollaboration(postID: String, action: String) {
+        locallyUpdatedCollaborations[postID] = (action: action, timestamp: Date())
+        saveLocallyUpdatedCollaborations()
+    }
+    
+    private func cleanupStaleCollaborations() {
+        let now = Date()
+        var removedCount = 0
+        
+        locallyUpdatedCollaborations = locallyUpdatedCollaborations.filter { (postID, state) in
+            let age = now.timeIntervalSince(state.timestamp)
+            if age >= maxLocalStateAge {
+                removedCount += 1
+                print("🟣 [NOTIFICATIONS] Cleaning up stale collaboration state for postID: \(postID) (age: \(Int(age/3600)) hours)")
+                return false
+            }
+            return true
+        }
+        
+        if removedCount > 0 {
+            saveLocallyUpdatedCollaborations()
+            print("🟣 [NOTIFICATIONS] Cleaned up \(removedCount) stale collaboration states")
+        }
     }
     
     
@@ -150,7 +238,6 @@ extension NotificationViewModel {
                         if let data = result.data {
                             print("🟣 [NOTIFICATIONS] Processing \(data.count) notifications...")
                             
-                            // Log all notification types
                             for (index, notification) in data.enumerated() {
                                 print("🟣 [NOTIFICATIONS]   Notification \(index + 1):")
                                 print("🟣 [NOTIFICATIONS]     ID: \(notification.id ?? "N/A")")
@@ -167,7 +254,6 @@ extension NotificationViewModel {
                                     print("🟣 [NOTIFICATIONS]     Metadata.userID: \(metadata.userID ?? "N/A")")
                                 }
                                 
-                                // Special logging for any notification that might be collaboration-related
                                 let typeLower = (notification.type ?? "").lowercased()
                                 let descLower = (notification.description ?? "").lowercased()
                                 let metaTypeLower = (notification.metadata?.type ?? "").lowercased()
@@ -182,15 +268,64 @@ extension NotificationViewModel {
                             }
                             
                             if isRefreshed {
-                                notifications = data
+                                var mergedNotifications = data
+                                
+                                for (index, notification) in mergedNotifications.enumerated() {
+                                    if let postID = notification.metadata?.postID,
+                                       let localState = locallyUpdatedCollaborations[postID],
+                                       notification.isCollaborationInvite {
+                                        
+                                        let localAction = localState.action
+                                        let serverMetadataType = (notification.metadata?.type ?? "").lowercased()
+                                        let serverHasUpdated = serverMetadataType.contains("accept") || serverMetadataType.contains("reject")
+                                        
+                                        if !serverHasUpdated {
+                                            print("🟣 [NOTIFICATIONS] Preserving local update for postID: \(postID), localAction: \(localAction), serverType: '\(notification.metadata?.type ?? "nil")'")
+                                            
+                                            let updatedMetadata = Metadata(
+                                                connectionID: notification.metadata?.connectionID,
+                                                userID: notification.metadata?.userID,
+                                                postID: notification.metadata?.postID,
+                                                message: notification.metadata?.message,
+                                                postType: notification.metadata?.postType,
+                                                jobID: notification.metadata?.jobID,
+                                                type: localAction,
+                                                bookingID: notification.metadata?.bookingID,
+                                                commentID: notification.metadata?.commentID
+                                            )
+                                            
+                                            mergedNotifications[index] = NotificationModel(
+                                                id: notification.id,
+                                                isSeen: notification.isSeen,
+                                                userID: notification.userID,
+                                                title: notification.title,
+                                                description: notification.description,
+                                                type: notification.type,
+                                                metadata: updatedMetadata,
+                                                createdAt: notification.createdAt,
+                                                usersRef: notification.usersRef,
+                                                isConnected: notification.isConnected,
+                                                isRequested: notification.isRequested
+                                            )
+                                            
+                                            print("🟣 [NOTIFICATIONS] ✅ Updated notification at index \(index) with localAction: \(localAction)")
+                                        } else {
+                                            print("🟣 [NOTIFICATIONS] Server has updated postID: \(postID) (serverType: '\(notification.metadata?.type ?? "nil")'), removing from local tracking")
+                                            removeLocallyUpdatedCollaboration(postID: postID)
+                                        }
+                                    }
+                                }
+                                
+                                notifications = mergedNotifications
                                 self.isRefreshed.toggle()
+                                cleanupStaleCollaborations()
+                                
                                 print("🟣 [NOTIFICATIONS] ✅ Refreshed notifications. New count: \(notifications.count)")
                             } else {
                                 notifications += data
                                 print("🟣 [NOTIFICATIONS] ✅ Appended notifications. Total count: \(notifications.count)")
                             }
                             
-                            // Check for collaboration invites specifically
                             let collaborationInvites = notifications.filter { $0.isCollaborationInvite }
                             print("🟣 [NOTIFICATIONS] Collaboration invites found: \(collaborationInvites.count)")
                             for invite in collaborationInvites {
@@ -332,8 +467,67 @@ extension NotificationViewModel {
                     let range = 200...204
                     showLoadingIndicator = false
                     if result.status && range.contains(result.statusCode) {
-                        print("🟠 [COLLAB RESPOND] ✅ Success! Refreshing notifications...")
-                        getNotifications(isRefreshed: true)
+                        print("🟠 [COLLAB RESPOND] ✅ Success! Updating notification locally...")
+                        
+                        if let index = notifications.firstIndex(where: { $0.metadata?.postID == postID && $0.isCollaborationInvite }) {
+                            let notification = notifications[index]
+                            print("🟠 [COLLAB RESPOND] Found notification at index \(index)")
+                            print("🟠 [COLLAB RESPOND] Current metadata.type: '\(notification.metadata?.type ?? "nil")'")
+                            print("🟠 [COLLAB RESPOND] Current collaborationStatus: \(notification.collaborationStatus)")
+                            
+                            let updatedMetadata = Metadata(
+                                connectionID: notification.metadata?.connectionID,
+                                userID: notification.metadata?.userID,
+                                postID: notification.metadata?.postID,
+                                message: notification.metadata?.message,
+                                postType: notification.metadata?.postType,
+                                jobID: notification.metadata?.jobID,
+                                type: action == .accept ? "accept" : "reject",
+                                bookingID: notification.metadata?.bookingID,
+                                commentID: notification.metadata?.commentID
+                            )
+                            
+                            let updatedNotification = NotificationModel(
+                                id: notification.id,
+                                isSeen: notification.isSeen,
+                                userID: notification.userID,
+                                title: notification.title,
+                                description: notification.description,
+                                type: notification.type,
+                                metadata: updatedMetadata,
+                                createdAt: notification.createdAt,
+                                usersRef: notification.usersRef,
+                                isConnected: notification.isConnected,
+                                isRequested: notification.isRequested
+                            )
+                            
+                            print("🟠 [COLLAB RESPOND] Updated metadata.type: '\(updatedNotification.metadata?.type ?? "nil")'")
+                            print("🟠 [COLLAB RESPOND] Updated collaborationStatus: \(updatedNotification.collaborationStatus)")
+                            
+                            addLocallyUpdatedCollaboration(postID: postID, action: action.rawValue)
+                            print("🟠 [COLLAB RESPOND] Tracked local update for postID: \(postID), action: \(action.rawValue)")
+                            
+                            var updatedNotifications = notifications
+                            updatedNotifications[index] = updatedNotification
+                            notifications = updatedNotifications
+                            
+                            print("🟠 [COLLAB RESPOND] ✅ Notification updated locally at index \(index)")
+                        } else {
+                            print("🟠 [COLLAB RESPOND] ⚠️ Notification not found for postID: \(postID)")
+                            print("🟠 [COLLAB RESPOND] Available notifications: \(notifications.count)")
+                            for (idx, notif) in notifications.enumerated() {
+                                if notif.isCollaborationInvite {
+                                    print("🟠 [COLLAB RESPOND]   [\(idx)] Collaboration invite - postID: \(notif.metadata?.postID ?? "nil"), status: \(notif.collaborationStatus)")
+                                }
+                            }
+                        }
+                        
+                        Task {
+                            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+                            await MainActor.run {
+                                getNotifications(isRefreshed: true)
+                            }
+                        }
                     } else {
                         print("🔴 [COLLAB RESPOND] ❌ Failed!")
                         print("🔴 [COLLAB RESPOND] Status: \(result.status), StatusCode: \(result.statusCode)")

@@ -282,9 +282,9 @@ extension NotificationView {
                             }
                     }
                 } else if status == .accepted {
-                    actionButton(title: "accepted".localized(localizationManager.language), image: "person.fill.checkmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                    actionButton(title: "accepted".localized(localizationManager.language), image: "PersonMinus", buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
                 } else if status == .rejected {
-                    actionButton(title: "declined".localized(localizationManager.language), image: "person.fill.xmark", isSystemImage: true, buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
+                    actionButton(title: "declined".localized(localizationManager.language), image: "PersonMinus", buttonColor: themeManager.currentTheme.mediumGray05_darkGray05)
                 }
             }
         }
