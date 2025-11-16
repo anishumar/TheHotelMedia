@@ -191,4 +191,40 @@ class NotificationDataManager {
             throw error
         }
     }
+    
+    func getCollaboratorsForPost(postID: String) async throws -> GetCollaboratorsResponse {
+        print("🟡 [API] [GET COLLABORATORS] ========================================")
+        print("🟡 [API] [GET COLLABORATORS] Preparing get collaborators API call")
+        print("🟡 [API] [GET COLLABORATORS] PostID: \(postID)")
+        
+        guard let url = URL(string: "\(URL.getCollaboratorsForPost.absoluteString)\(postID)/collaborators") else {
+            throw NetworkError.badURL
+        }
+        
+        print("🟡 [API] [GET COLLABORATORS] URL: \(url.absoluteString)")
+        print("🟡 [API] [GET COLLABORATORS] Method: GET")
+        
+        let resource = Resource<GetCollaboratorsResponse>(url: url, method: .get([]))
+        
+        print("🟡 [API] [GET COLLABORATORS] Making API request...")
+        
+        do {
+            let result = try await baseNetworkManager.accessLoad(resource)
+            
+            print("🟡 [API] [GET COLLABORATORS] ✅ API Response received successfully")
+            print("🟡 [API] [GET COLLABORATORS] Response Status: \(result.status)")
+            print("🟡 [API] [GET COLLABORATORS] Response StatusCode: \(result.statusCode)")
+            print("🟡 [API] [GET COLLABORATORS] Response Message: \(result.message)")
+            print("🟡 [API] [GET COLLABORATORS] Collaborators count: \(result.data?.count ?? 0)")
+            print("🟡 [API] [GET COLLABORATORS] ========================================")
+            
+            return result
+        } catch {
+            print("🔴 [API] [GET COLLABORATORS] ❌ API Request failed!")
+            print("🔴 [API] [GET COLLABORATORS] Error: \(error)")
+            print("🔴 [API] [GET COLLABORATORS] Error Description: \(error.localizedDescription)")
+            print("🔴 [API] [GET COLLABORATORS] ========================================")
+            throw error
+        }
+    }
 }

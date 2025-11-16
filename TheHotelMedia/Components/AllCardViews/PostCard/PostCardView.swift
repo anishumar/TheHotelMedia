@@ -562,11 +562,33 @@ extension PostCardView {
 //                .frame(width: 46, height: 46)
             
             VStack(alignment: .leading, spacing: 0) {
-                Text(viewModel.name ?? "")
-                    .font(.custom(Constants.comicFont, size: 16))
-                    .lineLimit(1)
-                    .foregroundStyle(themeManager.currentTheme.label)
-                    .padding(.trailing, 40)
+                HStack(spacing: 4) {
+                    Text(viewModel.name ?? "")
+                        .font(.custom(Constants.comicFont, size: 16))
+                        .lineLimit(1)
+                        .foregroundStyle(themeManager.currentTheme.label)
+                    
+                    // Display collaborators if any
+                    if let collaborators = viewModel.data.collaboratorRef, !collaborators.isEmpty {
+                        Text("&")
+                            .font(.custom(Constants.comicFont, size: 16))
+                            .foregroundStyle(themeManager.currentTheme.label)
+                        
+                        ForEach(collaborators.prefix(2)) { collaborator in
+                            Text(collaborator.name ?? collaborator.username ?? "")
+                                .font(.custom(Constants.comicFont, size: 16))
+                                .lineLimit(1)
+                                .foregroundStyle(themeManager.currentTheme.label)
+                        }
+                        
+                        if collaborators.count > 2 {
+                            Text("+\(collaborators.count - 2)")
+                                .font(.custom(Constants.comicFont, size: 16))
+                                .foregroundStyle(themeManager.currentTheme.label)
+                        }
+                    }
+                }
+                .padding(.trailing, 40)
                 
                 if viewModel.accountType == "business" {
 //                    ratingView

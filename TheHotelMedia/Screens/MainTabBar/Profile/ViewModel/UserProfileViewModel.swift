@@ -739,7 +739,20 @@ extension UserProfileViewModel {
                     let range = 200...204
                     if result.status && range.contains(result.statusCode) {
                         if let data = result.data {
-                            totalPostData += data
+                            // Deduplicate posts by ID before appending
+                            var existingIDs = Set(totalPostData.compactMap { $0.id })
+                            let newPosts = data.filter { post in
+                                if let postID = post.id {
+                                    if existingIDs.contains(postID) {
+                                        return false
+                                    }
+                                    existingIDs.insert(postID)
+                                    return true
+                                }
+                                return false
+                            }
+                            
+                            totalPostData += newPosts
                             loadPostData = false
                             postDataPageNo = result.pageNo ?? 1
                             postDataTotalPages = result.totalPages ?? 1
@@ -817,17 +830,62 @@ extension UserProfileViewModel {
             do {
                 // First, ensure we have posts data to match media with postIDs
                 if totalPostData.isEmpty {
+                    // Prevent getPostData from running while we load posts
+                    await MainActor.run {
+                        loadPostData = false
+                    }
+                    
                     // Load multiple pages of posts to ensure we can match all media
+                    var allPosts: [PostData] = []
+                    var maxPage = 1
+                    var totalPages = 1
+                    
                     for page in 1...3 {
                         let postsResult = try await dataManager.getProfilePosts(id: userProfileID, pageNo: page)
                         await MainActor.run {
                             if postsResult.status && (200...204).contains(postsResult.statusCode) {
-                                if let postsData = postsResult.data {
-                                    totalPostData += postsData
-                                    print("📝 [Profile] Loaded page \(page) of posts, total posts now: \(totalPostData.count)")
+                                if let postsData = postsResult.data, !postsData.isEmpty {
+                                    allPosts += postsData
+                                    maxPage = postsResult.pageNo ?? page
+                                    totalPages = postsResult.totalPages ?? 1
+                                    print("📝 [Profile] Loaded page \(page) of posts, total posts now: \(allPosts.count)")
+                                } else {
+                                    // No more posts, break early
+                                    if page == 1 {
+                                        totalPages = 1
+                                    }
                                 }
                             }
                         }
+                        
+                        // Break early if we've loaded all pages
+                        if maxPage >= totalPages {
+                            break
+                        }
+                    }
+                    
+                    await MainActor.run {
+                        // Deduplicate posts by ID
+                        var uniquePosts: [PostData] = []
+                        var seenIDs: Set<String> = []
+                        
+                        for post in allPosts {
+                            if let postID = post.id, !seenIDs.contains(postID) {
+                                seenIDs.insert(postID)
+                                uniquePosts.append(post)
+                            }
+                        }
+                        
+                        totalPostData = uniquePosts
+                        // Set postDataPageNo to the next page to load (maxPage + 1) or totalPages + 1 if all pages loaded
+                        if maxPage < totalPages {
+                            postDataPageNo = maxPage + 1
+                        } else {
+                            postDataPageNo = totalPages + 1
+                        }
+                        postDataTotalPages = totalPages
+                        loadPostData = false
+                        print("📝 [Profile] Deduplicated posts: \(allPosts.count) -> \(uniquePosts.count), next page: \(postDataPageNo)")
                     }
                 }
                 

@@ -49,17 +49,58 @@ final class PostCardViewModel: ObservableObject {
     }
     @Published var mediaContent: [MediaType] = []
     
+    let collaborationDataManager = NotificationDataManager()
+    
     @AppStorage("isMute") var isMute: Bool = false
     
     
     init(data: PostData) {
         self.data = data
         addSubscribers()
+        fetchCollaboratorsIfNeeded()
         print("PostCardViewModel init")
     }
     
     deinit {
         print("PostCardViewModel deinit")
+    }
+    
+    func fetchCollaboratorsIfNeeded() {
+        guard let postID = data.id, data.collaboratorRef == nil || data.collaboratorRef?.isEmpty == true else {
+            return
+        }
+        
+        Task {
+            do {
+                let result = try await collaborationDataManager.getCollaboratorsForPost(postID: postID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let collaborators = result.data, !collaborators.isEmpty {
+                            let taggedRefs = collaborators.compactMap { collaborator -> TaggedRef? in
+                                guard let id = collaborator.id else { return nil }
+                                return TaggedRef(
+                                    id: id,
+                                    profilePic: collaborator.profilePic,
+                                    accountType: nil,
+                                    name: collaborator.name,
+                                    role: nil,
+                                    username: nil,
+                                    businessProfileRef: nil
+                                )
+                            }
+                            
+                            var updatedData = data
+                            updatedData.collaboratorRef = taggedRefs
+                            data = updatedData
+                        }
+                    }
+                }
+            } catch {
+                print("Failed to fetch collaborators: \(error)")
+            }
+        }
     }
     
     func addSubscribers() {

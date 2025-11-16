@@ -245,6 +245,10 @@ extension URL {
         URL(string: "\(URL.default)/collaboration/invite")!
     }
     
+    static var getCollaboratorsForPost: URL {
+        URL(string: "\(URL.default)/collaboration/")!
+    }
+    
     static var follow: URL {
         URL(string: "\(URL.default)/user/follow/")!
     }

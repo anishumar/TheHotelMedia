@@ -59,13 +59,14 @@ struct PostData: Codable, Identifiable, Equatable, Hashable {
     let commentsCount: Int? // For 'comments'
     var interestedPeople: Int? // For 'comments'
     var eventJoinsRef: [JoinProfileRef]?
+    var collaboratorRef: [TaggedRef]?
     var isExpandedDescription: Bool = false
     var currentPage: Int = 0
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
         case isPublished, feelings, reviews, businessProfileID, postType, userID, content, location, createdAt, mediaRef, taggedRef, postedBy, likes, comments, likedByMe, savedByMe, reviewedBusinessProfileID, placeID, rating, reviewedBusinessProfileRef, name, startTime, startDate, venue, refreshPost
-        case endDate, endTime, streamingLink, shared, imJoining, placeName, commentsCount, interestedPeople, eventJoinsRef, type, data, views, googleReviewedBusiness, publicUserID
+        case endDate, endTime, streamingLink, shared, imJoining, placeName, commentsCount, interestedPeople, eventJoinsRef, type, data, views, googleReviewedBusiness, publicUserID, collaboratorRef
     }
 }
 

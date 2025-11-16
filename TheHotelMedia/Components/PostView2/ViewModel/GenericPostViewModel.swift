@@ -57,14 +57,54 @@ class GenericPostViewModel: ObservableObject {
     var mediaTabFrame: CGRect = .zero
     var rate: Float = 0
     
+    let collaborationDataManager = NotificationDataManager()
     
     init(postData: PostData? = nil) {
         currentPage = postData?.currentPage ?? 0
         if let postData = postData {
             self.postData = postData
             configureInitialData(postData: postData)
+            fetchCollaboratorsIfNeeded(postData: postData)
         }
         addOtherSubscribers()
+    }
+    
+    func fetchCollaboratorsIfNeeded(postData: PostData) {
+        guard let postID = postData.id, postData.collaboratorRef == nil || postData.collaboratorRef?.isEmpty == true else {
+            return
+        }
+        
+        Task {
+            do {
+                let result = try await collaborationDataManager.getCollaboratorsForPost(postID: postID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let collaborators = result.data, !collaborators.isEmpty {
+                            let taggedRefs = collaborators.compactMap { collaborator -> TaggedRef? in
+                                guard let id = collaborator.id else { return nil }
+                                return TaggedRef(
+                                    id: id,
+                                    profilePic: collaborator.profilePic,
+                                    accountType: nil,
+                                    name: collaborator.name,
+                                    role: nil,
+                                    username: nil,
+                                    businessProfileRef: nil
+                                )
+                            }
+                            
+                            var updatedPostData = postData
+                            updatedPostData.collaboratorRef = taggedRefs
+                            self.postData = updatedPostData
+                        }
+                    }
+                }
+            } catch {
+                print("Failed to fetch collaborators: \(error)")
+            }
+        }
     }
     
     

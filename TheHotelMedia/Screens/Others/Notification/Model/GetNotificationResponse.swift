@@ -54,6 +54,48 @@ struct CollaborationInviteResponse: Codable, Refreshable {
     let message: String
 }
 
+// MARK: - GetAllCollaborationsResponse
+struct GetAllCollaborationsResponse: Codable, Refreshable {
+    let status: Bool
+    let statusCode: Int
+    let message: String
+    let data: [CollaborationData]?
+}
+
+// MARK: - CollaborationData
+struct CollaborationData: Codable, Identifiable {
+    let id: String?
+    let userID: CollaborationUserRef?
+    let collaborators: [CollaborationUserRef]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case userID
+        case collaborators
+    }
+}
+
+// MARK: - CollaborationUserRef
+struct CollaborationUserRef: Codable, Identifiable {
+    let id: String?
+    let name: String?
+    let profilePic: ProfilePic?
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case name
+        case profilePic
+    }
+}
+
+// MARK: - GetCollaboratorsResponse
+struct GetCollaboratorsResponse: Codable, Refreshable {
+    let status: Bool
+    let statusCode: Int
+    let message: String
+    let data: [CollaborationUserRef]?
+}
+
 
 enum CollaborationStatus {
     case pending

@@ -19,6 +19,7 @@ class SinglePostViewModel: ObservableObject {
     var cancellables = Set<AnyCancellable>()
     let dataManager = SinglePostDataManager()
     let postDataManager = PostDataManager()
+    let collaborationDataManager = NotificationDataManager()
     @Published var data: PostData? = nil
     var postID: String? = nil
     @Published var postType: String = ""
@@ -515,6 +516,7 @@ extension SinglePostViewModel {
                     if result.status && range.contains(result.statusCode) {
                         if let data = result.data {
                             self.data = data
+                            fetchCollaboratorsIfNeeded(postID: postID)
                         }
                     } else {
                         ErrorModalManager.showErrorModal(router: router, errorText: result.message)
@@ -552,6 +554,44 @@ extension SinglePostViewModel {
                 
             } catch {
                 print(error)
+            }
+        }
+    }
+    
+    func fetchCollaboratorsIfNeeded(postID: String) {
+        guard let data = data, data.collaboratorRef == nil || data.collaboratorRef?.isEmpty == true else {
+            return
+        }
+        
+        Task {
+            do {
+                let result = try await collaborationDataManager.getCollaboratorsForPost(postID: postID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let collaborators = result.data, !collaborators.isEmpty {
+                            let taggedRefs = collaborators.compactMap { collaborator -> TaggedRef? in
+                                guard let id = collaborator.id else { return nil }
+                                return TaggedRef(
+                                    id: id,
+                                    profilePic: collaborator.profilePic,
+                                    accountType: nil,
+                                    name: collaborator.name,
+                                    role: nil,
+                                    username: nil,
+                                    businessProfileRef: nil
+                                )
+                            }
+                            
+                            var updatedData = data
+                            updatedData.collaboratorRef = taggedRefs
+                            self.data = updatedData
+                        }
+                    }
+                }
+            } catch {
+                print("Failed to fetch collaborators: \(error)")
             }
         }
     }
