@@ -588,9 +588,11 @@ class UserProfileViewModel: ObservableObject {
         router.showScreen(.push) { router in
             EditPostScreen(viewModel: EditPostViewModel(router: router, postData: postData, onPostUpdated: { [weak self] in
                 guard let self else { return }
-                // Refresh the post data if needed
-                if let index = self.totalPostData.firstIndex(where: { $0.id == self.selectedPostID }) {
-                    // Optionally refresh the post
+                // Ensure we're on the posts tab
+                self.currentTab = .posts
+                // Reload all posts to ensure the view updates properly
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.reloadPosts()
                 }
             }))
             .environmentObject(ThemeManager.shared)
@@ -753,6 +755,51 @@ extension UserProfileViewModel {
                     print(error)
                 }
             }
+        }
+    }
+    
+    func refreshPost(postID: String) {
+        let singlePostDataManager = SinglePostDataManager()
+        
+        Task {
+            do {
+                let result = try await singlePostDataManager.getSinglePost(id: postID)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let updatedPost = result.data {
+                            // Find and update the post in totalPostData
+                            if let index = totalPostData.firstIndex(where: { $0.id == postID }) {
+                                // Create a new array to ensure SwiftUI detects the change
+                                var updatedPosts = totalPostData
+                                updatedPosts[index] = updatedPost
+                                totalPostData = updatedPosts
+                            } else {
+                                // If post not found, it might have been removed, reload all posts
+                                reloadPosts()
+                            }
+                        }
+                    }
+                }
+            } catch {
+                print("Failed to refresh post: \(error)")
+                // On error, reload all posts as fallback
+                await MainActor.run {
+                    reloadPosts()
+                }
+            }
+        }
+    }
+    
+    func reloadPosts() {
+        // Reset pagination and reload posts
+        Task { @MainActor in
+            totalPostData = []
+            postDataPageNo = 1
+            postDataTotalPages = 1
+            loadPostData = true
+            getPostData()
         }
     }
     
