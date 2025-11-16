@@ -110,11 +110,6 @@ struct GenericPostView: View {
             } else {
                 VStack(spacing: 12) {
                     profileDetailView
-                        .onTapGesture {
-                            if let id = viewModel.postData?.postedBy?.id {
-                                onPressedProfile?(id)
-                            }
-                        }
                         .padding(.bottom, 4)
                     
                     VStack {
@@ -370,10 +365,20 @@ extension GenericPostView {
             if viewModel.accountType == "business" {
                 BusinessProfilePicView(stringURL: viewModel.profilePic ?? "")
                     .offset(y: 4)
+                    .onTapGesture {
+                        if let id = viewModel.postData?.postedBy?.id {
+                            onPressedProfile?(id)
+                        }
+                    }
 
             } else {
                 IndividualProfilePicView(urlString: viewModel.profilePic ?? "")
                     .offset(y: 4)
+                    .onTapGesture {
+                        if let id = viewModel.postData?.postedBy?.id {
+                            onPressedProfile?(id)
+                        }
+                    }
 
             }
             
@@ -383,6 +388,11 @@ extension GenericPostView {
                         .font(.custom(Constants.comicFont, size: 16))
                         .lineLimit(1)
                         .foregroundStyle(themeManager.currentTheme.label)
+                        .onTapGesture {
+                            if let id = viewModel.postData?.postedBy?.id {
+                                onPressedProfile?(id)
+                            }
+                        }
                     
                     // Display collaborators if any
                     if let collaborators = viewModel.postData?.collaboratorRef, !collaborators.isEmpty {
@@ -395,6 +405,9 @@ extension GenericPostView {
                                 .font(.custom(Constants.comicFont, size: 16))
                                 .lineLimit(1)
                                 .foregroundStyle(themeManager.currentTheme.label)
+                                .onTapGesture {
+                                    onPressedProfile?(collaborator.id)
+                                }
                         }
                         
                         if collaborators.count > 2 {

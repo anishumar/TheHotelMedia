@@ -893,9 +893,19 @@ extension SinglePostView {
             if viewModel.accountType == "business" {
                 businessProfilePic
                     .offset(y: 4)
+                    .onTapGesture {
+                        if let id = viewModel.data?.postedBy?.id {
+                            viewModel.showProfileScreen(userID: id)
+                        }
+                    }
             } else {
                 individualProfilePic
                     .offset(y: 4)
+                    .onTapGesture {
+                        if let id = viewModel.data?.postedBy?.id {
+                            viewModel.showProfileScreen(userID: id)
+                        }
+                    }
             }
             
             
@@ -905,6 +915,11 @@ extension SinglePostView {
                         .font(.custom(Constants.comicFont, size: 16))
                         .lineLimit(1)
                         .foregroundStyle(themeManager.currentTheme.label)
+                        .onTapGesture {
+                            if let id = viewModel.data?.postedBy?.id {
+                                viewModel.showProfileScreen(userID: id)
+                            }
+                        }
                     
                     // Display collaborators if any
                     if let collaborators = viewModel.data?.collaboratorRef, !collaborators.isEmpty {
@@ -917,6 +932,9 @@ extension SinglePostView {
                                 .font(.custom(Constants.comicFont, size: 16))
                                 .lineLimit(1)
                                 .foregroundStyle(themeManager.currentTheme.label)
+                                .onTapGesture {
+                                    viewModel.showProfileScreen(userID: collaborator.id)
+                                }
                         }
                         
                         if collaborators.count > 2 {
