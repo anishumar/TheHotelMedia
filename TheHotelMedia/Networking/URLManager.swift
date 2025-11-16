@@ -148,6 +148,10 @@ extension URL {
         URL(string: "\(URL.default)/posts")!
     }
     
+    static var updatePost: URL {
+        URL(string: "\(URL.default)/posts/")!
+    }
+    
     static var createReview: URL {
         URL(string: "\(URL.default)/reviews")!
     }

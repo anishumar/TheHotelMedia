@@ -334,6 +334,8 @@
 
 // Edit Story Image View
 "edit_story" = "વાર્તા સંપાદિત કરો";
+"edit" = "સંપાદિત કરો";
+"edit_post" = "પોસ્ટ સંપાદિત કરો";
 "add" = "જોડો";
 "type_here" = "અહીં લખો";
 "delete" = "હટાવો";

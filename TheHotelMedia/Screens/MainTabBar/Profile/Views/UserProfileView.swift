@@ -169,6 +169,12 @@ struct UserProfileView: View {
                             }
                         
                         if !viewModel.isReviewPost && viewModel.publicProfileID.isEmpty  {
+                            capsuleButtonView(title: "edit".localized(localizationManager.language))
+                                .onTapGesture {
+                                    viewModel.showPostOptionView.toggle()
+                                    viewModel.showEditPostScreen()
+                                }
+                            
                             capsuleButtonView(title: "delete".localized(localizationManager.language))
                                 .onTapGesture {
                                     viewModel.showPostOptionView.toggle()

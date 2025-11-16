@@ -288,6 +288,7 @@
 // SinglePostView
 "report" = "Report";
 "an_error_occured_while_loading_the_post" = "An error occured while loading the post.";
+"an_error_occured_while_updating_the_post" = "An error occurred while updating the post.";
 
 // StorySeenView (pending)
 "block" = "Block";
@@ -330,6 +331,8 @@
 
 // Edit Story Image View
 "edit_story" = "Edit Story";
+"edit" = "Edit";
+"edit_post" = "Edit Post";
 "add" = "Add";
 "type_here" = "Type Here";
 "delete" = "Delete";

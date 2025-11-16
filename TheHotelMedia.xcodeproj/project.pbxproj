@@ -68,6 +68,7 @@
 		0445BB042C609EE700FF2085 /* RandomProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB032C609EE700FF2085 /* RandomProfile.swift */; };
 		0445BB072C60A69E00FF2085 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB062C60A69E00FF2085 /* SDWebImageSwiftUI */; };
 		0445BB0A2C60E93C00FF2085 /* CreatePostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */; };
+		04EDIT012E00000700AA1234 /* EditPostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EDIT002E00000700AA1234 /* EditPostScreen.swift */; };
 		0445BB102C61075C00FF2085 /* Flow in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB0F2C61075C00FF2085 /* Flow */; };
 		044C2D662D37C9450078843F /* SuggestionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044C2D652D37C9450078843F /* SuggestionListView.swift */; };
 		044E3AD72C9C010200C29D32 /* SelectOptionModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E3AD62C9C010200C29D32 /* SelectOptionModal.swift */; };
@@ -253,6 +254,7 @@
 		04A98F512C633C9C0059C5FB /* Notification + Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F502C633C9C0059C5FB /* Notification + Ext.swift */; };
 		04A98F542C63413F0059C5FB /* KeyboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F532C63413F0059C5FB /* KeyboardManager.swift */; };
 		04A98F562C6383790059C5FB /* CreatePostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F552C6383790059C5FB /* CreatePostViewModel.swift */; };
+		04EDIT022E00000800AA1234 /* EditPostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EDIT012E00000800AA1234 /* EditPostViewModel.swift */; };
 		04A98F582C6393790059C5FB /* BusinessLogoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F572C6393790059C5FB /* BusinessLogoDetailViewModel.swift */; };
 		04AA35192CD8C8BA00788D45 /* BlockUserResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AA35182CD8C8BA00788D45 /* BlockUserResponse.swift */; };
 		04AA97A42CE315AD00696EF9 /* DeleteStoryResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AA97A32CE315AD00696EF9 /* DeleteStoryResponse.swift */; };
@@ -703,6 +705,7 @@
 		04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewRepresentable.swift; sourceTree = "<group>"; };
 		0445BB032C609EE700FF2085 /* RandomProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomProfile.swift; sourceTree = "<group>"; };
 		0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostScreen.swift; sourceTree = "<group>"; };
+		04EDIT002E00000700AA1234 /* EditPostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPostScreen.swift; sourceTree = "<group>"; };
 		044C2D652D37C9450078843F /* SuggestionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionListView.swift; sourceTree = "<group>"; };
 		044E3AD62C9C010200C29D32 /* SelectOptionModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectOptionModal.swift; sourceTree = "<group>"; };
 		044E3ADA2C9C2D2100C29D32 /* BaseNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseNetworkManager.swift; sourceTree = "<group>"; };
@@ -877,6 +880,7 @@
 		04A98F502C633C9C0059C5FB /* Notification + Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification + Ext.swift"; sourceTree = "<group>"; };
 		04A98F532C63413F0059C5FB /* KeyboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardManager.swift; sourceTree = "<group>"; };
 		04A98F552C6383790059C5FB /* CreatePostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewModel.swift; sourceTree = "<group>"; };
+		04EDIT012E00000800AA1234 /* EditPostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPostViewModel.swift; sourceTree = "<group>"; };
 		04A98F572C6393790059C5FB /* BusinessLogoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessLogoDetailViewModel.swift; sourceTree = "<group>"; };
 		04AA35182CD8C8BA00788D45 /* BlockUserResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockUserResponse.swift; sourceTree = "<group>"; };
 		04AA97A32CE315AD00696EF9 /* DeleteStoryResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteStoryResponse.swift; sourceTree = "<group>"; };
@@ -1863,6 +1867,15 @@
 				04CD96082C5917E000F6B7E4 /* Views */,
 			);
 			path = CreatePost;
+			sourceTree = "<group>";
+		};
+		04EDIT052E00000B00AA1234 /* EditPost */ = {
+			isa = PBXGroup;
+			children = (
+				04EDIT042E00000A00AA1234 /* ViewModel */,
+				04EDIT032E00000900AA1234 /* Views */,
+			);
+			path = EditPost;
 			sourceTree = "<group>";
 		};
 		0469D7B62C6F014500194D8F /* CreateEvent */ = {
@@ -3644,6 +3657,7 @@
 			children = (
 				04DBCBEA2CA4298A001CC6DA /* CreateReview */,
 				0469D7B52C6F00FA00194D8F /* CreatePost */,
+				04EDIT052E00000B00AA1234 /* EditPost */,
 				0469D7B62C6F014500194D8F /* CreateEvent */,
 				0461D0562C8726BD00D061A8 /* TagPeople */,
 				04D100B42C885A5400CB7A50 /* AddFeeling */,
@@ -3711,6 +3725,22 @@
 			isa = PBXGroup;
 			children = (
 				04A98F552C6383790059C5FB /* CreatePostViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		04EDIT032E00000900AA1234 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				04EDIT002E00000700AA1234 /* EditPostScreen.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		04EDIT042E00000A00AA1234 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				04EDIT012E00000800AA1234 /* EditPostViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -5054,6 +5084,7 @@
 				04AA97A42CE315AD00696EF9 /* DeleteStoryResponse.swift in Sources */,
 				04F26A2E2CB7F09E00EA681E /* DateManager.swift in Sources */,
 				0445BB0A2C60E93C00FF2085 /* CreatePostScreen.swift in Sources */,
+				04EDIT012E00000700AA1234 /* EditPostScreen.swift in Sources */,
 				04D004E42C53D3DE009F3976 /* SocialLoginButton.swift in Sources */,
 				04E892232D672C1B005B458E /* CheckInResponse.swift in Sources */,
 				04BA857D2C85D456003A410D /* TransactionsView.swift in Sources */,
@@ -5235,6 +5266,7 @@
 				04A834D22CD9CE0000854253 /* THMStoryUIUser.swift in Sources */,
 				0454B6D92C7309AD0031F1F0 /* EditEmailView.swift in Sources */,
 				04A98F562C6383790059C5FB /* CreatePostViewModel.swift in Sources */,
+				04EDIT022E00000800AA1234 /* EditPostViewModel.swift in Sources */,
 				04E7AA0C2DA38E15002D9506 /* CreateJobPostViewModel.swift in Sources */,
 				0410ADCD2D30DE0E0009D908 /* WeatherDataManager.swift in Sources */,
 				046387FB2D8AC7EC00356CD2 /* SceneDelegate.swift in Sources */,

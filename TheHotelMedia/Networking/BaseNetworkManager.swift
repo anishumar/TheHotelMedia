@@ -49,6 +49,7 @@ enum HttpMethod {
     case mediaMessage([MessageMedia], [String: Any])
     case createEvent(UIImage, [String: Any])
     case createStory([MediaAttachment])
+    case updatePost([MediaAttachment], [String], [String: Any], [String])
     
     var name: String {
         switch self {
@@ -82,6 +83,8 @@ enum HttpMethod {
             return "POST"
         case .postWithArray:
             return "POST"
+        case .updatePost:
+            return "PUT"
         }
     }
     
@@ -117,6 +120,8 @@ enum HttpMethod {
             return .post
         case .postWithArray:
             return .post
+        case .updatePost:
+            return .put
         }
     }
     
@@ -477,6 +482,56 @@ class BaseNetworkManager {
                 
                 
             }, to: resource.url, headers: HTTPHeaders(header))
+            
+        case .updatePost(let attachments, let tags, let parameters, let deletedMedia):
+            
+            header = [
+                "Content-Type": "multipart/form-data",
+                "x-access-token": accessToken
+            ]
+            
+            request = session.upload(multipartFormData: { [weak self] multipartFormData in
+                guard let self else { return }
+                
+                for attachment in attachments {
+                    switch attachment.type {
+                    case .photo(let image):
+                        if let imageData = image.jpegData(compressionQuality: 0.5) {
+                            multipartFormData.append(imageData, withName: "media", fileName: "image.jpeg", mimeType: "image/jpeg")
+                        }
+                    case .video( _, let videoURL):
+                        if let videoData = try? Data(contentsOf: videoURL) {
+                            if let mimeType = self.mimeType(for: videoURL) {
+                                print(mimeType)
+                                print(videoURL.lastPathComponent)
+                                multipartFormData.append(videoData, withName: "media", fileName: videoURL.lastPathComponent, mimeType: mimeType)
+                            }
+                        }
+                    }
+                }
+                
+                for tag in tags {
+                    multipartFormData.append(Data(tag.utf8), withName: "tagged[]")
+                }
+                
+                for deletedMediaID in deletedMedia {
+                    multipartFormData.append(Data(deletedMediaID.utf8), withName: "deletedMedia")
+                }
+                
+                for (key, value) in parameters {
+                    if let valueString = value as? String,
+                       let data = valueString.data(using: .utf8) {
+                        multipartFormData.append(data, withName: key)
+                    } else if let value = value as? CustomStringConvertible {
+                        // Handles cases where value could be an Int, Bool, etc.
+                        let stringValue = String(describing: value)
+                        if let data = stringValue.data(using: .utf8) {
+                            multipartFormData.append(data, withName: key)
+                        }
+                    }
+                }
+                
+            }, to: resource.url, method: .put, headers: HTTPHeaders(header))
             
         case .postWithArray(let parameters, let array):
 //            header = [

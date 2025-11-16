@@ -332,6 +332,8 @@
 
 // Edit Story Image View
 "edit_story" = "कथा संपादित करा";
+"edit" = "संपादित करा";
+"edit_post" = "पोस्ट संपादित करा";
 "add" = "जोडा";
 "type_here" = "इथे टाइप करा";
 "delete" = "हटवा";

@@ -288,6 +288,7 @@
 // SinglePostView
 "report" = "रिपोर्ट करें";
 "an_error_occured_while_loading_the_post" = "पोस्ट लोड करते समय एक त्रुटि हुई।";
+"an_error_occured_while_updating_the_post" = "पोस्ट अपडेट करते समय एक त्रुटि हुई।";
 
 // StorySeenView (pending)
 "block" = "ब्लॉक करें";
@@ -332,6 +333,8 @@
 
 // Edit Story Image View
 "edit_story" = "कहानी संपादित करें";
+"edit" = "संपादित करें";
+"edit_post" = "पोस्ट संपादित करें";
 "add" = "जोड़ें";
 "type_here" = "यहां टाइप करें";
 "delete" = "हटाएं";

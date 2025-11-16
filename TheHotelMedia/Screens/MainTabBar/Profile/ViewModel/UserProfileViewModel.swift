@@ -579,6 +579,25 @@ class UserProfileViewModel: ObservableObject {
         }
     }
     
+    
+    func showEditPostScreen() {
+        guard let postData = totalPostData.first(where: { $0.id == selectedPostID }) else {
+            return
+        }
+        
+        router.showScreen(.push) { router in
+            EditPostScreen(viewModel: EditPostViewModel(router: router, postData: postData, onPostUpdated: { [weak self] in
+                guard let self else { return }
+                // Refresh the post data if needed
+                if let index = self.totalPostData.firstIndex(where: { $0.id == self.selectedPostID }) {
+                    // Optionally refresh the post
+                }
+            }))
+            .environmentObject(ThemeManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
+    
     func showCreateReviewScreen(id: String? = nil, placeID: String? = nil) {
         router.showScreen(.push) { router in
             CreateReviewView(viewModel: CreateReviewViewModel(router: router, businessProfileID: id, placeID: placeID, onReviewCreated: { [weak self] in

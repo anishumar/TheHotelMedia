@@ -27,4 +27,15 @@ class CreatePostDataManager {
         backgroundNetworkManager.startUpload(attachments: attachments, tags: tagged, parameters: parameters)
     }
     
+    func updatePost(postID: String, attachments: [MediaAttachment], tagged: [String], parameters: [String: Any], deletedMedia: [String]) async throws -> CreatePostResponse {
+        
+        guard let url = URL(string: "\(URL.updatePost.absoluteString)\(postID)") else { throw NetworkError.badURL }
+        
+        let resource = Resource<CreatePostResponse>(url: url, method: .updatePost(attachments, tagged, parameters, deletedMedia))
+        
+        let result = try await baseNetworkManager.accessLoad(resource)
+        
+        return result
+    }
+    
 }
