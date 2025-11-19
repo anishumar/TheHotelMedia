@@ -421,11 +421,11 @@ extension SignInViewModel {
     }
     
     
-    func appleSocialLogin(authCode: String, name: String? = nil, email: String? = nil) {
+    func appleSocialLogin(idToken: String, name: String? = nil, email: String? = nil) {
         
         var parameters: [String: Any] = [
             "socialType": "apple",
-            "token": authCode,
+            "token": idToken,
             "deviceID": deviceIDManager.getDeviceID(),
             "devicePlatform": "ios",
             "notificationToken": fcmtoken,
@@ -457,16 +457,26 @@ extension SignInViewModel {
                         if status && range.contains(statusCode) {
                             handleLoginResponse(response: result)
                         } else {
-                            ErrorModalManager.showErrorModal(router: router, errorText: result.message ?? "")
+                            let errorMessage = result.message ?? "Login failed. Please try again."
+                            ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                         }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Invalid response from server")
                     }
                     
                     showLoadingIndicator = false
                 }
             } catch {
-                print(error)
+                print("Apple Social Login Error: \(error)")
                 await MainActor.run {
                     showLoadingIndicator = false
+                    var errorMessage = "Login failed. Please try again."
+                    if let networkError = error as? NetworkError {
+                        errorMessage = networkError.localizedDescription
+                    } else {
+                        errorMessage = error.localizedDescription
+                    }
+                    ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                 }
             }
         }

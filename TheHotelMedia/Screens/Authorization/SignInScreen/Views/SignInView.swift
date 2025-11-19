@@ -440,14 +440,12 @@ extension SignInView {
                                 let email = KeychainManager.shared.retrieveEmailFromKeychain(key: identifier)
                                 
                                 if !fullName.isEmpty {
-                                    viewModel.appleSocialLogin(authCode: identityTokenString, name: fullName, email: email)
+                                    viewModel.appleSocialLogin(idToken: identityTokenString, name: fullName, email: email)
                                 } else {
-                                    viewModel.appleSocialLogin(authCode: identityTokenString, email: email)
+                                    viewModel.appleSocialLogin(idToken: identityTokenString, email: email)
                                 }
-                                
-                                print(identityTokenString)
                             } else {
-                                print("Identity token is not available.")
+                                print("Apple ID Token is not available.")
                             }
                             
                         default:
