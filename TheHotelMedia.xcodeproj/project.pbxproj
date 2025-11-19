@@ -59,16 +59,9 @@
 		0443D9B42CEB35FF000242AB /* GetActiveSubscriptionResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0443D9B32CEB35FF000242AB /* GetActiveSubscriptionResponse.swift */; };
 		04442A182C74572E004E676C /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04442A172C74572E004E676C /* UserProfileView.swift */; };
 		04442A1A2C745742004E676C /* UserProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04442A192C745742004E676C /* UserProfileViewModel.swift */; };
-		04FFF1012E00000100AA1234 /* ProfilePhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */; };
-		04FFF1052E00000200AA1234 /* ProfilePhotoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */; };
-		04FFF1062E00000300AA1234 /* ProfileVideoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */; };
-		04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */; };
-		04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10B2E00000500AA1234 /* ReelsViewController.swift */; };
-		04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */; };
 		0445BB042C609EE700FF2085 /* RandomProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB032C609EE700FF2085 /* RandomProfile.swift */; };
 		0445BB072C60A69E00FF2085 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB062C60A69E00FF2085 /* SDWebImageSwiftUI */; };
 		0445BB0A2C60E93C00FF2085 /* CreatePostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */; };
-		04EDIT012E00000700AA1234 /* EditPostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EDIT002E00000700AA1234 /* EditPostScreen.swift */; };
 		0445BB102C61075C00FF2085 /* Flow in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB0F2C61075C00FF2085 /* Flow */; };
 		044C2D662D37C9450078843F /* SuggestionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044C2D652D37C9450078843F /* SuggestionListView.swift */; };
 		044E3AD72C9C010200C29D32 /* SelectOptionModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E3AD62C9C010200C29D32 /* SelectOptionModal.swift */; };
@@ -254,7 +247,6 @@
 		04A98F512C633C9C0059C5FB /* Notification + Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F502C633C9C0059C5FB /* Notification + Ext.swift */; };
 		04A98F542C63413F0059C5FB /* KeyboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F532C63413F0059C5FB /* KeyboardManager.swift */; };
 		04A98F562C6383790059C5FB /* CreatePostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F552C6383790059C5FB /* CreatePostViewModel.swift */; };
-		04EDIT022E00000800AA1234 /* EditPostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EDIT012E00000800AA1234 /* EditPostViewModel.swift */; };
 		04A98F582C6393790059C5FB /* BusinessLogoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A98F572C6393790059C5FB /* BusinessLogoDetailViewModel.swift */; };
 		04AA35192CD8C8BA00788D45 /* BlockUserResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AA35182CD8C8BA00788D45 /* BlockUserResponse.swift */; };
 		04AA97A42CE315AD00696EF9 /* DeleteStoryResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AA97A32CE315AD00696EF9 /* DeleteStoryResponse.swift */; };
@@ -604,6 +596,8 @@
 		04EB996F2C99A3D300714554 /* VideoEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EB996E2C99A3D300714554 /* VideoEditorView.swift */; };
 		04EC45DB2CAE8E9300B739E9 /* EmptyScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EC45DA2CAE8E9300B739E9 /* EmptyScreenView.swift */; };
 		04EC45DD2CAEAE5200B739E9 /* CommentSectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EC45DC2CAEAE5200B739E9 /* CommentSectionViewModel.swift */; };
+		04EDIT012E00000700AA1234 /* EditPostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EDIT002E00000700AA1234 /* EditPostScreen.swift */; };
+		04EDIT022E00000800AA1234 /* EditPostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04EDIT012E00000800AA1234 /* EditPostViewModel.swift */; };
 		04F047362CDA124D00AEA9F6 /* BottomCustomModalView2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F047352CDA124D00AEA9F6 /* BottomCustomModalView2.swift */; };
 		04F0473B2CDA198300AEA9F6 /* StorySeenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F0473A2CDA198300AEA9F6 /* StorySeenView.swift */; };
 		04F13C6A2DCDFB3300B5E1EC /* PDFDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F13C692DCDFB3300B5E1EC /* PDFDownloader.swift */; };
@@ -618,6 +612,12 @@
 		04FF45D62D11562B008CCFD6 /* terms_hi.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04FF45D52D11562B008CCFD6 /* terms_hi.txt */; };
 		04FF45D82D115634008CCFD6 /* terms_gu.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04FF45D72D115634008CCFD6 /* terms_gu.txt */; };
 		04FF45DA2D11563F008CCFD6 /* terms_mr.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04FF45D92D11563F008CCFD6 /* terms_mr.txt */; };
+		04FFF1012E00000100AA1234 /* ProfilePhotoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */; };
+		04FFF1052E00000200AA1234 /* ProfilePhotoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */; };
+		04FFF1062E00000300AA1234 /* ProfileVideoDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */; };
+		04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */; };
+		04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10B2E00000500AA1234 /* ReelsViewController.swift */; };
+		04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -697,15 +697,8 @@
 		0443D9B32CEB35FF000242AB /* GetActiveSubscriptionResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetActiveSubscriptionResponse.swift; sourceTree = "<group>"; };
 		04442A172C74572E004E676C /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
 		04442A192C745742004E676C /* UserProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewModel.swift; sourceTree = "<group>"; };
-		04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoDetailView.swift; sourceTree = "<group>"; };
-		04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoDetailViewModel.swift; sourceTree = "<group>"; };
-		04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailView.swift; sourceTree = "<group>"; };
-		04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailViewModel.swift; sourceTree = "<group>"; };
-		04FFF10B2E00000500AA1234 /* ReelsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewController.swift; sourceTree = "<group>"; };
-		04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewRepresentable.swift; sourceTree = "<group>"; };
 		0445BB032C609EE700FF2085 /* RandomProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomProfile.swift; sourceTree = "<group>"; };
 		0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostScreen.swift; sourceTree = "<group>"; };
-		04EDIT002E00000700AA1234 /* EditPostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPostScreen.swift; sourceTree = "<group>"; };
 		044C2D652D37C9450078843F /* SuggestionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionListView.swift; sourceTree = "<group>"; };
 		044E3AD62C9C010200C29D32 /* SelectOptionModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectOptionModal.swift; sourceTree = "<group>"; };
 		044E3ADA2C9C2D2100C29D32 /* BaseNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseNetworkManager.swift; sourceTree = "<group>"; };
@@ -880,7 +873,6 @@
 		04A98F502C633C9C0059C5FB /* Notification + Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Notification + Ext.swift"; sourceTree = "<group>"; };
 		04A98F532C63413F0059C5FB /* KeyboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardManager.swift; sourceTree = "<group>"; };
 		04A98F552C6383790059C5FB /* CreatePostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostViewModel.swift; sourceTree = "<group>"; };
-		04EDIT012E00000800AA1234 /* EditPostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPostViewModel.swift; sourceTree = "<group>"; };
 		04A98F572C6393790059C5FB /* BusinessLogoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessLogoDetailViewModel.swift; sourceTree = "<group>"; };
 		04AA35182CD8C8BA00788D45 /* BlockUserResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockUserResponse.swift; sourceTree = "<group>"; };
 		04AA97A32CE315AD00696EF9 /* DeleteStoryResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteStoryResponse.swift; sourceTree = "<group>"; };
@@ -1220,6 +1212,8 @@
 		04EB996E2C99A3D300714554 /* VideoEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoEditorView.swift; sourceTree = "<group>"; };
 		04EC45DA2CAE8E9300B739E9 /* EmptyScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyScreenView.swift; sourceTree = "<group>"; };
 		04EC45DC2CAEAE5200B739E9 /* CommentSectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentSectionViewModel.swift; sourceTree = "<group>"; };
+		04EDIT002E00000700AA1234 /* EditPostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPostScreen.swift; sourceTree = "<group>"; };
+		04EDIT012E00000800AA1234 /* EditPostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPostViewModel.swift; sourceTree = "<group>"; };
 		04F047352CDA124D00AEA9F6 /* BottomCustomModalView2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomCustomModalView2.swift; sourceTree = "<group>"; };
 		04F0473A2CDA198300AEA9F6 /* StorySeenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySeenView.swift; sourceTree = "<group>"; };
 		04F13C692DCDFB3300B5E1EC /* PDFDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFDownloader.swift; sourceTree = "<group>"; };
@@ -1234,6 +1228,12 @@
 		04FF45D52D11562B008CCFD6 /* terms_hi.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = terms_hi.txt; sourceTree = "<group>"; };
 		04FF45D72D115634008CCFD6 /* terms_gu.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = terms_gu.txt; sourceTree = "<group>"; };
 		04FF45D92D11563F008CCFD6 /* terms_mr.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = terms_mr.txt; sourceTree = "<group>"; };
+		04FFF1022E00000100AA1234 /* ProfilePhotoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoDetailView.swift; sourceTree = "<group>"; };
+		04FFF1042E00000200AA1234 /* ProfilePhotoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePhotoDetailViewModel.swift; sourceTree = "<group>"; };
+		04FFF1072E00000300AA1234 /* ProfileVideoDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailView.swift; sourceTree = "<group>"; };
+		04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailViewModel.swift; sourceTree = "<group>"; };
+		04FFF10B2E00000500AA1234 /* ReelsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewController.swift; sourceTree = "<group>"; };
+		04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewRepresentable.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1867,15 +1867,6 @@
 				04CD96082C5917E000F6B7E4 /* Views */,
 			);
 			path = CreatePost;
-			sourceTree = "<group>";
-		};
-		04EDIT052E00000B00AA1234 /* EditPost */ = {
-			isa = PBXGroup;
-			children = (
-				04EDIT042E00000A00AA1234 /* ViewModel */,
-				04EDIT032E00000900AA1234 /* Views */,
-			);
-			path = EditPost;
 			sourceTree = "<group>";
 		};
 		0469D7B62C6F014500194D8F /* CreateEvent */ = {
@@ -3729,22 +3720,6 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
-		04EDIT032E00000900AA1234 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				04EDIT002E00000700AA1234 /* EditPostScreen.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		04EDIT042E00000A00AA1234 /* ViewModel */ = {
-			isa = PBXGroup;
-			children = (
-				04EDIT012E00000800AA1234 /* EditPostViewModel.swift */,
-			);
-			path = ViewModel;
-			sourceTree = "<group>";
-		};
 		04CDDB852CB9352D0020786C /* StoryScreen */ = {
 			isa = PBXGroup;
 			children = (
@@ -4686,6 +4661,31 @@
 			path = EmptyView;
 			sourceTree = "<group>";
 		};
+		04EDIT032E00000900AA1234 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				04EDIT002E00000700AA1234 /* EditPostScreen.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		04EDIT042E00000A00AA1234 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				04EDIT012E00000800AA1234 /* EditPostViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		04EDIT052E00000B00AA1234 /* EditPost */ = {
+			isa = PBXGroup;
+			children = (
+				04EDIT042E00000A00AA1234 /* ViewModel */,
+				04EDIT032E00000900AA1234 /* Views */,
+			);
+			path = EditPost;
+			sourceTree = "<group>";
+		};
 		04F047372CDA195C00AEA9F6 /* StorySeen */ = {
 			isa = PBXGroup;
 			children = (
@@ -4751,6 +4751,7 @@
 				04D004AE2C5377A5009F3976 /* Resources */,
 				0499B9792D26648F0083AE75 /* Embed Foundation Extensions */,
 				0494593F2D3790A6007365A5 /* Embed Frameworks */,
+				04FF00012E00000900AA1234 /* Strip arm64e from ffmpegkit */,
 			);
 			buildRules = (
 			);
@@ -4911,6 +4912,46 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		04FF00012E00000900AA1234 /* Strip arm64e from ffmpegkit */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/ffmpegkit.framework/ffmpegkit",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/ffmpegkit.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/FFmpeg.framework/FFmpeg",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/FFmpeg.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavcodec.framework/libavcodec",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavcodec.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavdevice.framework/libavdevice",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavdevice.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavfilter.framework/libavfilter",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavfilter.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavformat.framework/libavformat",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavformat.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavutil.framework/libavutil",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libavutil.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libswresample.framework/libswresample",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libswresample.framework/Info.plist",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libswscale.framework/libswscale",
+				"$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libswscale.framework/Info.plist",
+			);
+			name = "Strip arm64e from FFmpeg frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "FRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nMIN_OS_VERSION=\"${IPHONEOS_DEPLOYMENT_TARGET:-18.6}\"\n\nFFMPEG_FRAMEWORKS=(\n    \"ffmpegkit.framework\"\n    \"FFmpeg.framework\"\n    \"libavcodec.framework\"\n    \"libavdevice.framework\"\n    \"libavfilter.framework\"\n    \"libavformat.framework\"\n    \"libavutil.framework\"\n    \"libswresample.framework\"\n    \"libswscale.framework\"\n)\n\necho \"🔍 Processing FFmpeg frameworks for distribution...\"\necho \"📦 Frameworks directory: ${FRAMEWORKS_DIR}\"\necho \"📱 Minimum OS Version: ${MIN_OS_VERSION}\"\necho \"\"\n\nif [ ! -d \"${FRAMEWORKS_DIR}\" ]; then\n    echo \"❌ Frameworks directory not found: ${FRAMEWORKS_DIR}\"\n    exit 1\nfi\n\nfor FRAMEWORK_NAME in \"${FFMPEG_FRAMEWORKS[@]}\"; do\n    FRAMEWORK_PATH=\"${FRAMEWORKS_DIR}/${FRAMEWORK_NAME}\"\n    BINARY_NAME=\"${FRAMEWORK_NAME%.framework}\"\n    BINARY_PATH=\"${FRAMEWORK_PATH}/${BINARY_NAME}\"\n    INFO_PLIST_PATH=\"${FRAMEWORK_PATH}/Info.plist\"\n    \n    if [ ! -d \"$FRAMEWORK_PATH\" ]; then\n        echo \"⚠️  ${FRAMEWORK_NAME} not found at ${FRAMEWORK_PATH}\"\n        continue\n    fi\n    \n    echo \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"\n    echo \"📦 Processing ${FRAMEWORK_NAME}...\"\n    \n    # Step 1: Strip arm64e architecture\n    if [ -f \"$BINARY_PATH\" ]; then\n        ARCHS=$(lipo -info \"$BINARY_PATH\" 2>/dev/null | awk -F': ' '{print $3}' || echo \"\")\n        \n        if [ -n \"$ARCHS\" ]; then\n            echo \"  Current architectures: $ARCHS\"\n            \n            if echo \"$ARCHS\" | grep -q \"arm64e\"; then\n                echo \"  🔧 Removing arm64e architecture...\"\n                if lipo \"$BINARY_PATH\" -remove arm64e -output \"${BINARY_PATH}.tmp\" 2>/dev/null; then\n                    mv \"${BINARY_PATH}.tmp\" \"$BINARY_PATH\"\n                    NEW_ARCHS=$(lipo -info \"$BINARY_PATH\" 2>/dev/null | awk -F': ' '{print $3}' || echo \"\")\n                    echo \"  ✅ Successfully removed arm64e\"\n                    echo \"  Remaining architectures: $NEW_ARCHS\"\n                else\n                    echo \"  ❌ Failed to remove arm64e\"\n                    exit 1\n                fi\n            else\n                echo \"  ✅ arm64e not found\"\n            fi\n        else\n            echo \"  ⚠️  Could not read architectures\"\n        fi\n    else\n        echo \"  ⚠️  Binary not found at ${BINARY_PATH}\"\n    fi\n    \n    # Step 2: Update MinimumOSVersion in Info.plist\n    if [ -f \"$INFO_PLIST_PATH\" ]; then\n        CURRENT_MIN_OS=$(plutil -extract MinimumOSVersion raw \"$INFO_PLIST_PATH\" 2>/dev/null || echo \"\")\n        \n        if [ -n \"$CURRENT_MIN_OS\" ]; then\n            echo \"  Current MinimumOSVersion: ${CURRENT_MIN_OS}\"\n            \n            if [ \"$CURRENT_MIN_OS\" != \"$MIN_OS_VERSION\" ]; then\n                echo \"  🔧 Updating MinimumOSVersion to ${MIN_OS_VERSION}...\"\n                if plutil -replace MinimumOSVersion -string \"$MIN_OS_VERSION\" \"$INFO_PLIST_PATH\" 2>/dev/null; then\n                    echo \"  ✅ Successfully updated MinimumOSVersion\"\n                else\n                    echo \"  ❌ Failed to update MinimumOSVersion\"\n                    exit 1\n                fi\n            else\n                echo \"  ✅ MinimumOSVersion already correct\"\n            fi\n        else\n            echo \"  🔧 Adding MinimumOSVersion...\"\n            if plutil -insert MinimumOSVersion -string \"$MIN_OS_VERSION\" \"$INFO_PLIST_PATH\" 2>/dev/null; then\n                echo \"  ✅ Added MinimumOSVersion\"\n            else\n                echo \"  ❌ Failed to add MinimumOSVersion\"\n                exit 1\n            fi\n        fi\n    else\n        echo \"  ⚠️  Info.plist not found at ${INFO_PLIST_PATH}\"\n    fi\ndone\n\necho \"\"\necho \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"\necho \"✨ Finished processing all FFmpeg frameworks\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		04D004AC2C5377A5009F3976 /* Sources */ = {
@@ -5509,7 +5550,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -5572,7 +5613,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -5598,13 +5639,11 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TheHotelMedia/TheHotelMedia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 117;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"TheHotelMedia/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = GDT6V8X9B7;
+				DEVELOPMENT_TEAM = GDT6V8X9B7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TheHotelMedia/Info.plist;
@@ -5617,16 +5656,15 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thehotelmedia.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "THM Development Provisioning";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -5643,13 +5681,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = TheHotelMedia/TheHotelMediaRelease.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Indulge Insight Private Limited (GDT6V8X9B7)";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 117;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TheHotelMedia/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = GDT6V8X9B7;
+				DEVELOPMENT_TEAM = GDT6V8X9B7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TheHotelMedia/Info.plist;
@@ -5662,16 +5698,15 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen.storyboard;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thehotelmedia.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "THM Production Provisioning";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "THM Production Provisioning";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
