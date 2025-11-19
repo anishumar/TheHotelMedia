@@ -325,7 +325,7 @@ extension SignInViewModel {
     
     func googleSocialLogin(id: String) {
         
-        let parameters: [String: Any] = [
+        var parameters: [String: Any] = [
             "socialType": "google",
             "token": id,
             "deviceID": deviceIDManager.getDeviceID(),
@@ -351,16 +351,26 @@ extension SignInViewModel {
                         if status && range.contains(statusCode) {
                             handleLoginResponse(response: result)
                         } else {
-                            ErrorModalManager.showErrorModal(router: router, errorText: result.message ?? "")
+                            let errorMessage = result.message ?? "Login failed. Please try again."
+                            ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                         }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Invalid response from server")
                     }
                     
                     showLoadingIndicator = false
                 }
             } catch {
-                print(error)
+                print("Google Social Login Error: \(error)")
                 await MainActor.run {
                     showLoadingIndicator = false
+                    var errorMessage = "Login failed. Please try again."
+                    if let networkError = error as? NetworkError {
+                        errorMessage = networkError.localizedDescription
+                    } else {
+                        errorMessage = error.localizedDescription
+                    }
+                    ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                 }
             }
         }

@@ -33,7 +33,7 @@ class TokenManager {
         
         guard let response = result.response,
               response.statusCode == 200 || response.statusCode == 201 else {
-            throw NetworkError.invalidServerResponse
+            throw NetworkError.invalidServerResponse()
         }
         
         

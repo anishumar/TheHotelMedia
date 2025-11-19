@@ -21,15 +21,56 @@ protocol Refreshable {
 }
 
 
-enum NetworkError: Error {
+enum NetworkError: LocalizedError, Equatable {
     case badURL
     case invalidResponse
     case decodingError
     case encodingError
-    case invalidServerResponse
+    case invalidServerResponse(message: String? = nil)
     case accessTokenExpired
     case refreshTokenExpired
     case sessionInitializationFailed
+    
+    var errorDescription: String? {
+        switch self {
+        case .badURL:
+            return "Invalid URL"
+        case .invalidResponse:
+            return "Invalid response from server"
+        case .decodingError:
+            return "Failed to decode response"
+        case .encodingError:
+            return "Failed to encode request"
+        case .invalidServerResponse(let message):
+            return message ?? "Invalid server response"
+        case .accessTokenExpired:
+            return "Access token expired"
+        case .refreshTokenExpired:
+            return "Refresh token expired"
+        case .sessionInitializationFailed:
+            return "Session initialization failed"
+        }
+    }
+    
+    var localizedDescription: String {
+        return errorDescription ?? "Network error occurred"
+    }
+    
+    static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+        switch (lhs, rhs) {
+        case (.badURL, .badURL),
+             (.invalidResponse, .invalidResponse),
+             (.decodingError, .decodingError),
+             (.encodingError, .encodingError),
+             (.invalidServerResponse, .invalidServerResponse),
+             (.accessTokenExpired, .accessTokenExpired),
+             (.refreshTokenExpired, .refreshTokenExpired),
+             (.sessionInitializationFailed, .sessionInitializationFailed):
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 
@@ -232,15 +273,27 @@ class BaseNetworkManager {
         
         let result = await request.serializingData().response
         
-        guard let response = result.response,
-              response.statusCode == 200 || response.statusCode == 201
-        else { 
+        guard let response = result.response else {
             if let data = result.data {
                 let jsonData = JSON(data)
-//                print("➡️",jsonData, "⬅️")
+                print("Response data without HTTP response: \(jsonData)")
             }
-            
-            throw NetworkError.invalidServerResponse
+            throw NetworkError.invalidServerResponse()
+        }
+        
+        let statusCode = response.statusCode
+        guard (200...204).contains(statusCode) else {
+            var errorMessage: String? = nil
+            if let data = result.data {
+                let jsonData = JSON(data)
+                print("Error response: \(jsonData), Status Code: \(statusCode)")
+                if let message = jsonData["message"].string {
+                    errorMessage = message
+                } else if let nestedData = jsonData["data"]["message"].string {
+                    errorMessage = nestedData
+                }
+            }
+            throw NetworkError.invalidServerResponse(message: errorMessage)
         }
         
         guard let data = result.data else { throw NetworkError.invalidResponse }
@@ -767,7 +820,7 @@ class BaseNetworkManager {
         let jsondata = JSON(result.data ?? Data())
         print(jsondata)
         
-        guard let response = result.response else { throw NetworkError.invalidServerResponse }
+        guard let response = result.response else { throw NetworkError.invalidServerResponse() }
         
         let statusCode = response.statusCode
         print(statusCode, "This is server status Code 📀")
@@ -776,7 +829,19 @@ class BaseNetworkManager {
             throw NetworkError.accessTokenExpired
         }
         
-        guard statusCode == 200 || statusCode == 201 else { throw NetworkError.invalidServerResponse}
+        guard (200...204).contains(statusCode) else { 
+            var errorMessage: String? = nil
+            if let data = result.data {
+                let jsonData = JSON(data)
+                print("Error response: \(jsonData), Status Code: \(statusCode)")
+                if let message = jsonData["message"].string {
+                    errorMessage = message
+                } else if let nestedData = jsonData["data"]["message"].string {
+                    errorMessage = nestedData
+                }
+            }
+            throw NetworkError.invalidServerResponse(message: errorMessage)
+        }
         
         guard let data = result.data else { throw NetworkError.invalidResponse }
         

@@ -43,6 +43,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
         GMSServices.provideAPIKey(googlePlacesKey)
         GMSPlacesClient.provideAPIKey(googlePlacesKey)
         
+        let expectedClientID = "156125638721-eeh3s3mk2te4g38d3emuif6mqnlb7e15.apps.googleusercontent.com"
+        
+        if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+           let plist = NSDictionary(contentsOfFile: path),
+           let clientId = plist["CLIENT_ID"] as? String {
+            print("🔑 Google Sign-In configured with CLIENT_ID from GoogleService-Info.plist: \(clientId)")
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
+        } else if let clientId = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String {
+            print("🔑 Google Sign-In configured with GIDClientID from Info.plist: \(clientId)")
+            print("🔑 Expected client ID (from backend): \(expectedClientID)")
+            if clientId != expectedClientID {
+                print("⚠️ WARNING: Client ID mismatch! Configured: \(clientId), Expected: \(expectedClientID)")
+            }
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientId)
+        } else {
+            print("❌ ERROR: Could not find Google Client ID in Info.plist or GoogleService-Info.plist")
+        }
+        
+        if let config = GIDSignIn.sharedInstance.configuration {
+            print("✅ Google Sign-In is configured with client ID: \(config.clientID)")
+        } else {
+            print("❌ ERROR: Google Sign-In configuration is nil!")
+        }
+        
         let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
         UNUserNotificationCenter.current().requestAuthorization(
           options: authOptions,
@@ -82,7 +106,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey : Any] = [:]
     ) -> Bool {
-        ApplicationDelegate.shared.application(
+        if GIDSignIn.sharedInstance.handle(url) {
+            return true
+        }
+        
+        return ApplicationDelegate.shared.application(
             app,
             open: url,
             sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
