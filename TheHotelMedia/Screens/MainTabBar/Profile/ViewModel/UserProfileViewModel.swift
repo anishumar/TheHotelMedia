@@ -665,53 +665,58 @@ extension UserProfileViewModel {
             showLoadingIndicator = true
         }
         
-        Task {
+        Task { [weak self] in
+            guard let self = self else { return }
+            
             do {
-                if publicProfileID.isEmpty {
-                    let result = try await dataManager.getProfile()
+                if self.publicProfileID.isEmpty {
+                    let result = try await self.dataManager.getProfile()
                     
-                    await MainActor.run {
-                        showLoadingIndicator = false
+                    await MainActor.run { [weak self] in
+                        guard let self = self else { return }
+                        self.showLoadingIndicator = false
                         
                         if result.status && result.statusCode == 200 || result.status && result.statusCode == 201 {
                             if let data = result.data {
-                                profileData = data
-                                userProfileID = data.id ?? ""
-                                isPrivateAccount = false
-                                getImages()
+                                self.profileData = data
+                                self.userProfileID = data.id ?? ""
+                                self.isPrivateAccount = false
+                                self.getImages()
                             }
                         } else {
-                            errorText = result.message
-                            ErrorModalManager.showErrorModal(router: router, errorText: errorText)
+                            self.errorText = result.message
+                            ErrorModalManager.showErrorModal(router: self.router, errorText: self.errorText)
                         }
                     }
                 } else {
-                    let result = try await dataManager.getPublicProfile(id: publicProfileID)
+                    let result = try await self.dataManager.getPublicProfile(id: self.publicProfileID)
                     
-                    await MainActor.run {
-                        showLoadingIndicator = false
+                    await MainActor.run { [weak self] in
+                        guard let self = self else { return }
+                        self.showLoadingIndicator = false
                         
                         if result.status && result.statusCode == 200 || result.status && result.statusCode == 201 {
                             if let data = result.data {
-                                isPrivateAccount = data.privateAccount ?? true
-                                profileData = data
-                                userProfileID = publicProfileID
+                                self.isPrivateAccount = data.privateAccount ?? true
+                                self.profileData = data
+                                self.userProfileID = self.publicProfileID
                                 
-                                if !isPrivateAccount || data.isConnected ?? false {
-                                    getImages()
+                                if !self.isPrivateAccount || data.isConnected ?? false {
+                                    self.getImages()
                                 }
                             }
                         } else {
-                            errorText = result.message
-                            ErrorModalManager.showErrorModal(router: router, errorText: errorText)
+                            self.errorText = result.message
+                            ErrorModalManager.showErrorModal(router: self.router, errorText: self.errorText)
                         }
                     }
                 }
                 
                 
             } catch {
-                await MainActor.run {
-                    showLoadingIndicator = false
+                await MainActor.run { [weak self] in
+                    guard let self = self else { return }
+                    self.showLoadingIndicator = false
                 }
                 print(error)
             }
