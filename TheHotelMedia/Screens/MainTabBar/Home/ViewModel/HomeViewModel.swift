@@ -515,6 +515,18 @@ extension HomeViewModel {
             }
         }
         
+        // Sort stories by createdAt date (oldest first, like Instagram)
+        thmStories.sort { story1, story2 in
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            
+            guard let date1 = formatter.date(from: story1.date) ?? ISO8601DateFormatter().date(from: story1.date),
+                  let date2 = formatter.date(from: story2.date) ?? ISO8601DateFormatter().date(from: story2.date) else {
+                return false
+            }
+            return date1 < date2
+        }
+        
         let myStoryUIModel = THMStoryUIModel(user: THMStoryUIUser(name: name, image: profilePic), stories: thmStories, isMyStory: true)
         
         myStories = [myStoryUIModel]
@@ -544,6 +556,18 @@ extension HomeViewModel {
                             thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: duration + 10.0, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
                         }
                     }
+                }
+                
+                // Sort stories by createdAt date (oldest first, like Instagram)
+                thmStories.sort { story1, story2 in
+                    let formatter = ISO8601DateFormatter()
+                    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                    
+                    guard let date1 = formatter.date(from: story1.date) ?? ISO8601DateFormatter().date(from: story1.date),
+                          let date2 = formatter.date(from: story2.date) ?? ISO8601DateFormatter().date(from: story2.date) else {
+                        return false
+                    }
+                    return date1 < date2
                 }
                 
             } else {

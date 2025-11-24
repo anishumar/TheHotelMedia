@@ -11,9 +11,9 @@ import Foundation
 class StoryDataManager {
     let baseNetworkManager = BaseNetworkManager.shared
     
-    func postStory(attachments: [MediaAttachment]) async throws -> PostStoryResponse {
+    func postStory(attachments: [MediaAttachment], parameters: [String: Any] = [:]) async throws -> PostStoryResponse {
         
-        let resource = Resource<PostStoryResponse>(url: .createStory, method: .createStory(attachments))
+        let resource = Resource<PostStoryResponse>(url: .createStory, method: .createStory(attachments, parameters))
         
         let result = try await baseNetworkManager.accessLoad(resource)
         

@@ -25,6 +25,7 @@ final class MainTabBarViewModel: ObservableObject {
     let homeDataManager = HomeDataManager()
     let storyDataManager = StoryDataManager()
     let notificationDataManager = NotificationDataManager()
+    let localizationManager = LocalizationManager.shared
     @Published var selectedTab: TabbedItem = .home
     @Published var currentTab: TabbedItem = .home
     @Published var currentTab2: String = "Home"
@@ -377,6 +378,8 @@ extension MainTabBarViewModel {
                 } catch {
                     await MainActor.run {
                         isUploadingStory = false
+                        let errorMessage = getStoryUploadErrorMessage(from: error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                     }
                 }
             }
@@ -395,16 +398,62 @@ extension MainTabBarViewModel {
                         
                         if result.status && range.contains(result.statusCode) {
                             uploadedStory = true
+                        } else {
+                            ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                         }
                     }
                     
                 } catch {
                     await MainActor.run {
                         isUploadingStory = false
+                        let errorMessage = getStoryUploadErrorMessage(from: error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                     }
                 }
             }
         }
+    }
+    
+    private func getStoryUploadErrorMessage(from error: Error) -> String {
+        // Check for timeout errors
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                // Use existing error message with timeout context
+                return "The upload timed out. Please check your connection and try again."
+            case .notConnectedToInternet:
+                return "no_internet_connection".localized(localizationManager.language)
+            case .networkConnectionLost:
+                return "The network connection was lost. Please try again."
+            default:
+                break
+            }
+        }
+        
+        // Check for NSError with NSURLErrorDomain
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            switch nsError.code {
+            case NSURLErrorTimedOut:
+                return "The upload timed out. Please check your connection and try again."
+            case NSURLErrorNotConnectedToInternet:
+                return "no_internet_connection".localized(localizationManager.language)
+            case NSURLErrorNetworkConnectionLost:
+                return "The network connection was lost. Please try again."
+            default:
+                break
+            }
+        }
+        
+        // Check for NetworkError
+        if let networkError = error as? NetworkError {
+            if case .invalidServerResponse(let message) = networkError, let msg = message {
+                return msg
+            }
+        }
+        
+        // Default error message
+        return "an_error_occured_while_uploading_the_story".localized(localizationManager.language)
     }
     
     

@@ -89,7 +89,7 @@ enum HttpMethod {
     case createReview([MediaAttachment], [ReviewQuestionRating], [String: Any])
     case mediaMessage([MessageMedia], [String: Any])
     case createEvent(UIImage, [String: Any])
-    case createStory([MediaAttachment])
+    case createStory([MediaAttachment], [String: Any])
     case updatePost([MediaAttachment], [String], [String: Any], [String])
     
     var name: String {
@@ -181,7 +181,20 @@ class BaseNetworkManager {
     static let shared = BaseNetworkManager()
     let tokenManager = TokenManager.shared
     
-    let session: Session = AF
+    // Custom session with longer timeouts for uploads
+    let session: Session = {
+        let configuration = URLSessionConfiguration.default
+        // Timeout for individual request (waiting for response)
+        configuration.timeoutIntervalForRequest = 300 // 5 minutes
+        // Total timeout for the entire resource transfer (including upload)
+        configuration.timeoutIntervalForResource = 600 // 10 minutes
+        // Allow cellular network
+        configuration.allowsCellularAccess = true
+        // Wait for connectivity
+        configuration.waitsForConnectivity = true
+        
+        return Session(configuration: configuration)
+    }()
     
     init() {
     }
@@ -758,7 +771,7 @@ class BaseNetworkManager {
                 
             }, to: resource.url, headers: HTTPHeaders(header))
             
-        case .createStory(let attachments):
+        case .createStory(let attachments, let parameters):
             
             header = [
                 "Content-Type": "multipart/form-data",
@@ -793,6 +806,31 @@ class BaseNetworkManager {
                             if let mimeType = self.mimeType(for: videoURL) {
                                 multipartFormData.append(videoData, withName: "videos", fileName: videoURL.lastPathComponent, mimeType: mimeType)
                             }
+                        }
+                    }
+                }
+                
+                // Add body parameters (excluding tagged array which is handled separately)
+                for (key, value) in parameters {
+                    // Skip tagged array - handle separately
+                    if key == "tagged" { continue }
+                    
+                    if let valueString = value as? String,
+                       let data = valueString.data(using: .utf8) {
+                        multipartFormData.append(data, withName: key)
+                    } else if let value = value as? CustomStringConvertible {
+                        let stringValue = String(describing: value)
+                        if let data = stringValue.data(using: .utf8) {
+                            multipartFormData.append(data, withName: key)
+                        }
+                    }
+                }
+                
+                // Handle tagged array
+                if let tagged = parameters["tagged"] as? [String] {
+                    for tagID in tagged {
+                        if let data = tagID.data(using: .utf8) {
+                            multipartFormData.append(data, withName: "tagged[]")
                         }
                     }
                 }
