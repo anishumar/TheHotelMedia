@@ -16,5 +16,6 @@ extension Notification {
 extension Notification.Name {
     static let readmore = Notification.Name("readmore")
     static let tags = Notification.Name("tags")
+    static let shareAsStory = Notification.Name("shareAsStory")
 }
 

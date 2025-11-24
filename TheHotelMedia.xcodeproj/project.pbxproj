@@ -292,6 +292,8 @@
 		04AD2C662CAFFB3600276F2B /* ReviewResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AD2C652CAFFB3600276F2B /* ReviewResponse.swift */; };
 		04ADA8562CD0B20E0080C996 /* EncryptionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADA8552CD0B20E0080C996 /* EncryptionHelper.swift */; };
 		04ADA85C2CD0B9570080C996 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADA85B2CD0B9570080C996 /* ActivityViewController.swift */; };
+		BF3A1D10B7584721941A078C /* ShareSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D5CFCB3CC284042A9E0D834 /* ShareSheetView.swift */; };
+		AA7A148FEC4541ACA71678E7 /* ShareAsStoryActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5572F36EE950466CA3F37852 /* ShareAsStoryActivity.swift */; };
 		04AE84B02D11958B001F784C /* BackgroundImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AE84AF2D11958B001F784C /* BackgroundImageView.swift */; };
 		04AECC342C5B61A800B46D20 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AECC332C5B61A800B46D20 /* HeaderView.swift */; };
 		04AECC362C5B6A8300B46D20 /* CapsuleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AECC352C5B6A8300B46D20 /* CapsuleBackground.swift */; };
@@ -916,6 +918,8 @@
 		04AD2C652CAFFB3600276F2B /* ReviewResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewResponse.swift; sourceTree = "<group>"; };
 		04ADA8552CD0B20E0080C996 /* EncryptionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionHelper.swift; sourceTree = "<group>"; };
 		04ADA85B2CD0B9570080C996 /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
+		5D5CFCB3CC284042A9E0D834 /* ShareSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheetView.swift; sourceTree = "<group>"; };
+		5572F36EE950466CA3F37852 /* ShareAsStoryActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareAsStoryActivity.swift; sourceTree = "<group>"; };
 		04AE84AF2D11958B001F784C /* BackgroundImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundImageView.swift; sourceTree = "<group>"; };
 		04AECC332C5B61A800B46D20 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		04AECC352C5B6A8300B46D20 /* CapsuleBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleBackground.swift; sourceTree = "<group>"; };
@@ -2741,6 +2745,15 @@
 			path = ActivityViewController;
 			sourceTree = "<group>";
 		};
+		D344717C6865434FAA8212D4 /* ShareSheet */ = {
+			isa = PBXGroup;
+			children = (
+				5D5CFCB3CC284042A9E0D834 /* ShareSheetView.swift */,
+				5572F36EE950466CA3F37852 /* ShareAsStoryActivity.swift */,
+			);
+			path = ShareSheet;
+			sourceTree = "<group>";
+		};
 		04AECC392C5BA99300B46D20 /* Others */ = {
 			isa = PBXGroup;
 			children = (
@@ -3884,6 +3897,7 @@
 				0409D1BB2D098E4A003B27AD /* CustomHeaderView */,
 				04E9E62B2CF8875600422639 /* PDFViewer */,
 				04ADA85A2CD0B9360080C996 /* ActivityViewController */,
+				D344717C6865434FAA8212D4 /* ShareSheet */,
 				04EB70782CC76536005D66A6 /* Razorpay */,
 				04DD41722CC128160098ECE7 /* MantisCropper */,
 				04D1D7492CB3D9FA00A45B77 /* ProfileCard */,
@@ -5244,6 +5258,8 @@
 				04BAB89C2C9168710077A718 /* EditStoryImageViewModel.swift in Sources */,
 				04ABFE3D2C5A47EA003BB9F8 /* RatingStarView.swift in Sources */,
 				04ADA85C2CD0B9570080C996 /* ActivityViewController.swift in Sources */,
+				BF3A1D10B7584721941A078C /* ShareSheetView.swift in Sources */,
+				AA7A148FEC4541ACA71678E7 /* ShareAsStoryActivity.swift in Sources */,
 				04C36A972CEC443400F0444B /* EditAddressView.swift in Sources */,
 				04A890402CA571E9008DAB26 /* OtpForgotPasswordManager.swift in Sources */,
 				04E8401C2C578AE000EEB995 /* BusinessDetailView.swift in Sources */,

@@ -333,6 +333,10 @@ extension URL {
         URL(string: "\(URL.default)/story/likes/")!
     }
     
+    static var publishPostAsStory: URL {
+        URL(string: "\(URL.default)/post/")!
+    }
+    
     static var getActiveSubscription: URL {
         URL(string: "\(URL.default)/user/subscription")!
     }

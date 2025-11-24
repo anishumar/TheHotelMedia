@@ -245,10 +245,19 @@ extension EventDetailView {
                 
                 profileHeaderView
                     .sheet(isPresented: $viewModel.isSharePresented, content: {
-                        ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                            .id(viewModel.shareURL)
-                            .presentationDetents([.medium, .large])
+                        ShareSheetView(shareURL: viewModel.shareURL, onShareAsStory: {
+                            viewModel.shareAsStory()
+                        })
+                        .id(viewModel.shareURL)
+                        .presentationDetents([.medium, .large])
+                        .environmentObject(ThemeManager.shared)
+                        .environmentObject(LocalizationManager.shared)
                     })
+                    .overlay {
+                        if viewModel.showShareAsStory {
+                            CustomProgressView(showIndicator: $viewModel.showShareAsStory)
+                        }
+                    }
                 Spacer()
             }
             .background(themeManager.currentTheme.backgroundColor)

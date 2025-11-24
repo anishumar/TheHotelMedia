@@ -58,6 +58,7 @@ class SinglePostViewModel: ObservableObject {
     @Published var businessAddress: String? = ""
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
     @Published var fullDescription: AttributedString = AttributedString()
+    @Published var showShareAsStory: Bool = false
     @Published var currentPage: Int = 0 {
         didSet {
             previousPage = oldValue
@@ -429,6 +430,216 @@ class SinglePostViewModel: ObservableObject {
                 isSharePresented.toggle()
             }
         }
+    }
+    
+    func shareAsStory() {
+        guard let postID = data?.id, !postID.isEmpty else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "This post cannot be shared as story.")
+            return
+        }
+        
+        guard let mediaRef = data?.mediaRef, !mediaRef.isEmpty else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "This post has no media to share as story.")
+            return
+        }
+        
+        // Check if it's own post
+        guard let postUserID = data?.userID, postUserID != ownUserID else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "You cannot share your own post as story.")
+            return
+        }
+        
+        // Download first media and show edit screen
+        let firstMedia = mediaRef[0]
+        showShareAsStory = true
+        
+        if firstMedia.mediaType == "image", let imageURLString = firstMedia.sourceURL, let imageURL = URL(string: imageURLString) {
+            downloadImageForStory(from: imageURL)
+        } else if firstMedia.mediaType == "video", let videoURLString = firstMedia.sourceURL, let videoURL = URL(string: videoURLString) {
+            downloadVideoForStory(from: videoURL)
+        } else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Unable to share this media as story.")
+            showShareAsStory = false
+        }
+    }
+    
+    private func downloadImageForStory(from url: URL) {
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard let image = UIImage(data: data) else {
+                    await MainActor.run {
+                        showShareAsStory = false
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Failed to load image.")
+                    }
+                    return
+                }
+                
+                await MainActor.run {
+                    showShareAsStory = false
+                    // Show story creation screen directly using router
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.showStoryEditScreen(image: image)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    showShareAsStory = false
+                    ErrorModalManager.showErrorModal(router: router, errorText: "Failed to download image: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    private func downloadVideoForStory(from url: URL) {
+        Task {
+            do {
+                // Download video to temporary location
+                let (tempURL, _) = try await URLSession.shared.download(from: url)
+                
+                // Move to a permanent location in cache
+                let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+                let destinationURL = cacheDirectory.appendingPathComponent("story_\(UUID().uuidString).mp4")
+                
+                // Remove existing file if any
+                if FileManager.default.fileExists(atPath: destinationURL.path) {
+                    try? FileManager.default.removeItem(at: destinationURL)
+                }
+                
+                try FileManager.default.moveItem(at: tempURL, to: destinationURL)
+                
+                await MainActor.run {
+                    showShareAsStory = false
+                    // Show video editor directly using router
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self.showVideoEditorScreen(videoURL: destinationURL)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    showShareAsStory = false
+                    ErrorModalManager.showErrorModal(router: router, errorText: "Failed to download video: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+    
+    private func showStoryEditScreen(image: UIImage) {
+        router.showScreen(.push) { router in
+            EditStoryImageView(viewModel: EditStoryImageViewModel(router: router, image: image), returnedImage: { [weak self] edittedImage in
+                guard let self else { return }
+                // Post story directly
+                self.postStoryFromSharedPost(image: edittedImage)
+            }, onDismissed: {
+            })
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
+    
+    private func showVideoEditorScreen(videoURL: URL) {
+        router.showScreen(.fullScreenCover) { router in
+            VideoEditorView(videoURL: videoURL, limit: 30) { [weak self] editedVideoURL in
+                guard let self else { return }
+                if let editedVideoURL {
+                    // Post story directly
+                    self.postStoryFromSharedPost(videoURL: editedVideoURL)
+                }
+            }
+        }
+    }
+    
+    private func postStoryFromSharedPost(image: UIImage? = nil, videoURL: URL? = nil) {
+        let storyDataManager = StoryDataManager()
+        
+        if let image {
+            let media = MediaAttachment(id: UUID().uuidString, type: .photo(image))
+            Task {
+                do {
+                    let result = try await storyDataManager.postStory(attachments: [media])
+                    await MainActor.run {
+                        let range = 200...204
+                        if result.status && range.contains(result.statusCode) {
+                            NotificationCenter.default.post(name: .onNavigate, object: nil)
+                        } else {
+                            ErrorModalManager.showErrorModal(router: router, errorText: result.message.isEmpty ? "Failed to share post as story." : result.message)
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        let errorMessage = getStoryUploadErrorMessage(from: error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                    }
+                }
+            }
+        } else if let videoURL {
+            // For video, we need a thumbnail - generate one
+            Task {
+                do {
+                    let thumbnail = try await generateThumbnail(for: videoURL)
+                    let media = MediaAttachment(id: UUID().uuidString, type: .video(thumbnail, videoURL))
+                    let result = try await storyDataManager.postStory(attachments: [media])
+                    await MainActor.run {
+                        let range = 200...204
+                        if result.status && range.contains(result.statusCode) {
+                            NotificationCenter.default.post(name: .onNavigate, object: nil)
+                        } else {
+                            ErrorModalManager.showErrorModal(router: router, errorText: result.message.isEmpty ? "Failed to share post as story." : result.message)
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        let errorMessage = getStoryUploadErrorMessage(from: error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func generateThumbnail(for videoURL: URL) async throws -> UIImage {
+        let asset = AVAsset(url: videoURL)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        
+        let time = CMTime(seconds: 0, preferredTimescale: 600)
+        let cgImage = try await imageGenerator.image(at: time).image
+        return UIImage(cgImage: cgImage)
+    }
+    
+    private func getStoryUploadErrorMessage(from error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return "upload_timeout_error".localized(localizationManager.language)
+            case .notConnectedToInternet:
+                return "no_internet_connection".localized(localizationManager.language)
+            case .networkConnectionLost:
+                return "network_connection_lost".localized(localizationManager.language)
+            default:
+                break
+            }
+        }
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            switch nsError.code {
+            case NSURLErrorTimedOut:
+                return "upload_timeout_error".localized(localizationManager.language)
+            case NSURLErrorNotConnectedToInternet:
+                return "no_internet_connection".localized(localizationManager.language)
+            case NSURLErrorNetworkConnectionLost:
+                return "network_connection_lost".localized(localizationManager.language)
+            default:
+                break
+            }
+        }
+        if let networkError = error as? NetworkError {
+            if case .invalidServerResponse(let message) = networkError, let msg = message {
+                return msg
+            }
+        }
+        return "an_error_occured_while_uploading_the_story".localized(localizationManager.language)
     }
     
     func showSharedProfile(sharedID: String, sharedByID: String) {

@@ -29,4 +29,18 @@ class StoryDataManager {
         
         return result
     }
+    
+    func publishPostAsStory(postID: String) async throws -> PostStoryResponse {
+        // Construct URL: /api/v1/post/:id/publish-as-story
+        let urlString = "\(URL.default)/post/\(postID)/publish-as-story"
+        guard let url = URL(string: urlString) else {
+            throw NetworkError.badURL
+        }
+        
+        let resource = Resource<PostStoryResponse>(url: url, method: .publishPostAsStory)
+        
+        let result = try await baseNetworkManager.accessLoad(resource)
+        
+        return result
+    }
 }

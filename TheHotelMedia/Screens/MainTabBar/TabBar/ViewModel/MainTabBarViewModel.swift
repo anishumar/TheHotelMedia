@@ -197,6 +197,23 @@ final class MainTabBarViewModel: ObservableObject {
                 postStory(videoURL: videoURL)
             }
             .store(in: &cancellables)
+        
+        // Listen for share as story notification
+        NotificationCenter.default.publisher(for: .shareAsStory)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard let self else { return }
+                if let image = notification.userInfo?["image"] as? UIImage {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.showCreateStoryScreen(uiImage: image)
+                    }
+                } else if let videoURL = notification.userInfo?["videoURL"] as? URL {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        self.selectedStoryVideo = videoURL
+                    }
+                }
+            }
+            .store(in: &cancellables)
     }
     
     

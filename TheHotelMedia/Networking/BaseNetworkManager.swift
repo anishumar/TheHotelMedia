@@ -90,6 +90,7 @@ enum HttpMethod {
     case mediaMessage([MessageMedia], [String: Any])
     case createEvent(UIImage, [String: Any])
     case createStory([MediaAttachment], [String: Any])
+    case publishPostAsStory
     case updatePost([MediaAttachment], [String], [String: Any], [String])
     
     var name: String {
@@ -113,6 +114,8 @@ enum HttpMethod {
         case .createEvent:
             return "POST"
         case .createStory:
+            return "POST"
+        case .publishPostAsStory:
             return "POST"
         case .mediaMessage:
             return "POST"
@@ -150,6 +153,8 @@ enum HttpMethod {
         case .createEvent:
             return .post
         case .createStory:
+            return .post
+        case .publishPostAsStory:
             return .post
         case .mediaMessage:
             return .post
@@ -836,6 +841,12 @@ class BaseNetworkManager {
                 }
             }, to: resource.url, headers: HTTPHeaders(header))
             
+        case .publishPostAsStory:
+            header = [
+                "Content-Type": "application/json",
+                "x-access-token": accessToken
+            ]
+            request = session.request(resource.url, method: .post, headers: HTTPHeaders(header))
             
         case .postJSON:
             break

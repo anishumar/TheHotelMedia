@@ -42,6 +42,7 @@ class EventDetailViewModel: ObservableObject {
     @Published var eventLocation2DCoordinates: CLLocationCoordinate2D? = nil
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
     @Published var isSharePresented: Bool = false
+    @Published var showShareAsStory: Bool = false
     @Published var selectedMedia: MediaType = .image(urlString: "")
     @Published var showPreview: Bool = false
     @Published var isValidEvent: Bool = false
@@ -281,6 +282,81 @@ class EventDetailViewModel: ObservableObject {
                 
                 shareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)")!
                 isSharePresented.toggle()
+            }
+        }
+    }
+    
+    func shareAsStory() {
+        guard let post = eventPost,
+              let mediaRef = post.mediaRef, !mediaRef.isEmpty else {
+            return
+        }
+        
+        // Check if it's own post
+        guard let postUserID = post.userID, postUserID != ownUserID else {
+            return
+        }
+        
+        let firstMedia = mediaRef[0]
+        showShareAsStory = true
+        
+        if firstMedia.mediaType == "image", let imageURLString = firstMedia.sourceURL, let imageURL = URL(string: imageURLString) {
+            downloadImageForStory(from: imageURL)
+        } else if firstMedia.mediaType == "video", let videoURLString = firstMedia.sourceURL, let videoURL = URL(string: videoURLString) {
+            downloadVideoForStory(from: videoURL)
+        } else {
+            showShareAsStory = false
+        }
+    }
+    
+    private func downloadImageForStory(from url: URL) {
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard let image = UIImage(data: data) else {
+                    await MainActor.run {
+                        showShareAsStory = false
+                    }
+                    return
+                }
+                
+                await MainActor.run {
+                    showShareAsStory = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        NotificationCenter.default.post(name: .shareAsStory, object: nil, userInfo: ["image": image])
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    showShareAsStory = false
+                }
+            }
+        }
+    }
+    
+    private func downloadVideoForStory(from url: URL) {
+        Task {
+            do {
+                let (tempURL, _) = try await URLSession.shared.download(from: url)
+                let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+                let destinationURL = cacheDirectory.appendingPathComponent("story_\(UUID().uuidString).mp4")
+                
+                if FileManager.default.fileExists(atPath: destinationURL.path) {
+                    try? FileManager.default.removeItem(at: destinationURL)
+                }
+                
+                try FileManager.default.moveItem(at: tempURL, to: destinationURL)
+                
+                await MainActor.run {
+                    showShareAsStory = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        NotificationCenter.default.post(name: .shareAsStory, object: nil, userInfo: ["videoURL": destinationURL])
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    showShareAsStory = false
+                }
             }
         }
     }

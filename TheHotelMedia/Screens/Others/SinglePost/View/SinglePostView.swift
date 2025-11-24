@@ -483,10 +483,19 @@ extension SinglePostView {
             }
             divider
                 .sheet(isPresented: $viewModel.isSharePresented, content: {
-                    ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                        .id(viewModel.shareURL)
-                        .presentationDetents([.medium])
+                    ShareSheetView(shareURL: viewModel.shareURL, onShareAsStory: {
+                        viewModel.shareAsStory()
+                    })
+                    .id(viewModel.shareURL)
+                    .presentationDetents([.medium, .large])
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
                 })
+                .overlay {
+                    if viewModel.showShareAsStory {
+                        CustomProgressView(showIndicator: $viewModel.showShareAsStory)
+                    }
+                }
             HStack(spacing: 6) {
                 //                HMCustomButton(icon: .constant(isLiked ? "heartfill" : "heart"), count: $likeCount)
                 
@@ -1108,10 +1117,19 @@ extension SinglePostView {
             divider
                 .padding(.horizontal, 12)
                 .sheet(isPresented: $viewModel.isSharePresented, content: {
-                    ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                        .id(viewModel.shareURL)
-                        .presentationDetents([.medium])
+                    ShareSheetView(shareURL: viewModel.shareURL, onShareAsStory: {
+                        viewModel.shareAsStory()
+                    })
+                    .id(viewModel.shareURL)
+                    .presentationDetents([.medium, .large])
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
                 })
+                .overlay {
+                    if viewModel.showShareAsStory {
+                        CustomProgressView(showIndicator: $viewModel.showShareAsStory)
+                    }
+                }
             HStack(spacing: 6) {
                 HStack(spacing: 6) {
                     Image(viewModel.likedByMe ? "heartfill" : themeManager.currentTheme.heart)

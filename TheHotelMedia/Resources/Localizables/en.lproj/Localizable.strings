@@ -92,6 +92,7 @@
 "following" = "Following";
 "edit_profile" = "Edit profile";
 "share_profile" = "Share profile";
+"share_as_story" = "Share as Story";
 "confirm_your_email" = "Confirm Your Email";
 "we_have_sent_5_digits" = "We have sent 5 digits verification code to ";
 "enter_verification_code" = "Enter Verification Code";

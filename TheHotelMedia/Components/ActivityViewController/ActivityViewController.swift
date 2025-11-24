@@ -16,6 +16,11 @@ struct ActivityViewController: UIViewControllerRepresentable {
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
         let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+        // Exclude some activities if needed
+        controller.excludedActivityTypes = [
+            .addToReadingList,
+            .assignToContact
+        ]
         return controller
     }
 
