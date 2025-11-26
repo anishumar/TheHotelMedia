@@ -336,7 +336,7 @@ extension HomeView {
             openChatTab()
         } else if horizontal > 120 {
             haptics(.light)
-            onOpenCamera?()
+            plusButtonPressed?()
         }
     }
 }
