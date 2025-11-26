@@ -618,6 +618,9 @@
 		04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */; };
 		04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10B2E00000500AA1234 /* ReelsViewController.swift */; };
 		04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */; };
+		04A1B2C32DC9CEF000EB654C /* ShareToChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */; };
+		04A1B2C52DC9CEF100EB654C /* ShareToChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */; };
+		04A1B2C72DC9CEF200EB654C /* ShareOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -816,6 +819,9 @@
 		04A452AC2D49E9E400C31AF7 /* PostView2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView2.swift; sourceTree = "<group>"; };
 		04A452AE2D49E9F900C31AF7 /* PostViewModel2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewModel2.swift; sourceTree = "<group>"; };
 		04A452B02D49EA3600C31AF7 /* GenericPostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericPostView.swift; sourceTree = "<group>"; };
+		04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatViewModel.swift; sourceTree = "<group>"; };
+		04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatView.swift; sourceTree = "<group>"; };
+		04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareOptionsView.swift; sourceTree = "<group>"; };
 		04A453952CE45A8900BF55B0 /* BottomCustomModalView4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomCustomModalView4.swift; sourceTree = "<group>"; };
 		04A464D12C900B4C00CE839A /* TextBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextBox.swift; sourceTree = "<group>"; };
 		04A464D42C90285D00CE839A /* BottomAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomAlert.swift; sourceTree = "<group>"; };
@@ -2380,6 +2386,16 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
+		04A1B2C82DC9CEF300EB654C /* Share */ = {
+			isa = PBXGroup;
+			children = (
+				04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */,
+				04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */,
+				04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */,
+			);
+			path = Share;
+			sourceTree = "<group>";
+		};
 		04A464D02C900B3E00CE839A /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -3875,6 +3891,7 @@
 			isa = PBXGroup;
 			children = (
 				04A452A92D49E83800C31AF7 /* PostView2 */,
+				04A1B2C82DC9CEF300EB654C /* Share */,
 				044C2D5F2D37C8870078843F /* SuggestionList */,
 				0410ADCA2D30DD760009D908 /* WheatherComponent */,
 				04FBC0712D2FAD0C0072B527 /* VisibilityTextField */,
@@ -5478,6 +5495,9 @@
 				0410ADF12D30E2D90009D908 /* WeatherComponentVM.swift in Sources */,
 				041ED6B22C6A009E001D68AB /* PhotosPickerItem+Ext.swift in Sources */,
 				04BA858D2C85E398003A410D /* AboutUsView.swift in Sources */,
+				04A1B2C32DC9CEF000EB654C /* ShareToChatViewModel.swift in Sources */,
+				04A1B2C52DC9CEF100EB654C /* ShareToChatView.swift in Sources */,
+				04A1B2C72DC9CEF200EB654C /* ShareOptionsView.swift in Sources */,
 				04A98F4D2C633BC40059C5FB /* File.swift in Sources */,
 				04DD7FA52C86CAD600C659C1 /* ChartViewModel.swift in Sources */,
 				04DB159A2D9280C1000B4108 /* FacebookLoginViewModel.swift in Sources */,

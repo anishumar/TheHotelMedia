@@ -50,6 +50,16 @@ class ChatViewModel: ObservableObject {
     var refresh: Bool = true
     var gotInitialData: Bool = false
 //    var onThisScreen: Bool = false
+    /// When true, the next outgoing echo from socket (`newMessage` where `from == username`)
+    /// will be ignored. Used to avoid duplicating locally-inserted messages (e.g. share post).
+    var suppressNextOutgoingEcho: Bool = false
+    var isSharingPost: Bool = false // Prevent multiple simultaneous post shares
+    private let sharingLock = NSLock() // Lock to prevent concurrent share calls
+    var recentlySentMediaURLs: Set<String> = [] // Track recently sent media to prevent duplicates
+    var recentlySharedPostMediaURLs: Set<String> = [] // Track ALL media URLs from a shared post to filter duplicates
+    var sharePostBlockStartTime: Date? = nil // Track when we started sharing to block messages within a time window
+    var pendingPostToShare: PostData? = nil // Post to share when ChatView appears
+    var lastSharedPostID: String? = nil // Track last shared post ID to prevent duplicates
     @Published var messages: [PrivateMessage] = []
     @Published var messageFieldText: String = ""
     @Published var showFileImporter: Bool = false
@@ -128,17 +138,37 @@ class ChatViewModel: ObservableObject {
             .sink { [weak self] messages in
                 guard let self else { return }
                 
-                let updatedMessages = addShowDatePropertyToMessages(messages: messages)
+                let isInShareBlockWindow = self.sharePostBlockStartTime != nil && 
+                    Date().timeIntervalSince(self.sharePostBlockStartTime!) < 10.0
+                
+                let filteredMessages = messages.filter { message in
+                    if isInShareBlockWindow {
+                        let isOutgoing = (message.sentByMe == 1) || (message.from == self.username)
+                        let isMediaType = message.type == "image" || message.type == "video" || message.type == "post"
+                        
+                        if isOutgoing && isMediaType {
+                            return false
+                        }
+                    }
+                    
+                    if let mediaUrl = message.mediaUrl {
+                        if !self.recentlySentMediaURLs.isEmpty && self.recentlySentMediaURLs.contains(mediaUrl) {
+                            return false
+                        }
+                        if !self.recentlySharedPostMediaURLs.isEmpty && self.recentlySharedPostMediaURLs.contains(mediaUrl) {
+                            return false
+                        }
+                    }
+                    return true
+                }
+                
+                let updatedMessages = addShowDatePropertyToMessages(messages: filteredMessages)
                 
                 if refresh {
                     self.messages = updatedMessages
                 } else {
-//                    var allMessages = self.messages
-//                    allMessages.insert(contentsOf: messages.reversed(), at: 0)
-//                    self.messages = allMessages
                     self.messages += updatedMessages
                 }
-                print(messages)
             }
             .store(in: &cancellables)
         
@@ -148,6 +178,27 @@ class ChatViewModel: ObservableObject {
                 if var message {
                     if let from = message.from {
                         if from == username {
+                            if suppressNextOutgoingEcho {
+                                suppressNextOutgoingEcho = false
+                                return
+                            }
+                            
+                            if let blockStart = sharePostBlockStartTime, 
+                               Date().timeIntervalSince(blockStart) < 10.0 {
+                                let isMediaType = message.type == "image" || message.type == "video" || message.type == "post"
+                                if isMediaType {
+                                    return
+                                }
+                            }
+                            
+                            if let mediaUrl = message.mediaUrl {
+                                if recentlySentMediaURLs.contains(mediaUrl) {
+                                    return
+                                }
+                                if recentlySharedPostMediaURLs.contains(mediaUrl) {
+                                    return
+                                }
+                            }
                             
                             if let first = messages.first {
                                 let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
@@ -637,6 +688,103 @@ class ChatViewModel: ObservableObject {
             }
             
             messages.insert(message, at: 0)
+        }
+    }
+    
+    func sharePostViaDM(postData: PostData, caption: String? = nil) {
+        sharingLock.lock()
+        defer { sharingLock.unlock() }
+        
+        guard !isSharingPost else {
+            return
+        }
+        
+        if let postID = postData.id, postID == lastSharedPostID {
+            return
+        }
+        
+        isSharingPost = true
+        sharePostBlockStartTime = Date()
+        lastSharedPostID = postData.id
+        
+        guard let mediaRefs = postData.mediaRef, 
+              !mediaRefs.isEmpty,
+              let firstMedia = mediaRefs.first,
+              let mediaID = firstMedia.id,
+              let mediaUrl = firstMedia.sourceURL else {
+            isSharingPost = false
+            sharePostBlockStartTime = nil
+            return
+        }
+        
+        let messageType: String
+        if let mimeType = firstMedia.mimeType, mimeType.contains("video") {
+            messageType = "video"
+        } else {
+            messageType = "image"
+        }
+        
+        let thumbnailUrl = firstMedia.thumbnailURL ?? (messageType == "image" ? mediaUrl : nil)
+        let messageText = caption ?? postData.content ?? "Check this out!"
+        
+        var allPostMediaURLs = Set<String>()
+        allPostMediaURLs.insert(mediaUrl)
+        
+        for media in mediaRefs {
+            if let url = media.sourceURL {
+                allPostMediaURLs.insert(url)
+            }
+        }
+        
+        recentlySentMediaURLs.insert(mediaUrl)
+        recentlySharedPostMediaURLs.formUnion(allPostMediaURLs)
+        
+        var localMessage = PrivateMessage(
+            id: UUID().uuidString,
+            createdAt: DateManager.dateIntoIsoFormat(date: Date()),
+            isSeen: 1,
+            content: messageText,
+            sentByMe: 1,
+            type: messageType,
+            mediaUrl: mediaUrl,
+            thumbnailUrl: thumbnailUrl
+        )
+        
+        if let first = messages.first {
+            let hasChanged = hasDateChanged(from: localMessage.createdAt ?? "", to: first.createdAt ?? "")
+            localMessage.showDate = hasChanged
+        }
+        
+        messages.insert(localMessage, at: 0)
+        
+        var messageModel: [String: Any] = [
+            "type": messageType,
+            "message": messageText,
+            "mediaID": mediaID,
+            "mediaUrl": mediaUrl
+        ]
+        
+        if let thumbnailUrl {
+            messageModel.updateValue(thumbnailUrl, forKey: "thumbnailUrl")
+        }
+        
+        let parameters: [String: Any] = [
+            "message": messageModel,
+            "to": username
+        ]
+        
+        suppressNextOutgoingEcho = true
+        socketViewModel.sendMessage(parameters: parameters)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
+            guard let self = self else { return }
+            self.recentlySentMediaURLs.remove(mediaUrl)
+            self.recentlySharedPostMediaURLs.subtract(allPostMediaURLs)
+            self.isSharingPost = false
+            self.sharePostBlockStartTime = nil
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.lastSharedPostID = nil
+            }
         }
     }
     

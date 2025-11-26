@@ -22,7 +22,7 @@ class Constants {
     static let domainURL = "thehotelmedia.com"
     
     static let progressBarHeight: CGFloat = 3
-    static var storySecond: Double = 5.0
+    static var storySecond: Double = 15.0
     static let progressBarSpacing: CGFloat = 5
     
     static var domainName: String {

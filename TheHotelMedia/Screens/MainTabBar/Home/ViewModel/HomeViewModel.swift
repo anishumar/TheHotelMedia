@@ -508,9 +508,13 @@ extension HomeViewModel {
                let id = story.id,
                let mediaID = story.mediaID{
                 if mimeType == "video/mp4" {
-                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, duration: duration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                    // Ensure minimum 15 seconds for videos
+                    let videoDuration = max(duration, 15.0)
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
                 } else {
-                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, duration: duration + 10.0, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                    // Ensure minimum 15 seconds for images
+                    let imageDuration = max(duration + 10.0, 15.0)
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
                 }
             }
         }
@@ -551,9 +555,13 @@ extension HomeViewModel {
                        let id = story.id,
                        let mediaID = story.mediaID {
                         if mimeType == "video/mp4" {
-                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: duration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                            // Ensure minimum 15 seconds for videos
+                            let videoDuration = max(duration, 15.0)
+                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
                         } else {
-                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: duration + 10.0, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                            // Ensure minimum 15 seconds for images
+                            let imageDuration = max(duration + 10.0, 15.0)
+                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
                         }
                     }
                 }

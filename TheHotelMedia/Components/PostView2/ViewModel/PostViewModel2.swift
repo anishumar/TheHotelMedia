@@ -41,6 +41,9 @@ class PostViewModel2: ObservableObject {
     @Published var showPostArray: [Bool] = []
     @Published var showPostArrayCount: Int = 0
     @Published var isSharePresented: Bool = false
+    @Published var showShareOptions: Bool = false
+    @Published var showShareToChat: Bool = false
+    @Published var sharePostData: PostData? = nil
     @Published var showOptionView: Bool = false
     @Published var visibleOptionPostIndex: Int = 0
 //    @Published var postSizeArray: [CGSize] = []
@@ -211,8 +214,20 @@ class PostViewModel2: ObservableObject {
     }
     
     
-    func showShareView(id: String, isEventPost: Bool = false) {
-        
+    func showShareView(id: String, isEventPost: Bool = false, postData: PostData? = nil) {
+        // Use provided postData or find the post data by ID
+        if let post = postData ?? postArray.first(where: { $0.id == id }) {
+            sharePostData = post
+            showShareOptions = true
+            isSharePresented = true
+        } else {
+            // Fallback: If post not found, just show share link option
+            showShareLink(id: id, isEventPost: isEventPost)
+            isSharePresented = true
+        }
+    }
+    
+    func showShareLink(id: String, isEventPost: Bool = false) {
         var baseURLString = "\(Constants.baseShareUrl)/share/posts"
         
         if isEventPost {
@@ -220,14 +235,22 @@ class PostViewModel2: ObservableObject {
         }
         
         if !id.isEmpty && !ownUserID.isEmpty {
-            
             if let encryptedID = EncryptionHelper.encrypt(id),
                let encryptedUserID = EncryptionHelper.encrypt(ownUserID) {
-                
                 shareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)")!
-                isSharePresented.toggle()
+                // Hide options to show ActivityViewController
+                showShareOptions = false
+                showShareToChat = false
+                // Set isSharePresented = true so ActivityViewController shows in else clause
+                isSharePresented = true
             }
         }
+    }
+    
+    func showShareToChatView() {
+        guard sharePostData != nil else { return }
+        showShareOptions = false
+        showShareToChat = true
     }
     
     

@@ -45,6 +45,8 @@ struct PostView2<Content: View>: View {
     @State var viewTimer: Timer? = nil
     @State var scrollOffset: CGPoint = .zero
     @State var hasRefreshed: Bool = false
+    @State var shareToChatViewModel: ShareToChatViewModel? = nil
+    @State private var isNavigatingToChat = false // Prevent multiple navigation calls
     
     //    @AppStorage("isMute") var isMute: Bool = false
     @AppStorage("ownUserID") var ownUserID: String = ""
@@ -174,10 +176,21 @@ struct PostView2<Content: View>: View {
                         transaction.disablesAnimations = true
                     }
                     .sheet(isPresented: $viewModel.isSharePresented, content: {
-                        ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                            .id(viewModel.shareURL)
-                            .presentationDetents([.medium, .large])
+                        shareSheetContent
                     })
+                    .onChange(of: viewModel.showShareToChat) { showChat in
+                        if !showChat {
+                            shareToChatViewModel = nil
+                        }
+                    }
+                    .onChange(of: viewModel.isSharePresented) { isPresented in
+                        if !isPresented {
+                            viewModel.showShareOptions = false
+                            viewModel.showShareToChat = false
+                            viewModel.sharePostData = nil
+                            shareToChatViewModel = nil
+                        }
+                    }
                 
                 Rectangle()
                     .fill(themeManager.currentTheme.backgroundColor)
@@ -405,6 +418,127 @@ struct PostView2<Content: View>: View {
     
     extension PostView2 {
         
+        @ViewBuilder
+        private var shareSheetContent: some View {
+            if viewModel.showShareOptions {
+                // Show share options modal
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isSharePresented = false
+                            viewModel.showShareOptions = false
+                            viewModel.sharePostData = nil
+                        }
+                    
+                    ShareOptionsView(
+                        onShareToChatPressed: {
+                            viewModel.showShareToChatView()
+                        },
+                        onShareLinkPressed: {
+                            if let postID = viewModel.sharePostData?.id {
+                                viewModel.showShareLink(id: postID, isEventPost: viewModel.sharePostData?.postType == "event")
+                            }
+                        }
+                    )
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
+                }
+                .presentationDetents([.height(220)])
+                .presentationBackground(.ultraThinMaterial)
+                .presentationDragIndicator(.hidden)
+            } else if viewModel.showShareToChat {
+                if let router = viewModel.router {
+                    shareToChatContent(router: router)
+                } else {
+                    // Fallback if router is not available
+                    Text("Router not available")
+                        .foregroundColor(.gray)
+                        .padding()
+                }
+            } else {
+                // Show link share (ActivityViewController)
+                ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
+                    .id(viewModel.shareURL)
+                    .presentationDetents([.medium, .large])
+            }
+        }
+        
+        @ViewBuilder
+        private func shareToChatContent(router: AnyRouter) -> some View {
+            // Initialize ShareToChatViewModel if needed
+            let viewModelToUse: ShareToChatViewModel = {
+                if shareToChatViewModel == nil {
+                    let newViewModel = ShareToChatViewModel(router: router)
+                    newViewModel.dismissView = {
+                        withAnimation {
+                            viewModel.showShareToChat = false
+                            viewModel.showShareOptions = true
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        shareToChatViewModel = newViewModel
+                    }
+                    return newViewModel
+                }
+                return shareToChatViewModel!
+            }()
+            
+            ShareToChatView(viewModel: viewModelToUse) { username, userID, profilePic, name in
+                handleChatSelected(username: username, userID: userID, profilePic: profilePic, name: name, router: router)
+            }
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        
+        private func handleChatSelected(username: String, userID: String, profilePic: String, name: String, router: AnyRouter) {
+            guard let postData = viewModel.sharePostData else { return }
+            
+            guard !isNavigatingToChat else {
+                return
+            }
+            
+            isNavigatingToChat = true
+            
+            viewModel.isSharePresented = false
+            viewModel.showShareToChat = false
+            viewModel.showShareOptions = false
+            
+            let postToShare = postData
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                router.showScreen(.push) { chatRouter in
+                    let chatViewModel = ChatViewModel(
+                        router: chatRouter,
+                        username: username,
+                        userID: userID,
+                        profilePic: profilePic,
+                        name: name,
+                        lastScreen: "share"
+                    )
+                    
+                    chatViewModel.pendingPostToShare = postToShare
+                    
+                    return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                        SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                    })
+                    .environmentObject(ThemeManager.shared)
+                    .navigationBarBackButtonHidden()
+                    .onAppear {
+                        if let postToShare = chatViewModel.pendingPostToShare {
+                            chatViewModel.sharePostViaDM(postData: postToShare)
+                            chatViewModel.pendingPostToShare = nil
+                        }
+                    }
+                }
+            }
+            
+            viewModel.sharePostData = nil
+            shareToChatViewModel = nil
+        }
+        
         private func handleViewedPost() {
             if let index = viewModel.visiblePostIndex {
                 guard index < posts.count, index != -1 else { return }
@@ -481,7 +615,7 @@ struct PostView2<Content: View>: View {
                     },
                     onPressedShare: { id, name in
                         onSharePressed?(index)
-                        viewModel.showShareView(id: id)
+                        viewModel.showShareView(id: id, postData: posts[index])
                     },
                     onPressedEllpsis: { id in
                         viewModel.visibleOptionPostIndex = index
