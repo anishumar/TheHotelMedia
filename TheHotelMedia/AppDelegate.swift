@@ -78,6 +78,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
         Messaging.messaging().delegate = self
         UNUserNotificationCenter.current().delegate = self
         
+        // Try to retrieve FCM token immediately if available
+        if let token = Messaging.messaging().fcmToken {
+            fcmtoken = token
+            print("FCM Token retrieved on launch: \(token)")
+        }
+        
         let lowRatingCategory = UNNotificationCategory(
             identifier: "LOW_RATING_ALERT",
             actions: [],
@@ -169,12 +175,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         Messaging.messaging().apnsToken = deviceToken
+        print("✅ APNS Token registered, requesting FCM token...")
+        
+        // Request FCM token after APNS token is set
+        Messaging.messaging().token { [weak self] token, error in
+            if let error = error {
+                print("❌ Error fetching FCM token: \(error.localizedDescription)")
+            } else if let token = token {
+                print("✅ FCM Token retrieved: \(token.prefix(20))...")
+                self?.fcmtoken = token
+            }
+        }
     }
     
     
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        if let fcm = Messaging.messaging().fcmToken {
-            print("fcm", fcm, "☕️")
+        if let fcm = fcmToken ?? Messaging.messaging().fcmToken {
+            print("✅ FCM Token received via delegate: \(fcm.prefix(20))...")
             fcmtoken = fcm
         }
     }

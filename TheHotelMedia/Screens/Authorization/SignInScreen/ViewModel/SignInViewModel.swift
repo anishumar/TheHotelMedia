@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import SwiftfulRouting
+import FirebaseMessaging
 
 
 final class SignInViewModel: ObservableObject {
@@ -236,6 +237,69 @@ final class SignInViewModel: ObservableObject {
         googleAuthManager.googleSignOut()
     }
     
+    /// Retrieves the FCM token, either from AppStorage or synchronously from Firebase Messaging
+    private func getFCMToken() -> String {
+        // First, check if we already have a stored token
+        if !fcmtoken.isEmpty {
+            return fcmtoken
+        }
+        
+        // If not, try to get it synchronously from Firebase Messaging
+        if let token = Messaging.messaging().fcmToken {
+            fcmtoken = token
+            return token
+        }
+        
+        // If still unavailable, return empty string (backend will handle validation)
+        return ""
+    }
+    
+    /// Waits for FCM token to become available with retries and timeout
+    private func waitForFCMToken(maxWaitTime: TimeInterval = 5.0) async -> String {
+        // First check if we already have it
+        if !fcmtoken.isEmpty {
+            return fcmtoken
+        }
+        
+        // Try to get it synchronously first
+        if let token = Messaging.messaging().fcmToken {
+            fcmtoken = token
+            return token
+        }
+        
+        // Wait and retry for FCM token (in case APNS token is still being registered)
+        let startTime = Date()
+        let retryInterval: TimeInterval = 0.5
+        
+        while Date().timeIntervalSince(startTime) < maxWaitTime {
+            // Check again if token is now available
+            if let token = Messaging.messaging().fcmToken, !token.isEmpty {
+                fcmtoken = token
+                print("✅ FCM Token retrieved after waiting: \(token.prefix(20))...")
+                return token
+            }
+            
+            // Wait before next retry
+            try? await Task.sleep(nanoseconds: UInt64(retryInterval * 1_000_000_000))
+        }
+        
+        // If still not available after timeout, try one more time
+        if let token = Messaging.messaging().fcmToken, !token.isEmpty {
+            fcmtoken = token
+            return token
+        }
+        
+        // Check if we're on simulator (where push notifications don't work)
+        #if targetEnvironment(simulator)
+        print("⚠️ Running on simulator - push notifications not available. Using deviceID as fallback.")
+        return deviceIDManager.getDeviceID()
+        #else
+        // On real device, return stored token even if empty
+        print("⚠️ FCM Token still not available after waiting \(maxWaitTime) seconds")
+        return fcmtoken.isEmpty ? deviceIDManager.getDeviceID() : fcmtoken
+        #endif
+    }
+    
 }
 
 
@@ -244,19 +308,6 @@ final class SignInViewModel: ObservableObject {
 extension SignInViewModel {
     
     func login() {
-        
-        let parameters: [String: Any] = [
-            "email": emailFieldText,
-            "password": passwordFieldText,
-            "deviceID": deviceIDManager.getDeviceID(),
-            "notificationToken": fcmtoken,
-            "devicePlatform": "ios",
-            "lat": latitude,
-            "lng": longitude,
-            "language": LocalizationManager.shared.languageString.replacingOccurrences(of: "-IN", with: "")
-        ]
-        
-        print(LocalizationManager.shared.languageString.replacingOccurrences(of: "-IN", with: ""))
         
         Task {
             do {
@@ -268,6 +319,22 @@ extension SignInViewModel {
                 await MainActor.run {
                     showLoadingIndicator = true
                 }
+                
+                // Wait for FCM token before making API call
+                let notificationToken = await waitForFCMToken()
+                
+                let parameters: [String: Any] = [
+                    "email": emailFieldText,
+                    "password": passwordFieldText,
+                    "deviceID": deviceIDManager.getDeviceID(),
+                    "notificationToken": notificationToken,
+                    "devicePlatform": "ios",
+                    "lat": latitude,
+                    "lng": longitude,
+                    "language": LocalizationManager.shared.languageString.replacingOccurrences(of: "-IN", with: "")
+                ]
+                
+                print(LocalizationManager.shared.languageString.replacingOccurrences(of: "-IN", with: ""))
                 
                 let result = try await dataManager.login(parameters: parameters)
                 await MainActor.run {
@@ -325,21 +392,24 @@ extension SignInViewModel {
     
     func googleSocialLogin(id: String) {
         
-        var parameters: [String: Any] = [
-            "socialType": "google",
-            "token": id,
-            "deviceID": deviceIDManager.getDeviceID(),
-            "devicePlatform": "ios",
-            "notificationToken": fcmtoken,
-            "lat": latitude,
-            "lng": longitude,
-            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-        ]
-        
         showLoadingIndicator = true
         
         Task {
             do {
+                // Wait for FCM token before making API call
+                let notificationToken = await waitForFCMToken()
+                
+                var parameters: [String: Any] = [
+                    "socialType": "google",
+                    "token": id,
+                    "deviceID": deviceIDManager.getDeviceID(),
+                    "devicePlatform": "ios",
+                    "notificationToken": notificationToken,
+                    "lat": latitude,
+                    "lng": longitude,
+                    "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+                ]
+                
                 let result = try await dataManager.socialLogin(parameters: parameters)
                 
                 await MainActor.run {
@@ -379,21 +449,24 @@ extension SignInViewModel {
     
     func facebookSocialLogin(id: String) {
         
-        let parameters: [String: Any] = [
-            "socialType": "facebook",
-            "token": id,
-            "deviceID": deviceIDManager.getDeviceID(),
-            "devicePlatform": "ios",
-            "notificationToken": fcmtoken,
-            "lat": latitude,
-            "lng": longitude,
-            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-        ]
-        
         showLoadingIndicator = true
         
         Task {
             do {
+                // Wait for FCM token before making API call
+                let notificationToken = await waitForFCMToken()
+                
+                let parameters: [String: Any] = [
+                    "socialType": "facebook",
+                    "token": id,
+                    "deviceID": deviceIDManager.getDeviceID(),
+                    "devicePlatform": "ios",
+                    "notificationToken": notificationToken,
+                    "lat": latitude,
+                    "lng": longitude,
+                    "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+                ]
+                
                 let result = try await dataManager.socialLogin(parameters: parameters)
                 
                 await MainActor.run {
@@ -423,29 +496,32 @@ extension SignInViewModel {
     
     func appleSocialLogin(idToken: String, name: String? = nil, email: String? = nil) {
         
-        var parameters: [String: Any] = [
-            "socialType": "apple",
-            "token": idToken,
-            "deviceID": deviceIDManager.getDeviceID(),
-            "devicePlatform": "ios",
-            "notificationToken": fcmtoken,
-            "lat": latitude,
-            "lng": longitude,
-            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-        ]
-        
-        if let name, !name.isEmpty {
-            parameters.updateValue(name, forKey: "name")
-        }
-        
-        if let email, !email.isEmpty {
-            parameters.updateValue(email, forKey: "email")
-        }
-        
         showLoadingIndicator = true
         
         Task {
             do {
+                // Wait for FCM token before making API call
+                let notificationToken = await waitForFCMToken()
+                
+                var parameters: [String: Any] = [
+                    "socialType": "apple",
+                    "token": idToken,
+                    "deviceID": deviceIDManager.getDeviceID(),
+                    "devicePlatform": "ios",
+                    "notificationToken": notificationToken,
+                    "lat": latitude,
+                    "lng": longitude,
+                    "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+                ]
+                
+                if let name, !name.isEmpty {
+                    parameters.updateValue(name, forKey: "name")
+                }
+                
+                if let email, !email.isEmpty {
+                    parameters.updateValue(email, forKey: "email")
+                }
+                
                 let result = try await dataManager.socialLogin(parameters: parameters)
                 
                 await MainActor.run {

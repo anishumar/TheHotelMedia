@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftfulRouting
 import Combine
+import FirebaseMessaging
 
 
 final class OtpViewModel: ObservableObject {
@@ -29,6 +30,7 @@ final class OtpViewModel: ObservableObject {
     @AppStorage("refreshToken") var refreshToken: String = ""
     @AppStorage("isIndividual") var isIndividual: Bool = false
     @AppStorage("hasLoggedIn") var hasLoggedIn: Bool = false
+    @AppStorage("fcmtoken") var fcmtoken: String = ""
     
 //    @EnvironmentObject var networkMonitor: NetworkMonitor
     
@@ -119,6 +121,69 @@ final class OtpViewModel: ObservableObject {
             self.errorText = ""
         }
     }
+    
+    /// Retrieves the FCM token, either from AppStorage or synchronously from Firebase Messaging
+    private func getFCMToken() -> String {
+        // First, check if we already have a stored token
+        if !fcmtoken.isEmpty {
+            return fcmtoken
+        }
+        
+        // If not, try to get it synchronously from Firebase Messaging
+        if let token = Messaging.messaging().fcmToken {
+            fcmtoken = token
+            return token
+        }
+        
+        // If still unavailable, return empty string (backend will handle validation)
+        return ""
+    }
+    
+    /// Waits for FCM token to become available with retries and timeout
+    private func waitForFCMToken(maxWaitTime: TimeInterval = 5.0) async -> String {
+        // First check if we already have it
+        if !fcmtoken.isEmpty {
+            return fcmtoken
+        }
+        
+        // Try to get it synchronously first
+        if let token = Messaging.messaging().fcmToken {
+            fcmtoken = token
+            return token
+        }
+        
+        // Wait and retry for FCM token (in case APNS token is still being registered)
+        let startTime = Date()
+        let retryInterval: TimeInterval = 0.5
+        
+        while Date().timeIntervalSince(startTime) < maxWaitTime {
+            // Check again if token is now available
+            if let token = Messaging.messaging().fcmToken, !token.isEmpty {
+                fcmtoken = token
+                print("✅ FCM Token retrieved after waiting: \(token.prefix(20))...")
+                return token
+            }
+            
+            // Wait before next retry
+            try? await Task.sleep(nanoseconds: UInt64(retryInterval * 1_000_000_000))
+        }
+        
+        // If still not available after timeout, try one more time
+        if let token = Messaging.messaging().fcmToken, !token.isEmpty {
+            fcmtoken = token
+            return token
+        }
+        
+        // Check if we're on simulator (where push notifications don't work)
+        #if targetEnvironment(simulator)
+        print("⚠️ Running on simulator - push notifications not available. Using deviceID as fallback.")
+        return deviceIDManager.getDeviceID()
+        #else
+        // On real device, return stored token even if empty
+        print("⚠️ FCM Token still not available after waiting \(maxWaitTime) seconds")
+        return fcmtoken.isEmpty ? deviceIDManager.getDeviceID() : fcmtoken
+        #endif
+    }
 }
 
 
@@ -128,24 +193,27 @@ extension OtpViewModel {
     
     func verifyOtp() {
         
-        let parameters: [String: Any] = [
-            "email": emailID,
-            "otp": otpFieldText,
-            "deviceID": deviceIDManager.getDeviceID(),
-            "notificationToken": deviceIDManager.getDeviceID(),
-            "devicePlatform": "ios"
-        ]
+        showLoadingIndicator = true
         
+        Task {
+            do {
+                // Wait for FCM token before making API call
+                let notificationToken = await waitForFCMToken()
+                
+                let parameters: [String: Any] = [
+                    "email": emailID,
+                    "otp": otpFieldText,
+                    "deviceID": deviceIDManager.getDeviceID(),
+                    "notificationToken": notificationToken,
+                    "devicePlatform": "ios"
+                ]
+                
 //        guard networkMonitor.isConnected else {
 //            errorText = "No internet connection. Please try again."
 //            showErrorModal()
 //            return
 //        }
-        
-        showLoadingIndicator = true
-        
-        Task {
-            do {
+                
                 let response = try await dataManager.verifyOtp(parameters: parameters)
                 await MainActor.run {
                     showLoadingIndicator = false
