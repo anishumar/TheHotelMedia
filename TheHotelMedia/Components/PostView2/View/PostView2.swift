@@ -104,6 +104,8 @@ struct PostView2<Content: View>: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .onAppear {
             viewModel.ensureArrayCapacity(for: posts.count)
+            // Reset navigation flag when view appears (in case user navigated back)
+            isNavigatingToChat = false
         }
         .onChange(of: posts) { _ in
             viewModel.ensureArrayCapacity(for: posts.count)
@@ -180,6 +182,12 @@ struct PostView2<Content: View>: View {
                     .sheet(isPresented: $viewModel.isSharePresented, content: {
                         shareSheetContent
                     })
+                    .onChange(of: viewModel.isSharePresented) { isPresented in
+                        if !isPresented {
+                            // Reset navigation flag when sheet is dismissed
+                            isNavigatingToChat = false
+                        }
+                    }
                     .onChange(of: viewModel.showShareToChat) { showChat in
                         if !showChat {
                             shareToChatViewModel = nil
@@ -444,6 +452,7 @@ struct PostView2<Content: View>: View {
                     onDismiss: {
                         viewModel.isSharePresented = false
                         viewModel.sharePostData = nil
+                        isNavigatingToChat = false
                     }
                 )
                 .environmentObject(ThemeManager.shared)
@@ -514,6 +523,10 @@ struct PostView2<Content: View>: View {
                     
                     return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
                         SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                        // Reset navigation flag when leaving chat
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            isNavigatingToChat = false
+                        }
                     })
                     .environmentObject(ThemeManager.shared)
                     .navigationBarBackButtonHidden()
@@ -521,6 +534,12 @@ struct PostView2<Content: View>: View {
                         if let postToShare = chatViewModel.pendingPostToShare {
                             chatViewModel.sharePostViaDM(postData: postToShare)
                             chatViewModel.pendingPostToShare = nil
+                        }
+                    }
+                    .onDisappear {
+                        // Reset navigation flag when chat view disappears
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            isNavigatingToChat = false
                         }
                     }
                 }

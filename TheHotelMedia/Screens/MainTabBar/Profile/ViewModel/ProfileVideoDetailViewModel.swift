@@ -47,6 +47,7 @@ final class ProfileVideoDetailViewModel: ObservableObject {
         print("🎥 [VideoDetail] Initialized for user: \(userProfileID), starting media: \(initialMediaID ?? "nil")")
     }
     
+    @MainActor
     func loadVideos() {
         guard !isLoading else { return }
         guard hasMorePages else { return }
@@ -95,7 +96,7 @@ final class ProfileVideoDetailViewModel: ObservableObject {
                 }
                 
                 if shouldFetchNextPage {
-                    loadVideos()
+                    await loadVideos()
                 }
                 
             } catch {
@@ -156,11 +157,13 @@ final class ProfileVideoDetailViewModel: ObservableObject {
         }
     }
     
+    @MainActor
     func showCommentSection(postID: String) {
         commentSectionPostID = postID
         showCommentSection = true
     }
     
+    @MainActor
     func showShareView(postID: String) {
         sharePostData = videoPosts.first(where: { $0.id == postID })
         let baseURLString = "https://thehotelmedia.com/share/posts"

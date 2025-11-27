@@ -699,7 +699,11 @@ class ChatViewModel: ObservableObject {
             return
         }
         
-        if let postID = postData.id, postID == lastSharedPostID {
+        // Allow sharing the same post again if enough time has passed (15 seconds total)
+        if let postID = postData.id, 
+           postID == lastSharedPostID,
+           let blockStartTime = sharePostBlockStartTime,
+           Date().timeIntervalSince(blockStartTime) < 15.0 {
             return
         }
         

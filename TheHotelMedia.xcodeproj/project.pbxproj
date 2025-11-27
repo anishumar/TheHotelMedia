@@ -158,6 +158,10 @@
 		04A0388C2D65CFA300442450 /* GuestDetailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A0388B2D65CFA300442450 /* GuestDetailCard.swift */; };
 		04A0388E2D65DE7100442450 /* PersonDetailModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A0388D2D65DE7100442450 /* PersonDetailModel.swift */; };
 		04A177232CDB86EA00A39E8C /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 04A177222CDB86EA00A39E8C /* GooglePlaces */; };
+		04A1B2C32DC9CEF000EB654C /* ShareToChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */; };
+		04A1B2C52DC9CEF100EB654C /* ShareToChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */; };
+		04A1B2C72DC9CEF200EB654C /* ShareOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */; };
+		04A1B2CA2DC9CEF500EB654C /* UnifiedShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */; };
 		04A273192C9D382700B69CF1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 04A273182C9D382700B69CF1 /* Alamofire */; };
 		04A2731C2C9D523800B69CF1 /* ActivityIndicatorView in Frameworks */ = {isa = PBXBuildFile; productRef = 04A2731B2C9D523800B69CF1 /* ActivityIndicatorView */; };
 		04A2731E2C9D59C100B69CF1 /* NewAccountResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A2731D2C9D59C100B69CF1 /* NewAccountResponse.swift */; };
@@ -619,10 +623,6 @@
 		04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */; };
 		04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10B2E00000500AA1234 /* ReelsViewController.swift */; };
 		04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */; };
-		04A1B2C32DC9CEF000EB654C /* ShareToChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */; };
-		04A1B2C52DC9CEF100EB654C /* ShareToChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */; };
-		04A1B2C72DC9CEF200EB654C /* ShareOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */; };
-		04A1B2CA2DC9CEF500EB654C /* UnifiedShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -793,6 +793,10 @@
 		04A038892D65BDFF00442450 /* BookingCheckoutViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingCheckoutViewModel.swift; sourceTree = "<group>"; };
 		04A0388B2D65CFA300442450 /* GuestDetailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDetailCard.swift; sourceTree = "<group>"; };
 		04A0388D2D65DE7100442450 /* PersonDetailModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonDetailModel.swift; sourceTree = "<group>"; };
+		04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatViewModel.swift; sourceTree = "<group>"; };
+		04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatView.swift; sourceTree = "<group>"; };
+		04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareOptionsView.swift; sourceTree = "<group>"; };
+		04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedShareView.swift; sourceTree = "<group>"; };
 		04A2731D2C9D59C100B69CF1 /* NewAccountResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewAccountResponse.swift; sourceTree = "<group>"; };
 		04A273212C9D5B6B00B69CF1 /* LoginResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginResponse.swift; sourceTree = "<group>"; };
 		04A273232C9D6AA100B69CF1 /* SigninManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigninManager.swift; sourceTree = "<group>"; };
@@ -821,10 +825,6 @@
 		04A452AC2D49E9E400C31AF7 /* PostView2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView2.swift; sourceTree = "<group>"; };
 		04A452AE2D49E9F900C31AF7 /* PostViewModel2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewModel2.swift; sourceTree = "<group>"; };
 		04A452B02D49EA3600C31AF7 /* GenericPostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericPostView.swift; sourceTree = "<group>"; };
-		04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatViewModel.swift; sourceTree = "<group>"; };
-		04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatView.swift; sourceTree = "<group>"; };
-		04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareOptionsView.swift; sourceTree = "<group>"; };
-		04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedShareView.swift; sourceTree = "<group>"; };
 		04A453952CE45A8900BF55B0 /* BottomCustomModalView4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomCustomModalView4.swift; sourceTree = "<group>"; };
 		04A464D12C900B4C00CE839A /* TextBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextBox.swift; sourceTree = "<group>"; };
 		04A464D42C90285D00CE839A /* BottomAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomAlert.swift; sourceTree = "<group>"; };
@@ -2238,6 +2238,17 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		04A1B2C82DC9CEF300EB654C /* Share */ = {
+			isa = PBXGroup;
+			children = (
+				04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */,
+				04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */,
+				04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */,
+				04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */,
+			);
+			path = Share;
+			sourceTree = "<group>";
+		};
 		04A2731F2C9D59D900B69CF1 /* DataManager */ = {
 			isa = PBXGroup;
 			children = (
@@ -2388,17 +2399,6 @@
 				04B9B6B22D78155E007021C4 /* GenericPostViewModel.swift */,
 			);
 			path = ViewModel;
-			sourceTree = "<group>";
-		};
-		04A1B2C82DC9CEF300EB654C /* Share */ = {
-			isa = PBXGroup;
-			children = (
-				04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */,
-				04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */,
-				04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */,
-				04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */,
-			);
-			path = Share;
 			sourceTree = "<group>";
 		};
 		04A464D02C900B3E00CE839A /* Model */ = {
@@ -4774,7 +4774,7 @@
 				04D004AE2C5377A5009F3976 /* Resources */,
 				0499B9792D26648F0083AE75 /* Embed Foundation Extensions */,
 				0494593F2D3790A6007365A5 /* Embed Frameworks */,
-				04FF00012E00000900AA1234 /* Strip arm64e from ffmpegkit */,
+				04FF00012E00000900AA1234 /* Strip arm64e from FFmpeg frameworks */,
 			);
 			buildRules = (
 			);
@@ -4937,7 +4937,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		04FF00012E00000900AA1234 /* Strip arm64e from ffmpegkit */ = {
+		04FF00012E00000900AA1234 /* Strip arm64e from FFmpeg frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -5668,7 +5668,7 @@
 				CODE_SIGN_ENTITLEMENTS = TheHotelMedia/TheHotelMedia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"TheHotelMedia/Preview Content\"";
 				DEVELOPMENT_TEAM = GDT6V8X9B7;
@@ -5711,7 +5711,7 @@
 				CODE_SIGN_ENTITLEMENTS = TheHotelMedia/TheHotelMediaRelease.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"TheHotelMedia/Preview Content\"";
 				DEVELOPMENT_TEAM = GDT6V8X9B7;
 				ENABLE_PREVIEWS = YES;

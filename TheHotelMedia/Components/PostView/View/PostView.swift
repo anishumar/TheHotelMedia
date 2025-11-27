@@ -379,6 +379,7 @@ struct PostView: View {
             }
             
             postArray = posts
+            viewModel.postArray = posts
             viewModel.postCount = count
             
             var zeroArray: [CGSize] = []
@@ -495,6 +496,7 @@ struct PostView: View {
             }
         }
         .onChange(of: posts) { newPosts in
+            viewModel.postArray = newPosts
             guard !newPosts.isEmpty else { return }
             
             let count = newPosts.count
@@ -533,6 +535,7 @@ struct PostView: View {
                 viewModel.isPausedArray.append(contentsOf: array)
                 
                 postArray = newPosts
+                viewModel.postArray = newPosts
                 viewModel.updateToShowPosts(posts: newPosts)
             }
         }
@@ -639,6 +642,33 @@ struct PostView: View {
                             router: router,
                             onChatSelected: { username, userID, profilePic, name in
                                 viewModel.isSharePresented = false
+                                if let postData = viewModel.sharePostData {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        router.showScreen(.push) { chatRouter in
+                                            let chatViewModel = ChatViewModel(
+                                                router: chatRouter,
+                                                username: username,
+                                                userID: userID,
+                                                profilePic: profilePic,
+                                                name: name,
+                                                lastScreen: "share"
+                                            )
+                                            chatViewModel.pendingPostToShare = postData
+                                            return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                                SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                                            })
+                                            .environmentObject(ThemeManager.shared)
+                                            .navigationBarBackButtonHidden()
+                                            .onAppear {
+                                                if let postToShare = chatViewModel.pendingPostToShare {
+                                                    chatViewModel.sharePostViaDM(postData: postToShare)
+                                                    chatViewModel.pendingPostToShare = nil
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                viewModel.sharePostData = nil
                             },
                             onDismiss: {
                                 viewModel.isSharePresented = false
@@ -648,6 +678,11 @@ struct PostView: View {
                         .environmentObject(ThemeManager.shared)
                         .environmentObject(LocalizationManager.shared)
                         .presentationDetents([.medium, .large])
+                    } else {
+                        // Fallback if router is not available
+                        Text("Router not available")
+                            .foregroundColor(.gray)
+                            .padding()
                     }
                 }
             
