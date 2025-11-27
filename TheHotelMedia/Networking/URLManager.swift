@@ -297,6 +297,10 @@ extension URL {
         URL(string: "\(URL.default)/posts/")!
     }
     
+    static var publishPostAsStory: URL {
+        URL(string: "\(URL.default)/post/")!
+    }
+    
     static var joinEvent: URL {
         URL(string: "\(URL.default)/events/join")!
     }

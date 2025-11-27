@@ -79,4 +79,15 @@ class PostDataManager {
         return result
     }
     
+    func publishPostAsStory(postID: String) async throws -> PostStoryResponse {
+        
+        guard let url = URL(string: "\(URL.publishPostAsStory)\(postID)/publish-as-story") else { throw NetworkError.badURL }
+        
+        let resource = Resource<PostStoryResponse>(url: url, method: .post([:]))
+        
+        let result = try await baseNetworkManager.accessLoad(resource)
+        
+        return result
+    }
+    
 }

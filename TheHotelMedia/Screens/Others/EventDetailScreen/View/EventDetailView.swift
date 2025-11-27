@@ -259,7 +259,7 @@ extension EventDetailView {
                         )
                         .environmentObject(ThemeManager.shared)
                         .environmentObject(LocalizationManager.shared)
-                        .presentationDetents([.medium, .large])
+                            .presentationDetents([.medium, .large])
                     }
                 Spacer()
             }

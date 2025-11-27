@@ -8,6 +8,7 @@
 import SwiftUI
 import SDWebImageSwiftUI
 import SwiftfulRouting
+import SDWebImage
 
 struct UnifiedShareSheet: View {
     @EnvironmentObject var themeManager: ThemeManager
@@ -20,15 +21,18 @@ struct UnifiedShareSheet: View {
     var router: AnyRouter?
     var onChatSelected: ((String, String, String, String) -> Void)?
     var onDismiss: (() -> Void)?
+    var onStoryShared: (() -> Void)?
     
     @State private var searchText = ""
+    @State private var isSharingAsStory = false
     
-    init(shareURL: String, postData: PostData?, router: AnyRouter?, onChatSelected: ((String, String, String, String) -> Void)?, onDismiss: (() -> Void)?) {
+    init(shareURL: String, postData: PostData?, router: AnyRouter?, onChatSelected: ((String, String, String, String) -> Void)?, onDismiss: (() -> Void)?, onStoryShared: (() -> Void)? = nil) {
         self.shareURL = shareURL
         self.postData = postData
         self.router = router
         self.onChatSelected = onChatSelected
         self.onDismiss = onDismiss
+        self.onStoryShared = onStoryShared
         
         // Router is required for UnifiedShareSheet - MediaPreviewView should use ActivityViewController
         guard let router = router else {
@@ -149,6 +153,18 @@ struct UnifiedShareSheet: View {
                 ) {
                     // Implement save to files
                     haptics(.light)
+                }
+                
+                // Share as Story button - only show if postData exists
+                if postData != nil {
+                    shareOptionButton(
+                        icon: "plus.circle.fill",
+                        label: isSharingAsStory ? "Sharing..." : "Share as Story",
+                        color: .blue
+                    ) {
+                        sharePostAsStory()
+                    }
+                    .disabled(isSharingAsStory)
                 }
             }
             .padding(.horizontal, 20)
@@ -355,6 +371,149 @@ struct UnifiedShareSheet: View {
         .onTapGesture {
             haptics(.light)
             onChatSelected?(username, userID, profile.profilePic?.small ?? "", name)
+        }
+    }
+    
+    private func sharePostAsStory() {
+        guard let postData = postData,
+              let mediaRefs = postData.mediaRef,
+              !mediaRefs.isEmpty,
+              let firstMedia = mediaRefs.first,
+              let mediaUrlString = firstMedia.sourceURL,
+              let mediaURL = URL(string: mediaUrlString),
+              let router = router,
+              !isSharingAsStory else {
+            return
+        }
+        
+        isSharingAsStory = true
+        haptics(.light)
+        onDismiss?() // Close the share sheet first
+        
+        Task {
+            // Check if it's a video or image
+            let isVideo = firstMedia.mimeType?.contains("video") ?? false
+            
+            if isVideo {
+                // For videos, download and open VideoEditorView
+                await loadVideoAndOpenEditor(videoURL: mediaURL, router: router)
+            } else {
+                // For images, download and open EditStoryImageView
+                await loadImageAndOpenEditor(imageURL: mediaURL, router: router)
+            }
+            
+            await MainActor.run {
+                isSharingAsStory = false
+            }
+        }
+    }
+    
+    private func loadImageAndOpenEditor(imageURL: URL, router: AnyRouter) async {
+        await withCheckedContinuation { continuation in
+            SDWebImageManager.shared.loadImage(
+                with: imageURL,
+                options: [.highPriority],
+                progress: nil
+            ) { image, _, error, _, _, _ in
+                Task { @MainActor in
+                    if let image = image {
+                        router.showScreen(.push) { router in
+                            EditStoryImageView(
+                                viewModel: EditStoryImageViewModel(router: router, image: image),
+                                returnedImage: { editedImage in
+                                    self.postStory(image: editedImage, videoURL: nil, router: router)
+                                },
+                                onDismissed: {
+                                    continuation.resume()
+                                }
+                            )
+                            .environmentObject(ThemeManager.shared)
+                            .navigationBarBackButtonHidden()
+                        }
+                    } else {
+                        UINotificationFeedbackGenerator().notificationOccurred(.error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Failed to load image. Please try again.")
+                        continuation.resume()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func loadVideoAndOpenEditor(videoURL: URL, router: AnyRouter) async {
+        // Download video to temporary location
+        do {
+            let (tempURL, _) = try await URLSession.shared.download(from: videoURL)
+            
+            await MainActor.run {
+                router.showScreen(.fullScreenCover) { router in
+                    VideoEditorView(videoURL: tempURL, limit: 30) { editedVideoURL in
+                        guard let editedVideoURL else { return }
+                        self.postStory(image: nil, videoURL: editedVideoURL, router: router)
+                    }
+                }
+            }
+        } catch {
+            await MainActor.run {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
+                ErrorModalManager.showErrorModal(router: router, errorText: "Failed to load video. Please try again.")
+            }
+        }
+    }
+    
+    private func postStory(image: UIImage?, videoURL: URL?, router: AnyRouter) {
+        let storyDataManager = StoryDataManager()
+        
+        if let image = image {
+            let media = MediaAttachment(id: UUID().uuidString, type: .photo(image))
+            
+            Task {
+                do {
+                    let result = try await storyDataManager.postStory(attachments: [media])
+                    
+                    await MainActor.run {
+                        let range = 200...204
+                        if result.status && range.contains(result.statusCode) {
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
+                            onStoryShared?()
+                        } else {
+                            UINotificationFeedbackGenerator().notificationOccurred(.error)
+                            ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        UINotificationFeedbackGenerator().notificationOccurred(.error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Failed to share story. Please try again.")
+                    }
+                }
+            }
+        } else if let videoURL = videoURL {
+            // Generate thumbnail for video
+            Task {
+                do {
+                    let thumbnail = try await videoURL.generateVideoThumbnail()
+                    let media = MediaAttachment(id: UUID().uuidString, type: .video(thumbnail ?? UIImage(), videoURL))
+                    
+                    let result = try await storyDataManager.postStory(attachments: [media])
+                    
+                    await MainActor.run {
+                        let range = 200...204
+                        if result.status && range.contains(result.statusCode) {
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
+                            onStoryShared?()
+                        } else {
+                            UINotificationFeedbackGenerator().notificationOccurred(.error)
+                            ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                        }
+                    }
+                } catch {
+                    await MainActor.run {
+                        UINotificationFeedbackGenerator().notificationOccurred(.error)
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Failed to share story. Please try again.")
+                    }
+                }
+            }
         }
     }
 }
