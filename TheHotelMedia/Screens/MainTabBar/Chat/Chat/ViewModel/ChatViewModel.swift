@@ -712,8 +712,21 @@ class ChatViewModel: ObservableObject {
         lastSharedPostID = postData.id
         
         guard let mediaRefs = postData.mediaRef, 
-              !mediaRefs.isEmpty,
-              let firstMedia = mediaRefs.first,
+              !mediaRefs.isEmpty else {
+            isSharingPost = false
+            sharePostBlockStartTime = nil
+            return
+        }
+        
+        // For video posts, find the video media. Otherwise use the first media.
+        let targetMedia = mediaRefs.first(where: { media in
+            if let mimeType = media.mimeType, mimeType.contains("video") {
+                return true
+            }
+            return false
+        }) ?? mediaRefs.first
+        
+        guard let firstMedia = targetMedia,
               let mediaID = firstMedia.id,
               let mediaUrl = firstMedia.sourceURL else {
             isSharingPost = false
