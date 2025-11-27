@@ -160,6 +160,33 @@ struct ProfileVideoDetailView: View {
                 router: router,
                 onChatSelected: { username, userID, profilePic, name in
                     viewModel.isSharePresented = false
+                    if let postData = viewModel.sharePostData {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            router.showScreen(.push) { chatRouter in
+                                let chatViewModel = ChatViewModel(
+                                    router: chatRouter,
+                                    username: username,
+                                    userID: userID,
+                                    profilePic: profilePic,
+                                    name: name,
+                                    lastScreen: "share"
+                                )
+                                chatViewModel.pendingPostToShare = postData
+                                return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                    SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                                })
+                                .environmentObject(ThemeManager.shared)
+                                .navigationBarBackButtonHidden()
+                                .onAppear {
+                                    if let postToShare = chatViewModel.pendingPostToShare {
+                                        chatViewModel.sharePostViaDM(postData: postToShare)
+                                        chatViewModel.pendingPostToShare = nil
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    viewModel.sharePostData = nil
                 },
                 onDismiss: {
                     viewModel.isSharePresented = false
@@ -169,6 +196,39 @@ struct ProfileVideoDetailView: View {
             .environmentObject(ThemeManager.shared)
             .environmentObject(LocalizationManager.shared)
             .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $viewModel.showCommentSection) {
+            CommentSectionView(
+                showScreen: $viewModel.showCommentSection,
+                newComment: .constant(""),
+                replyComment: .constant(nil),
+                viewModel: CommentSectionViewModel(
+                    postID: viewModel.commentSectionPostID,
+                    totalComments: viewModel.videoPosts.first(where: { $0.id == viewModel.commentSectionPostID })?.comments ?? 0,
+                    isEmbedded: false,
+                    onAddingComment: { postID in
+                        if let index = viewModel.videoPosts.firstIndex(where: { $0.id == postID }) {
+                            viewModel.videoPosts[index].comments = (viewModel.videoPosts[index].comments ?? 0) + 1
+                        }
+                    },
+                    onDeletingComment: { postID in
+                        if let index = viewModel.videoPosts.firstIndex(where: { $0.id == postID }) {
+                            viewModel.videoPosts[index].comments = max(0, (viewModel.videoPosts[index].comments ?? 0) - 1)
+                        }
+                    }
+                ),
+                isEmbedded: false,
+                onPressedProfile: { profileID in
+                    // Handle profile navigation if needed
+                },
+                onPressedReply: { _ in },
+                onReportComment: { message in
+                    // Handle report if needed
+                },
+                onAddComment: {}
+            )
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
         }
     }
     

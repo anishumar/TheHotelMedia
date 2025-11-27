@@ -17,6 +17,7 @@ struct ProfilePhotoDetailView: View {
     
     @StateObject private var viewModel: ProfilePhotoDetailViewModel
     @State private var hasScrolledToInitial = false
+    @State private var commentShowScreen = true
     
     init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil) {
         _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData))
@@ -55,11 +56,24 @@ struct ProfilePhotoDetailView: View {
                                     isPaused: .constant(true),
                                     postData: $viewModel.posts[index],
                                     viewModel: PostCardViewModel(data: post),
-                                    onPressedComment: { _ in },
-                                    onPressedShare: { _, _ in },
+                                    onPressedComment: { postID in
+                                        commentShowScreen = true
+                                        viewModel.showCommentSection(postID: postID)
+                                    },
+                                    onPressedShare: { postID, _ in
+                                        viewModel.showShareView(postID: postID)
+                                    },
                                     onPressedEllpsis: { _ in },
-                                    onPressedLike: { _, _ in },
-                                    onPressedBookmark: { _ in },
+                                    onPressedLike: { liked, count in
+                                        if let postID = post.id {
+                                            viewModel.likePost(postID: postID, isLiked: !liked)
+                                        }
+                                    },
+                                    onPressedBookmark: { saved in
+                                        if let postID = post.id {
+                                            viewModel.bookmarkPost(postID: postID, isSaved: !saved)
+                                        }
+                                    },
                                     onPressedProfile: { _ in }
                                 )
                                 .id(postID)
@@ -95,6 +109,124 @@ struct ProfilePhotoDetailView: View {
             }
         }
         .background(themeManager.currentTheme.backgroundColor.ignoresSafeArea())
+        .sheet(isPresented: $viewModel.isSharePresented) {
+            UnifiedShareSheet(
+                shareURL: viewModel.shareURL.absoluteString,
+                postData: viewModel.sharePostData,
+                router: router,
+                onChatSelected: { username, userID, profilePic, name in
+                    viewModel.isSharePresented = false
+                    if let postData = viewModel.sharePostData {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            router.showScreen(.push) { chatRouter in
+                                let chatViewModel = ChatViewModel(
+                                    router: chatRouter,
+                                    username: username,
+                                    userID: userID,
+                                    profilePic: profilePic,
+                                    name: name,
+                                    lastScreen: "share"
+                                )
+                                chatViewModel.pendingPostToShare = postData
+                                return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                    SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                                })
+                                .environmentObject(ThemeManager.shared)
+                                .navigationBarBackButtonHidden()
+                                .onAppear {
+                                    if let postToShare = chatViewModel.pendingPostToShare {
+                                        chatViewModel.sharePostViaDM(postData: postToShare)
+                                        chatViewModel.pendingPostToShare = nil
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    viewModel.sharePostData = nil
+                },
+                onDismiss: {
+                    viewModel.isSharePresented = false
+                    viewModel.sharePostData = nil
+                }
+            )
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
+            .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $viewModel.showCommentSection) {
+            if #available(iOS 16.4, *) {
+                CommentSectionView(
+                    showScreen: $commentShowScreen,
+                    newComment: .constant(""),
+                    replyComment: .constant(nil),
+                    viewModel: CommentSectionViewModel(
+                        postID: viewModel.commentSectionPostID,
+                        totalComments: viewModel.posts.first(where: { $0.id == viewModel.commentSectionPostID })?.comments ?? 0,
+                        isEmbedded: false,
+                        onAddingComment: { postID in
+                            if let index = viewModel.posts.firstIndex(where: { $0.id == postID }) {
+                                viewModel.posts[index].comments = (viewModel.posts[index].comments ?? 0) + 1
+                            }
+                        },
+                        onDeletingComment: { postID in
+                            if let index = viewModel.posts.firstIndex(where: { $0.id == postID }) {
+                                viewModel.posts[index].comments = max(0, (viewModel.posts[index].comments ?? 0) - 1)
+                            }
+                        }
+                    ),
+                    isEmbedded: false,
+                    onPressedProfile: { profileID in
+                        viewModel.showCommentSection = false
+                        // Handle profile navigation if needed
+                    },
+                    onPressedReply: { _ in },
+                    onReportComment: { message in
+                        // Handle report if needed
+                    },
+                    onAddComment: {}
+                )
+                .environmentObject(ThemeManager.shared)
+                .environmentObject(LocalizationManager.shared)
+                .presentationDetents([.fraction(0.7), .fraction(0.9)])
+                .presentationBackground(.clear)
+                .presentationDragIndicator(.hidden)
+                .ignoresSafeArea()
+            } else {
+                CommentSectionView(
+                    showScreen: $commentShowScreen,
+                    newComment: .constant(""),
+                    replyComment: .constant(nil),
+                    viewModel: CommentSectionViewModel(
+                        postID: viewModel.commentSectionPostID,
+                        totalComments: viewModel.posts.first(where: { $0.id == viewModel.commentSectionPostID })?.comments ?? 0,
+                        isEmbedded: false,
+                        onAddingComment: { postID in
+                            if let index = viewModel.posts.firstIndex(where: { $0.id == postID }) {
+                                viewModel.posts[index].comments = (viewModel.posts[index].comments ?? 0) + 1
+                            }
+                        },
+                        onDeletingComment: { postID in
+                            if let index = viewModel.posts.firstIndex(where: { $0.id == postID }) {
+                                viewModel.posts[index].comments = max(0, (viewModel.posts[index].comments ?? 0) - 1)
+                            }
+                        }
+                    ),
+                    isEmbedded: false,
+                    onPressedProfile: { profileID in
+                        viewModel.showCommentSection = false
+                        // Handle profile navigation if needed
+                    },
+                    onPressedReply: { _ in },
+                    onReportComment: { message in
+                        // Handle report if needed
+                    },
+                    onAddComment: {}
+                )
+                .environmentObject(ThemeManager.shared)
+                .environmentObject(LocalizationManager.shared)
+                .ignoresSafeArea()
+            }
+        }
         .onAppear {
             if viewModel.posts.isEmpty {
                 viewModel.loadPosts()
