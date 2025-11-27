@@ -215,16 +215,11 @@ class PostViewModel2: ObservableObject {
     
     
     func showShareView(id: String, isEventPost: Bool = false, postData: PostData? = nil) {
-        // Use provided postData or find the post data by ID
         if let post = postData ?? postArray.first(where: { $0.id == id }) {
             sharePostData = post
-            showShareOptions = true
-            isSharePresented = true
-        } else {
-            // Fallback: If post not found, just show share link option
-            showShareLink(id: id, isEventPost: isEventPost)
-            isSharePresented = true
         }
+        showShareLink(id: id, isEventPost: isEventPost)
+        isSharePresented = true
     }
     
     func showShareLink(id: String, isEventPost: Bool = false) {
@@ -238,11 +233,8 @@ class PostViewModel2: ObservableObject {
             if let encryptedID = EncryptionHelper.encrypt(id),
                let encryptedUserID = EncryptionHelper.encrypt(ownUserID) {
                 shareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)")!
-                // Hide options to show ActivityViewController
                 showShareOptions = false
                 showShareToChat = false
-                // Set isSharePresented = true so ActivityViewController shows in else clause
-                isSharePresented = true
             }
         }
     }

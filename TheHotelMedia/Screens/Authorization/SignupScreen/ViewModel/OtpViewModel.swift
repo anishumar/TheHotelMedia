@@ -199,21 +199,21 @@ extension OtpViewModel {
             do {
                 // Wait for FCM token before making API call
                 let notificationToken = await waitForFCMToken()
-                
-                let parameters: [String: Any] = [
-                    "email": emailID,
-                    "otp": otpFieldText,
-                    "deviceID": deviceIDManager.getDeviceID(),
+        
+        let parameters: [String: Any] = [
+            "email": emailID,
+            "otp": otpFieldText,
+            "deviceID": deviceIDManager.getDeviceID(),
                     "notificationToken": notificationToken,
-                    "devicePlatform": "ios"
-                ]
-                
+            "devicePlatform": "ios"
+        ]
+        
 //        guard networkMonitor.isConnected else {
 //            errorText = "No internet connection. Please try again."
 //            showErrorModal()
 //            return
 //        }
-                
+        
                 let response = try await dataManager.verifyOtp(parameters: parameters)
                 await MainActor.run {
                     showLoadingIndicator = false

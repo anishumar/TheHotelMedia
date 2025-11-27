@@ -42,6 +42,7 @@ class EventDetailViewModel: ObservableObject {
     @Published var eventLocation2DCoordinates: CLLocationCoordinate2D? = nil
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
     @Published var isSharePresented: Bool = false
+    @Published var sharePostData: PostData? = nil
     @Published var selectedMedia: MediaType = .image(urlString: "")
     @Published var showPreview: Bool = false
     @Published var isValidEvent: Bool = false
@@ -271,7 +272,7 @@ class EventDetailViewModel: ObservableObject {
     
     
     func showShareView(id: String) {
-        
+        sharePostData = eventPost
         let baseURLString = "https://thehotelmedia.com/share/events"
         
         if !id.isEmpty && !ownUserID.isEmpty {
@@ -280,7 +281,7 @@ class EventDetailViewModel: ObservableObject {
                let encryptedUserID = EncryptionHelper.encrypt(ownUserID) {
                 
                 shareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)")!
-                isSharePresented.toggle()
+                isSharePresented = true
             }
         }
     }

@@ -244,11 +244,23 @@ extension EventDetailView {
                 .zIndex(2.0)
                 
                 profileHeaderView
-                    .sheet(isPresented: $viewModel.isSharePresented, content: {
-                        ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                            .id(viewModel.shareURL)
-                            .presentationDetents([.medium, .large])
-                    })
+                    .sheet(isPresented: $viewModel.isSharePresented) {
+                        UnifiedShareSheet(
+                            shareURL: viewModel.shareURL.absoluteString,
+                            postData: viewModel.sharePostData,
+                            router: viewModel.router,
+                            onChatSelected: { username, userID, profilePic, name in
+                                viewModel.isSharePresented = false
+                            },
+                            onDismiss: {
+                                viewModel.isSharePresented = false
+                                viewModel.sharePostData = nil
+                            }
+                        )
+                        .environmentObject(ThemeManager.shared)
+                        .environmentObject(LocalizationManager.shared)
+                        .presentationDetents([.medium, .large])
+                    }
                 Spacer()
             }
             .background(themeManager.currentTheme.backgroundColor)

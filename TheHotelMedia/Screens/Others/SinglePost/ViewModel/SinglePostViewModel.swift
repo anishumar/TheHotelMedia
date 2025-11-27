@@ -57,6 +57,7 @@ class SinglePostViewModel: ObservableObject {
     @Published var coverImage: String = ""
     @Published var businessAddress: String? = ""
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
+    @Published var sharePostData: PostData? = nil
     @Published var fullDescription: AttributedString = AttributedString()
     @Published var currentPage: Int = 0 {
         didSet {
@@ -417,7 +418,7 @@ class SinglePostViewModel: ObservableObject {
     
     
     func showShareView(id: String) {
-        
+        sharePostData = data
         let baseURLString = "https://thehotelmedia.com/share/posts"
         
         if !id.isEmpty && !ownUserID.isEmpty {
@@ -426,7 +427,7 @@ class SinglePostViewModel: ObservableObject {
                let encryptedUserID = EncryptionHelper.encrypt(ownUserID) {
                 
                 shareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)")!
-                isSharePresented.toggle()
+                isSharePresented = true
             }
         }
     }

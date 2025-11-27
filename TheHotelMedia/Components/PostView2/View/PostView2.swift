@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftfulRouting
 import AVKit
+import UIKit
 
 struct PostVisibilityPreferenceKey: PreferenceKey {
     static var defaultValue: [Int: CGRect] = [:]
@@ -46,7 +47,8 @@ struct PostView2<Content: View>: View {
     @State var scrollOffset: CGPoint = .zero
     @State var hasRefreshed: Bool = false
     @State var shareToChatViewModel: ShareToChatViewModel? = nil
-    @State private var isNavigatingToChat = false // Prevent multiple navigation calls
+    @State private var isNavigatingToChat = false
+    @State private var pendingShareToChat = false
     
     //    @AppStorage("isMute") var isMute: Bool = false
     @AppStorage("ownUserID") var ownUserID: String = ""
@@ -181,14 +183,25 @@ struct PostView2<Content: View>: View {
                     .onChange(of: viewModel.showShareToChat) { showChat in
                         if !showChat {
                             shareToChatViewModel = nil
+                        } else {
+                            if !viewModel.isSharePresented {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    viewModel.isSharePresented = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        pendingShareToChat = false
+                                    }
+                                }
+                            }
                         }
                     }
                     .onChange(of: viewModel.isSharePresented) { isPresented in
                         if !isPresented {
-                            viewModel.showShareOptions = false
-                            viewModel.showShareToChat = false
-                            viewModel.sharePostData = nil
-                            shareToChatViewModel = nil
+                            if !pendingShareToChat {
+                                viewModel.showShareOptions = false
+                                viewModel.showShareToChat = false
+                                viewModel.sharePostData = nil
+                                shareToChatViewModel = nil
+                            }
                         }
                     }
                 
@@ -420,47 +433,25 @@ struct PostView2<Content: View>: View {
         
         @ViewBuilder
         private var shareSheetContent: some View {
-            if viewModel.showShareOptions {
-                // Show share options modal
-                ZStack {
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            viewModel.isSharePresented = false
-                            viewModel.showShareOptions = false
-                            viewModel.sharePostData = nil
-                        }
-                    
-                    ShareOptionsView(
-                        onShareToChatPressed: {
-                            viewModel.showShareToChatView()
-                        },
-                        onShareLinkPressed: {
-                            if let postID = viewModel.sharePostData?.id {
-                                viewModel.showShareLink(id: postID, isEventPost: viewModel.sharePostData?.postType == "event")
-                            }
-                        }
-                    )
-                    .environmentObject(ThemeManager.shared)
-                    .environmentObject(LocalizationManager.shared)
-                }
-                .presentationDetents([.height(220)])
-                .presentationBackground(.ultraThinMaterial)
-                .presentationDragIndicator(.hidden)
-            } else if viewModel.showShareToChat {
-                if let router = viewModel.router {
-                    shareToChatContent(router: router)
-                } else {
-                    // Fallback if router is not available
-                    Text("Router not available")
-                        .foregroundColor(.gray)
-                        .padding()
-                }
+            if let router = viewModel.router {
+                UnifiedShareSheet(
+                    shareURL: viewModel.shareURL.absoluteString,
+                    postData: viewModel.sharePostData,
+                    router: router,
+                    onChatSelected: { username, userID, profilePic, name in
+                        handleChatSelected(username: username, userID: userID, profilePic: profilePic, name: name, router: router)
+                    },
+                    onDismiss: {
+                        viewModel.isSharePresented = false
+                        viewModel.sharePostData = nil
+                    }
+                )
+                .environmentObject(ThemeManager.shared)
+                .environmentObject(LocalizationManager.shared)
             } else {
-                // Show link share (ActivityViewController)
-                ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                    .id(viewModel.shareURL)
-                    .presentationDetents([.medium, .large])
+                Text("Router not available")
+                    .foregroundColor(.gray)
+                    .padding()
             }
         }
         

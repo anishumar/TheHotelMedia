@@ -482,11 +482,50 @@ extension SinglePostView {
                 description
             }
             divider
-                .sheet(isPresented: $viewModel.isSharePresented, content: {
-                    ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                        .id(viewModel.shareURL)
-                        .presentationDetents([.medium])
-                })
+                .sheet(isPresented: $viewModel.isSharePresented) {
+                    UnifiedShareSheet(
+                        shareURL: viewModel.shareURL.absoluteString,
+                        postData: viewModel.sharePostData,
+                        router: viewModel.router,
+                        onChatSelected: { username, userID, profilePic, name in
+                            viewModel.isSharePresented = false
+                            if let postData = viewModel.sharePostData {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    viewModel.router.showScreen(.push) { chatRouter in
+                                        let chatViewModel = ChatViewModel(
+                                            router: chatRouter,
+                                            username: username,
+                                            userID: userID,
+                                            profilePic: profilePic,
+                                            name: name,
+                                            lastScreen: "share"
+                                        )
+                                        chatViewModel.pendingPostToShare = postData
+                                        return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                            SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                                        })
+                                        .environmentObject(ThemeManager.shared)
+                                        .navigationBarBackButtonHidden()
+                                        .onAppear {
+                                            if let postToShare = chatViewModel.pendingPostToShare {
+                                                chatViewModel.sharePostViaDM(postData: postToShare)
+                                                chatViewModel.pendingPostToShare = nil
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            viewModel.sharePostData = nil
+                        },
+                        onDismiss: {
+                            viewModel.isSharePresented = false
+                            viewModel.sharePostData = nil
+                        }
+                    )
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
+                    .presentationDetents([.medium, .large])
+                }
             HStack(spacing: 6) {
                 //                HMCustomButton(icon: .constant(isLiked ? "heartfill" : "heart"), count: $likeCount)
                 
@@ -1107,11 +1146,50 @@ extension SinglePostView {
             
             divider
                 .padding(.horizontal, 12)
-                .sheet(isPresented: $viewModel.isSharePresented, content: {
-                    ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                        .id(viewModel.shareURL)
-                        .presentationDetents([.medium])
-                })
+                .sheet(isPresented: $viewModel.isSharePresented) {
+                    UnifiedShareSheet(
+                        shareURL: viewModel.shareURL.absoluteString,
+                        postData: viewModel.sharePostData,
+                        router: viewModel.router,
+                        onChatSelected: { username, userID, profilePic, name in
+                            viewModel.isSharePresented = false
+                            if let postData = viewModel.sharePostData {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    viewModel.router.showScreen(.push) { chatRouter in
+                                        let chatViewModel = ChatViewModel(
+                                            router: chatRouter,
+                                            username: username,
+                                            userID: userID,
+                                            profilePic: profilePic,
+                                            name: name,
+                                            lastScreen: "share"
+                                        )
+                                        chatViewModel.pendingPostToShare = postData
+                                        return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                            SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                                        })
+                                        .environmentObject(ThemeManager.shared)
+                                        .navigationBarBackButtonHidden()
+                                        .onAppear {
+                                            if let postToShare = chatViewModel.pendingPostToShare {
+                                                chatViewModel.sharePostViaDM(postData: postToShare)
+                                                chatViewModel.pendingPostToShare = nil
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            viewModel.sharePostData = nil
+                        },
+                        onDismiss: {
+                            viewModel.isSharePresented = false
+                            viewModel.sharePostData = nil
+                        }
+                    )
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
+                    .presentationDetents([.medium, .large])
+                }
             HStack(spacing: 6) {
                 HStack(spacing: 6) {
                     Image(viewModel.likedByMe ? "heartfill" : themeManager.currentTheme.heart)

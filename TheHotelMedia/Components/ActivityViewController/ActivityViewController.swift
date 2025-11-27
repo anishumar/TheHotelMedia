@@ -5,7 +5,6 @@
 //  Created by MAC on 29/10/24.
 //
 
-
 import UIKit
 import SwiftUI
 
@@ -13,9 +12,15 @@ struct ActivityViewController: UIViewControllerRepresentable {
 
     var activityItems: [Any]
     var applicationActivities: [UIActivity]? = nil
+    var onDismiss: (() -> Void)? = nil
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
         let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
+        
+        controller.completionWithItemsHandler = { _, _, _, _ in
+            onDismiss?()
+        }
+        
         return controller
     }
 

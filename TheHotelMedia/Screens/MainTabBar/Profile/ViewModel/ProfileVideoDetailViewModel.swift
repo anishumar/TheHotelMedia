@@ -20,6 +20,7 @@ final class ProfileVideoDetailViewModel: ObservableObject {
     @Published var commentSectionPostID: String = ""
     @Published var isSharePresented: Bool = false
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
+    @Published var sharePostData: PostData? = nil
     
     let profileData: ProfileData?
     let userProfileID: String
@@ -161,6 +162,7 @@ final class ProfileVideoDetailViewModel: ObservableObject {
     }
     
     func showShareView(postID: String) {
+        sharePostData = videoPosts.first(where: { $0.id == postID })
         let baseURLString = "https://thehotelmedia.com/share/posts"
         
         if !postID.isEmpty && !ownUserID.isEmpty {

@@ -398,18 +398,18 @@ extension SignInViewModel {
             do {
                 // Wait for FCM token before making API call
                 let notificationToken = await waitForFCMToken()
-                
-                var parameters: [String: Any] = [
-                    "socialType": "google",
-                    "token": id,
-                    "deviceID": deviceIDManager.getDeviceID(),
-                    "devicePlatform": "ios",
+        
+        var parameters: [String: Any] = [
+            "socialType": "google",
+            "token": id,
+            "deviceID": deviceIDManager.getDeviceID(),
+            "devicePlatform": "ios",
                     "notificationToken": notificationToken,
-                    "lat": latitude,
-                    "lng": longitude,
-                    "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-                ]
-                
+            "lat": latitude,
+            "lng": longitude,
+            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+        ]
+        
                 let result = try await dataManager.socialLogin(parameters: parameters)
                 
                 await MainActor.run {
@@ -455,18 +455,18 @@ extension SignInViewModel {
             do {
                 // Wait for FCM token before making API call
                 let notificationToken = await waitForFCMToken()
-                
-                let parameters: [String: Any] = [
-                    "socialType": "facebook",
-                    "token": id,
-                    "deviceID": deviceIDManager.getDeviceID(),
-                    "devicePlatform": "ios",
+        
+        let parameters: [String: Any] = [
+            "socialType": "facebook",
+            "token": id,
+            "deviceID": deviceIDManager.getDeviceID(),
+            "devicePlatform": "ios",
                     "notificationToken": notificationToken,
-                    "lat": latitude,
-                    "lng": longitude,
-                    "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-                ]
-                
+            "lat": latitude,
+            "lng": longitude,
+            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+        ]
+        
                 let result = try await dataManager.socialLogin(parameters: parameters)
                 
                 await MainActor.run {
@@ -502,26 +502,26 @@ extension SignInViewModel {
             do {
                 // Wait for FCM token before making API call
                 let notificationToken = await waitForFCMToken()
-                
-                var parameters: [String: Any] = [
-                    "socialType": "apple",
-                    "token": idToken,
-                    "deviceID": deviceIDManager.getDeviceID(),
-                    "devicePlatform": "ios",
+        
+        var parameters: [String: Any] = [
+            "socialType": "apple",
+            "token": idToken,
+            "deviceID": deviceIDManager.getDeviceID(),
+            "devicePlatform": "ios",
                     "notificationToken": notificationToken,
-                    "lat": latitude,
-                    "lng": longitude,
-                    "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-                ]
-                
-                if let name, !name.isEmpty {
-                    parameters.updateValue(name, forKey: "name")
-                }
-                
-                if let email, !email.isEmpty {
-                    parameters.updateValue(email, forKey: "email")
-                }
-                
+            "lat": latitude,
+            "lng": longitude,
+            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+        ]
+        
+        if let name, !name.isEmpty {
+            parameters.updateValue(name, forKey: "name")
+        }
+        
+        if let email, !email.isEmpty {
+            parameters.updateValue(email, forKey: "email")
+        }
+        
                 let result = try await dataManager.socialLogin(parameters: parameters)
                 
                 await MainActor.run {

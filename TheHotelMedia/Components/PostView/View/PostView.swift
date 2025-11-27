@@ -72,7 +72,7 @@ struct PostView: View {
                                     viewModel.showSheet = true
                                     
                                 }, onPressedShare: { id in
-                                    viewModel.showShareView(id: id)
+                                    viewModel.showShareView(id: id, postData: posts[index])
                                     
                                 }, onPressedProfile: { id in
                                     onPressedProfile?(id)
@@ -134,7 +134,7 @@ struct PostView: View {
                             } else if posts[index].postType == "event"{
                                 
                                 EventPostCard(isPaused: $viewModel.isPausedArray[index], postData: $posts[index], viewModel: EventCardViewModel(data: posts[index]), onPressedShare: { id in
-                                    viewModel.showShareView(id: id, isEventPost: true)
+                                    viewModel.showShareView(id: id, isEventPost: true, postData: posts[index])
                                 }, onPressedBookmark: {
                                     viewModel.saveAPost(id: posts[index].id ?? "")
                                     onPressedBookmark?(posts[index].id ?? "")
@@ -209,7 +209,7 @@ struct PostView: View {
                                     
                                 } onPressedShare: { (id, name) in// share button pressed
                                     onSharePressed?(index)
-                                    viewModel.showShareView(id: id)
+                                    viewModel.showShareView(id: id, postData: posts[index])
                                     
                                 } onPressedEllpsis: { id in
                                     viewModel.visibleOptionPostIndex = index
@@ -631,11 +631,25 @@ struct PostView: View {
                 .transaction { transaction in
                     transaction.disablesAnimations = true
                 }
-                .sheet(isPresented: $viewModel.isSharePresented, content: {
-                    ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                        .id(viewModel.shareURL)
+                .sheet(isPresented: $viewModel.isSharePresented) {
+                    if let router = viewModel.router {
+                        UnifiedShareSheet(
+                            shareURL: viewModel.shareURL.absoluteString,
+                            postData: viewModel.sharePostData,
+                            router: router,
+                            onChatSelected: { username, userID, profilePic, name in
+                                viewModel.isSharePresented = false
+                            },
+                            onDismiss: {
+                                viewModel.isSharePresented = false
+                                viewModel.sharePostData = nil
+                            }
+                        )
+                        .environmentObject(ThemeManager.shared)
+                        .environmentObject(LocalizationManager.shared)
                         .presentationDetents([.medium, .large])
-                })
+                    }
+                }
             
             Rectangle()
                 .fill(themeManager.currentTheme.backgroundColor)

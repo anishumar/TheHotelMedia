@@ -292,6 +292,7 @@
 		04AD2C662CAFFB3600276F2B /* ReviewResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AD2C652CAFFB3600276F2B /* ReviewResponse.swift */; };
 		04ADA8562CD0B20E0080C996 /* EncryptionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADA8552CD0B20E0080C996 /* EncryptionHelper.swift */; };
 		04ADA85C2CD0B9570080C996 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADA85B2CD0B9570080C996 /* ActivityViewController.swift */; };
+		04ADA85E2CD0B9580080C997 /* ShareToChatActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04ADA85D2CD0B9580080C997 /* ShareToChatActivity.swift */; };
 		04AE84B02D11958B001F784C /* BackgroundImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AE84AF2D11958B001F784C /* BackgroundImageView.swift */; };
 		04AECC342C5B61A800B46D20 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AECC332C5B61A800B46D20 /* HeaderView.swift */; };
 		04AECC362C5B6A8300B46D20 /* CapsuleBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AECC352C5B6A8300B46D20 /* CapsuleBackground.swift */; };
@@ -621,6 +622,7 @@
 		04A1B2C32DC9CEF000EB654C /* ShareToChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */; };
 		04A1B2C52DC9CEF100EB654C /* ShareToChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */; };
 		04A1B2C72DC9CEF200EB654C /* ShareOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */; };
+		04A1B2CA2DC9CEF500EB654C /* UnifiedShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -822,6 +824,7 @@
 		04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatViewModel.swift; sourceTree = "<group>"; };
 		04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatView.swift; sourceTree = "<group>"; };
 		04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareOptionsView.swift; sourceTree = "<group>"; };
+		04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedShareView.swift; sourceTree = "<group>"; };
 		04A453952CE45A8900BF55B0 /* BottomCustomModalView4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomCustomModalView4.swift; sourceTree = "<group>"; };
 		04A464D12C900B4C00CE839A /* TextBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextBox.swift; sourceTree = "<group>"; };
 		04A464D42C90285D00CE839A /* BottomAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomAlert.swift; sourceTree = "<group>"; };
@@ -922,6 +925,7 @@
 		04AD2C652CAFFB3600276F2B /* ReviewResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewResponse.swift; sourceTree = "<group>"; };
 		04ADA8552CD0B20E0080C996 /* EncryptionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionHelper.swift; sourceTree = "<group>"; };
 		04ADA85B2CD0B9570080C996 /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
+		04ADA85D2CD0B9580080C997 /* ShareToChatActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareToChatActivity.swift; sourceTree = "<group>"; };
 		04AE84AF2D11958B001F784C /* BackgroundImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundImageView.swift; sourceTree = "<group>"; };
 		04AECC332C5B61A800B46D20 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		04AECC352C5B6A8300B46D20 /* CapsuleBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleBackground.swift; sourceTree = "<group>"; };
@@ -2392,6 +2396,7 @@
 				04A1B2C22DC9CEF000EB654C /* ShareToChatViewModel.swift */,
 				04A1B2C42DC9CEF100EB654C /* ShareToChatView.swift */,
 				04A1B2C62DC9CEF200EB654C /* ShareOptionsView.swift */,
+				04A1B2CB2DC9CEF600EB654C /* UnifiedShareView.swift */,
 			);
 			path = Share;
 			sourceTree = "<group>";
@@ -2753,6 +2758,7 @@
 			isa = PBXGroup;
 			children = (
 				04ADA85B2CD0B9570080C996 /* ActivityViewController.swift */,
+				04ADA85D2CD0B9580080C997 /* ShareToChatActivity.swift */,
 			);
 			path = ActivityViewController;
 			sourceTree = "<group>";
@@ -5261,6 +5267,7 @@
 				04BAB89C2C9168710077A718 /* EditStoryImageViewModel.swift in Sources */,
 				04ABFE3D2C5A47EA003BB9F8 /* RatingStarView.swift in Sources */,
 				04ADA85C2CD0B9570080C996 /* ActivityViewController.swift in Sources */,
+				04ADA85E2CD0B9580080C997 /* ShareToChatActivity.swift in Sources */,
 				04C36A972CEC443400F0444B /* EditAddressView.swift in Sources */,
 				04A890402CA571E9008DAB26 /* OtpForgotPasswordManager.swift in Sources */,
 				04E8401C2C578AE000EEB995 /* BusinessDetailView.swift in Sources */,
@@ -5498,6 +5505,7 @@
 				04A1B2C32DC9CEF000EB654C /* ShareToChatViewModel.swift in Sources */,
 				04A1B2C52DC9CEF100EB654C /* ShareToChatView.swift in Sources */,
 				04A1B2C72DC9CEF200EB654C /* ShareOptionsView.swift in Sources */,
+				04A1B2CA2DC9CEF500EB654C /* UnifiedShareView.swift in Sources */,
 				04A98F4D2C633BC40059C5FB /* File.swift in Sources */,
 				04DD7FA52C86CAD600C659C1 /* ChartViewModel.swift in Sources */,
 				04DB159A2D9280C1000B4108 /* FacebookLoginViewModel.swift in Sources */,

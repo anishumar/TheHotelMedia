@@ -154,9 +154,21 @@ struct ProfileVideoDetailView: View {
             }
         }
         .sheet(isPresented: $viewModel.isSharePresented) {
-            ActivityViewController(activityItems: [viewModel.shareURL.absoluteString])
-                .id(viewModel.shareURL)
-                .presentationDetents([.medium, .large])
+            UnifiedShareSheet(
+                shareURL: viewModel.shareURL.absoluteString,
+                postData: viewModel.sharePostData,
+                router: router,
+                onChatSelected: { username, userID, profilePic, name in
+                    viewModel.isSharePresented = false
+                },
+                onDismiss: {
+                    viewModel.isSharePresented = false
+                    viewModel.sharePostData = nil
+                }
+            )
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
+            .presentationDetents([.medium, .large])
         }
     }
     

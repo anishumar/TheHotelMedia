@@ -38,6 +38,7 @@ class PostViewModel: ObservableObject {
     @Published var showPostArray: [Bool] = []
     @Published var showPostArrayCount: Int = 0
     @Published var isSharePresented: Bool = false
+    @Published var sharePostData: PostData? = nil
     @Published var showOptionView: Bool = false
     @Published var visibleOptionPostIndex: Int = 0
     @Published var postSizeArray: [CGSize] = []
@@ -327,8 +328,8 @@ class PostViewModel: ObservableObject {
     }
     
     
-    func showShareView(id: String, isEventPost: Bool = false) {
-        
+    func showShareView(id: String, isEventPost: Bool = false, postData: PostData? = nil) {
+        sharePostData = postData ?? postArray.first(where: { $0.id == id })
         var baseURLString = "\(Constants.baseShareUrl)/share/posts"
         
         if isEventPost {
@@ -341,7 +342,7 @@ class PostViewModel: ObservableObject {
                let encryptedUserID = EncryptionHelper.encrypt(ownUserID) {
                 
                 shareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)")!
-                isSharePresented.toggle()
+                isSharePresented = true
             }
         }
     }

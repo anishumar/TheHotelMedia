@@ -14,16 +14,23 @@ class ShareToChatViewModel: ObservableObject {
     var router: AnyRouter
     var cancellables = Set<AnyCancellable>()
     var socketViewModel = SocketIOViewModel.shared
+    var connectionsDataManager = UserConnectionsDataManager()
     
     @Published var searchText: String = ""
     @Published var userList: [ChatUser] = []
     @Published var recentChat: [RecentChat] = []
+    @Published var followersList: [SearchProfileData] = []
+    @Published var followingList: [SearchProfileData] = []
     @Published var filteredOnlineUsers: [ChatUser] = []
     @Published var filteredRecentChats: [RecentChat] = []
+    @Published var filteredFollowersFollowing: [SearchProfileData] = []
     @Published var showLoadingIndicator: Bool = false
     @Published var gotInitialData: Bool = false
     
     var dismissView: (() -> Void)?
+    var sharePostData: PostData? = nil
+    
+    @AppStorage("ownUserID") var ownUserID: String = ""
     
     init(router: AnyRouter) {
         self.router = router
@@ -67,12 +74,67 @@ class ShareToChatViewModel: ObservableObject {
             socketViewModel.usersListEmit()
             socketViewModel.chatScreenEmit(query: "", pageNo: 1)
         }
+        
+        // Load followers and following
+        loadFollowers()
+        loadFollowing()
+    }
+    
+    func loadFollowers() {
+        guard !ownUserID.isEmpty else { return }
+        
+        Task {
+            do {
+                let result = try await connectionsDataManager.getfollowers(id: ownUserID, pageNo: 1)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            followersList = data
+                            DispatchQueue.main.async {
+                                self.filterChats()
+                            }
+                        }
+                    }
+                }
+            } catch {
+                print("Error loading followers: \(error)")
+            }
+        }
+    }
+    
+    func loadFollowing() {
+        guard !ownUserID.isEmpty else { return }
+        
+        Task {
+            do {
+                let result = try await connectionsDataManager.getfollowing(id: ownUserID, pageNo: 1)
+                
+                await MainActor.run {
+                    let range = 200...204
+                    if result.status && range.contains(result.statusCode) {
+                        if let data = result.data {
+                            followingList = data
+                            DispatchQueue.main.async {
+                                self.filterChats()
+                            }
+                        }
+                    }
+                }
+            } catch {
+                print("Error loading following: \(error)")
+            }
+        }
     }
     
     func filterChats() {
         if searchText.isEmpty {
             filteredOnlineUsers = userList
             filteredRecentChats = recentChat
+            // Combine followers and following, removing duplicates
+            let combined = Array(Set(followersList + followingList))
+            filteredFollowersFollowing = combined
         } else {
             let searchLower = searchText.lowercased()
             filteredOnlineUsers = userList.filter { user in
@@ -83,6 +145,14 @@ class ShareToChatViewModel: ObservableObject {
                 (chat.name?.lowercased().contains(searchLower) ?? false) ||
                 (chat.username?.lowercased().contains(searchLower) ?? false)
             }
+            // Filter followers and following by search text
+            let allFollowersFollowing = followersList + followingList
+            filteredFollowersFollowing = allFollowersFollowing.filter { profile in
+                (profile.name?.lowercased().contains(searchLower) ?? false) ||
+                (profile.username?.lowercased().contains(searchLower) ?? false)
+            }
+            // Remove duplicates
+            filteredFollowersFollowing = Array(Set(filteredFollowersFollowing))
         }
     }
     
