@@ -76,7 +76,23 @@ struct ProfilePhotoDetailView: View {
                                             viewModel.bookmarkPost(postID: postID, isSaved: !saved)
                                         }
                                     },
-                                    onPressedProfile: { _ in }
+                                    onPressedProfile: { profileID in
+                                        let targetID = profileID.isEmpty ? (post.postedBy?.id ?? "") : profileID
+                                        guard !targetID.isEmpty else { return }
+                                        guard targetID != viewModel.userProfileID else { return }
+                                        
+                                        dismiss()
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            router.showScreen(.push) { router in
+                                                UserProfileView(
+                                                    createPostOn: .constant(false),
+                                                    viewModel: UserProfileViewModel(router: router, publicProfileID: targetID)
+                                                )
+                                                .environmentObject(ThemeManager.shared)
+                                                .navigationBarBackButtonHidden()
+                                            }
+                                        }
+                                    }
                                 )
                                 .id(postID)
                                 .onAppear {
@@ -176,8 +192,21 @@ struct ProfilePhotoDetailView: View {
                     ),
                     isEmbedded: false,
                     onPressedProfile: { profileID in
+                        guard !profileID.isEmpty else { return }
                         viewModel.showCommentSection = false
-                        // Handle profile navigation if needed
+                        dismiss()
+                        if profileID != viewModel.userProfileID {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                router.showScreen(.push) { router in
+                                    UserProfileView(
+                                        createPostOn: .constant(false),
+                                        viewModel: UserProfileViewModel(router: router, publicProfileID: profileID)
+                                    )
+                                    .environmentObject(ThemeManager.shared)
+                                    .navigationBarBackButtonHidden()
+                                }
+                            }
+                        }
                     },
                     onPressedReply: { _ in },
                     onReportComment: { message in
