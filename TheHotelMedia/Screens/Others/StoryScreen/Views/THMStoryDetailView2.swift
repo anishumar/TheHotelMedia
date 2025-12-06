@@ -60,6 +60,14 @@ struct THMStoryDetailView2: View {
     private var messageViewPosition: CGFloat {
         return -keyboardManager.currentHeight
     }
+
+    private var trimmedMessageText: String {
+        messageFieldText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSendMessage: Bool {
+        !trimmedMessageText.isEmpty
+    }
     
     var body: some View {
         GeometryReader { proxy in
@@ -562,8 +570,7 @@ extension THMStoryDetailView2 {
                         )
                         .submitLabel(.send)
                         .onSubmit {
-                            detailViewModel.sendMessage(message: messageFieldText, mediaUrl: model.stories[currentStoryIndex].mediaURL, storyID: model.stories[currentStoryIndex].id, mediaID: model.stories[currentStoryIndex].mediaID, username: model.user.username ?? "")
-                            messageFieldText = ""
+                            sendStoryReply(for: currentStoryIndex)
                         }
                         .frame(height: 44)
                         .frame(maxWidth: .infinity)
@@ -577,6 +584,27 @@ extension THMStoryDetailView2 {
                                     .fill(.hmIndigo.opacity(0.7))
                             }
                         )
+
+                        Button {
+                            sendStoryReply(for: currentStoryIndex)
+                        } label: {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 20, height: 20)
+                                .frame(width: 40, height: 40)
+                                .background(
+                                    ZStack {
+                                        Circle()
+                                            .fill(.hmIndigo.opacity(0.5))
+                                        Circle()
+                                            .stroke(lineWidth: 1)
+                                            .fill(.hmIndigo.opacity(0.7))
+                                    }
+                                )
+                        }
+                        .disabled(!canSendMessage)
+                        .opacity(canSendMessage ? 1 : 0.5)
                         
                         Image(model.stories[currentStoryIndex].isLiked ? "heartfill" : "heart")
                             .resizable()
@@ -612,5 +640,21 @@ extension THMStoryDetailView2 {
         .animation(messageViewPosition == 0 ? .none : .easeOut)
         .offset(y: messageViewPosition)
     }
-    
+
+    private func sendStoryReply(for index: Int) {
+        let trimmedText = trimmedMessageText
+        guard !trimmedText.isEmpty else { return }
+        guard model.stories.indices.contains(index) else { return }
+
+        let story = model.stories[index]
+        detailViewModel.sendMessage(
+            message: trimmedText,
+            mediaUrl: story.mediaURL,
+            storyID: story.id,
+            mediaID: story.mediaID,
+            username: model.user.username ?? ""
+        )
+        messageFieldText = ""
+        endEditing()
+    }
 }

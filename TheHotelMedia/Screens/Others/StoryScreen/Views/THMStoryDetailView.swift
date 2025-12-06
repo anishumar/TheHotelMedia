@@ -54,6 +54,14 @@ struct THMStoryDetailView: View {
     private var emojiViewPosition: CGFloat {
         return (messageViewPosition * 1.5)
     }
+
+    private var trimmedMessageText: String {
+        messageFieldText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canSendMessage: Bool {
+        !trimmedMessageText.isEmpty
+    }
     
     var body: some View {
         
@@ -159,9 +167,7 @@ struct THMStoryDetailView: View {
                                                 )
                                                 .submitLabel(.send)
                                                 .onSubmit {
-                                                    let index = getCurrentIndex()
-                                                    detailViewModel.sendMessage(message: messageFieldText, mediaUrl: model.stories[index].mediaURL, storyID: model.stories[index].id, mediaID: model.stories[index].mediaID, username: model.user.username ?? "")
-                                                    messageFieldText = ""
+                                                    sendStoryReply(for: getCurrentIndex())
                                                 }
                                                 .frame(height: 44)
                                                 .frame(maxWidth: .infinity)
@@ -175,6 +181,27 @@ struct THMStoryDetailView: View {
                                                             .fill(.hmIndigo.opacity(0.7))
                                                     }
                                                 )
+
+                                                Button {
+                                                    sendStoryReply(for: getCurrentIndex())
+                                                } label: {
+                                                    Image(systemName: "paperplane.fill")
+                                                        .font(.system(size: 16, weight: .semibold))
+                                                        .foregroundColor(.white)
+                                                        .frame(width: 20, height: 20)
+                                                        .frame(width: 40, height: 40)
+                                                        .background(
+                                                            ZStack {
+                                                                Circle()
+                                                                    .fill(.hmIndigo.opacity(0.5))
+                                                                Circle()
+                                                                    .stroke(lineWidth: 1)
+                                                                    .fill(.hmIndigo.opacity(0.7))
+                                                            }
+                                                        )
+                                                }
+                                                .disabled(!canSendMessage)
+                                                .opacity(canSendMessage ? 1 : 0.5)
                                                 
                                                 Image(model.stories[index].isLiked ? "heartfill" : "heart")
                                                     .resizable()
@@ -767,6 +794,23 @@ private extension THMStoryDetailView {
     func bottomModalDismissed() {
         videoPaused = false
         playVideo()
+    }
+
+    private func sendStoryReply(for index: Int) {
+        let trimmedText = trimmedMessageText
+        guard !trimmedText.isEmpty else { return }
+        guard model.stories.indices.contains(index) else { return }
+
+        let story = model.stories[index]
+        detailViewModel.sendMessage(
+            message: trimmedText,
+            mediaUrl: story.mediaURL,
+            storyID: story.id,
+            mediaID: story.mediaID,
+            username: model.user.username ?? ""
+        )
+        messageFieldText = ""
+        endEditing()
     }
 }
 
