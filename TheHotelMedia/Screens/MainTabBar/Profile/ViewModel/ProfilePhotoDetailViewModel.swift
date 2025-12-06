@@ -21,6 +21,10 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     @Published var isSharePresented: Bool = false
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
     @Published var sharePostData: PostData? = nil
+    @Published var showPostOptionView: Bool = false
+    @Published var showReportScreen: Bool = false
+    @Published var reportID: String = ""
+    @Published var reportType: String = "post"
     
     let profileData: ProfileData?
     let userProfileID: String
@@ -144,6 +148,14 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     func showCommentSection(postID: String) {
         commentSectionPostID = postID
         showCommentSection = true
+    }
+    
+    @MainActor
+    func handleEllipsis(postID: String) {
+        guard userProfileID != ownUserID else { return }
+        reportID = postID
+        reportType = "post"
+        showPostOptionView = true
     }
     
     @MainActor

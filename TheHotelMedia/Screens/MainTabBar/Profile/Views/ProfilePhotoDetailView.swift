@@ -63,7 +63,9 @@ struct ProfilePhotoDetailView: View {
                                     onPressedShare: { postID, _ in
                                         viewModel.showShareView(postID: postID)
                                     },
-                                    onPressedEllpsis: { _ in },
+                onPressedEllpsis: { postID in
+                    viewModel.handleEllipsis(postID: postID)
+                },
                                     onPressedLike: { liked, count in
                                         if let postID = post.id {
                                             viewModel.likePost(postID: postID, isLiked: !liked)
@@ -127,17 +129,15 @@ struct ProfilePhotoDetailView: View {
                                     name: name,
                                     lastScreen: "share"
                                 )
-                                chatViewModel.pendingPostToShare = postData
-                                return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
                                     SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
                                 })
                                 .environmentObject(ThemeManager.shared)
                                 .navigationBarBackButtonHidden()
                                 .onAppear {
-                                    if let postToShare = chatViewModel.pendingPostToShare {
-                                        chatViewModel.sharePostViaDM(postData: postToShare)
-                                        chatViewModel.pendingPostToShare = nil
-                                    }
+                                    chatViewModel.pendingPostToShare = postData
+                                    chatViewModel.sharePostViaDM(postData: postData)
+                                    chatViewModel.pendingPostToShare = nil
                                 }
                             }
                         }
@@ -232,6 +232,42 @@ struct ProfilePhotoDetailView: View {
                 viewModel.loadPosts()
             }
         }
+        .overlay {
+            ZStack(alignment: .topTrailing) {
+                if viewModel.showPostOptionView {
+                    themeManager.currentTheme.black05_white05
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.showPostOptionView = false
+                        }
+                    
+                    VStack(spacing: 6) {
+                        capsuleButtonView(title: "report".localized(localizationManager.language))
+                            .onTapGesture {
+                                viewModel.showPostOptionView = false
+                                viewModel.showReportScreen = true
+                            }
+                    }
+                    .padding(6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(themeManager.currentTheme.darkGray08_hmIndigo08)
+                    )
+                    .padding(.top, 24)
+                    .padding(.trailing, 16)
+                }
+            }
+        }
+        .sheet(isPresented: $viewModel.showReportScreen, content: {
+            ReportView(viewModel: ReportViewModel(reportID: viewModel.reportID, reportType: viewModel.reportType, onReport: { message in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 ) {
+                    ErrorModalManager.showErrorModal(router: router, errorText: message)
+                }
+            }))
+            .environmentObject(themeManager)
+            .presentationDragIndicator(.hidden)
+            .presentationDetents([.fraction(Constants.getReportSheetHeight())])
+        })
     }
     
     private var header: some View {
@@ -266,6 +302,22 @@ struct ProfilePhotoDetailView: View {
             return mediaID
         }
         return "post-\(index)"
+    }
+    
+    private func capsuleButtonView(title: String) -> some View {
+        Text(title)
+            .font(.custom(Constants.comicFont, size: 11))
+            .foregroundColor(themeManager.currentTheme.label)
+            .frame(width: 74, height: 26, alignment: .center)
+            .background(
+                ZStack {
+                    Capsule()
+                        .fill(themeManager.currentTheme.darkGray05_white)
+                    Capsule()
+                        .stroke(lineWidth: 1)
+                        .fill(.hmDarkerGray)
+                }
+            )
     }
     
     private func scrollToInitialPost(proxy: ScrollViewProxy, targetID: String) {
