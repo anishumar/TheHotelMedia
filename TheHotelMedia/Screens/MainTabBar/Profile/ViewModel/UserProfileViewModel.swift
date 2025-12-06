@@ -20,6 +20,7 @@ class UserProfileViewModel: ObservableObject {
     
     var router: AnyRouter
     let dataManager = ProfileDataManager()
+    let storyDataManager = StoryDataManager()
     let connectionDataManager = UserConnectionsDataManager()
     let checkInDataManager = PlacesDataManager()
     let postDataManager = PostDataManager()
@@ -61,6 +62,10 @@ class UserProfileViewModel: ObservableObject {
     var loadVideoData: Bool = true
     @Published var loadingVideoData: Bool = false
     @Published var savedByMe: Bool = false
+    
+    // Story
+    @Published var loadingProfileStory: Bool = false
+    @Published var profileStories: [THMStoryUIModel] = []
     
     
     @Published var totalReviewData: [PostData] = []
@@ -503,6 +508,115 @@ class UserProfileViewModel: ObservableObject {
             UserProfileView(createPostOn:  .constant(false), viewModel: UserProfileViewModel(router: router, publicProfileID: id))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
+    func showProfileStoryOrFallback(_ fallback: @escaping () -> Void) {
+        guard !userProfileID.isEmpty else {
+            fallback()
+            return
+        }
+        
+        Task { [weak self] in
+            guard let self else { return }
+            await MainActor.run {
+                loadingProfileStory = true
+            }
+            
+            do {
+                let response = try await storyDataManager.getStories(pageNo: 1)
+                let range = 200...204
+                var foundStories: [THMStoryUIModel] = []
+                
+                if response.status,
+                   let statusCode = response.statusCode as Int?,
+                   range.contains(statusCode),
+                   let storyUsers = response.data?.stories,
+                   let userStories = storyUsers.first(where: { $0.id == userProfileID }) {
+                    
+                    if let mapped = mapStoryUserToTHMModel(userStories) {
+                        foundStories = [mapped]
+                    }
+                }
+                
+                await MainActor.run { [weak self] in
+                    guard let self else { return }
+                    loadingProfileStory = false
+                    profileStories = foundStories
+                    
+                    if !foundStories.isEmpty {
+                        UserDefaultsManager.shared.setMuteStatus(true)
+                        router.showScreen(.fullScreenCover) { router in
+                            THMStoryView(
+                                stories: foundStories,
+                                selectedIndex: 0,
+                                router: router,
+                                onDismiss: {
+                                    UserDefaultsManager.shared.setMuteStatus(false)
+                                }
+                            )
+                            .environmentObject(ThemeManager.shared)
+                            .navigationBarBackButtonHidden()
+                        }
+                    } else {
+                        fallback()
+                    }
+                }
+                
+            } catch {
+                await MainActor.run { [weak self] in
+                    self?.loadingProfileStory = false
+                    fallback()
+                }
+            }
+        }
+    }
+    
+    
+    private func mapStoryUserToTHMModel(_ user: StoryUser) -> THMStoryUIModel? {
+        guard let storiesRef = user.storiesRef, !storiesRef.isEmpty else { return nil }
+        
+        var thmStories: [THMStory] = []
+        
+        for story in storiesRef {
+            if let createdAt = story.createdAt,
+               let sourceURL = story.sourceURL,
+               let likedByMe = story.likedByMe,
+               let mimeType = story.mimeType,
+               let duration = story.duration,
+               let id = story.id,
+               let mediaID = story.mediaID {
+                if mimeType == "video/mp4" {
+                    // Ensure minimum 15 seconds for videos
+                    let videoDuration = max(duration, 15.0)
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                } else {
+                    // Ensure minimum 15 seconds for images
+                    let imageDuration = max(duration + 10.0, 15.0)
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                }
+            }
+        }
+        
+        // Sort stories by createdAt date (oldest first, like Instagram)
+        thmStories.sort { story1, story2 in
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            
+            guard let date1 = formatter.date(from: story1.date) ?? ISO8601DateFormatter().date(from: story1.date),
+                  let date2 = formatter.date(from: story2.date) ?? ISO8601DateFormatter().date(from: story2.date) else {
+                return false
+            }
+            return date1 < date2
+        }
+        
+        guard !thmStories.isEmpty else { return nil }
+        
+        if user.accountType == "individual" {
+            return THMStoryUIModel(user: THMStoryUIUser(id: user.id ?? "", name: user.name ?? "", image: user.profilePic?.small ?? "", username: user.username ?? ""),isSeen: user.seenByMe ?? false, stories: thmStories)
+        } else {
+            return THMStoryUIModel(user: THMStoryUIUser(id: user.id ?? "", name: user.businessProfileRef?.name ?? "", image: user.businessProfileRef?.profilePic?.small ?? "", username: user.businessProfileRef?.username ?? ""),isSeen: user.seenByMe ?? false, stories: thmStories)
         }
     }
     

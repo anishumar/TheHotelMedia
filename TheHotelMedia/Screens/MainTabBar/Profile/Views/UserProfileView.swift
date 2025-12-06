@@ -799,8 +799,17 @@ extension UserProfileView {
             .matchedGeometryEffect(id: "profilePic", in: profilePicNamespace)
             .opacity(viewModel.showBigProfilePic ? 0.0 : 1.0)
             .onTapGesture {
+                viewModel.showProfileStoryOrFallback {
+                    withAnimation(.bouncy(duration: 0.3)) {
+                        viewModel.showBigProfilePic = true
+                        scale = 1
+                    }
+                }
+            }
+            .onLongPressGesture {
                 withAnimation(.bouncy(duration: 0.3)) {
-                    viewModel.showBigProfilePic.toggle()
+                    viewModel.showBigProfilePic = true
+                    scale = 1
                 }
             }
             
