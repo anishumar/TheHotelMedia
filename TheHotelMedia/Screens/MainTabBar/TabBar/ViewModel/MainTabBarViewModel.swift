@@ -197,6 +197,12 @@ final class MainTabBarViewModel: ObservableObject {
                 postStory(videoURL: videoURL)
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .storyUploadedFromShare)
+            .sink { [weak self] _ in
+                self?.uploadedStory = true
+            }
+            .store(in: &cancellables)
     }
     
     

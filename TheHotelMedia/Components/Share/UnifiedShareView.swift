@@ -476,6 +476,7 @@ struct UnifiedShareSheet: View {
                         if result.status && range.contains(result.statusCode) {
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
                             onStoryShared?()
+                            showStoryUploadedToast()
                         } else {
                             UINotificationFeedbackGenerator().notificationOccurred(.error)
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
@@ -502,6 +503,7 @@ struct UnifiedShareSheet: View {
                         if result.status && range.contains(result.statusCode) {
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
                             onStoryShared?()
+                            showStoryUploadedToast()
                         } else {
                             UINotificationFeedbackGenerator().notificationOccurred(.error)
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
@@ -516,5 +518,14 @@ struct UnifiedShareSheet: View {
             }
         }
     }
+    
+    @MainActor
+    private func showStoryUploadedToast() {
+        NotificationCenter.default.post(name: .storyUploadedFromShare, object: nil)
+    }
+}
+
+extension Notification.Name {
+    static let storyUploadedFromShare = Notification.Name("storyUploadedFromShare")
 }
 
