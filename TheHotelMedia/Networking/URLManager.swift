@@ -12,8 +12,8 @@ extension URL {
     
     static var baseURL: URL {
 #if DEBUG
-        URL(string: "https://staging.thehotelmedia.com")!
-//        URL(string: "https://api.thehotelmedia.com")!
+//        URL(string: "https://staging.thehotelmedia.com")!
+        URL(string: "https://api.thehotelmedia.com")!
 
 #else
         URL(string: "https://api.thehotelmedia.com")!
@@ -24,8 +24,8 @@ extension URL {
     
     
     static var development: String {
-        "https://staging.thehotelmedia.com/api/v1"
-//        "https://api.thehotelmedia.com/api/v1"
+//        "https://staging.thehotelmedia.com/api/v1"
+        "https://api.thehotelmedia.com/api/v1"
     }
     
     
