@@ -25,6 +25,8 @@ struct UnifiedShareSheet: View {
     
     @State private var searchText = ""
     @State private var isSharingAsStory = false
+    @State private var showNativeShareSheet = false
+    @State private var shareImage: UIImage? = nil
     
     init(shareURL: String, postData: PostData?, router: AnyRouter?, onChatSelected: ((String, String, String, String) -> Void)?, onDismiss: (() -> Void)?, onStoryShared: (() -> Void)? = nil) {
         self.shareURL = shareURL
@@ -63,9 +65,24 @@ struct UnifiedShareSheet: View {
             }
         }
         .background(themeManager.currentTheme.backgroundColor)
+        .sheet(isPresented: $showNativeShareSheet) {
+            ActivityViewController(
+                activityItems: prepareActivityItems(),
+                applicationActivities: nil,
+                onDismiss: {
+                    showNativeShareSheet = false
+                    shareImage = nil
+                }
+            )
+            .presentationDetents([.medium, .large])
+        }
         .onAppear {
             shareViewModel.sharePostData = postData
             shareViewModel.loadChats()
+            // Preload image for sharing if postData exists
+            if postData != nil {
+                loadShareImage()
+            }
         }
     }
     
@@ -137,6 +154,15 @@ struct UnifiedShareSheet: View {
     private var shareOptionsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 25) {
+                shareOptionButton(
+                    icon: "square.and.arrow.up",
+                    label: "Share",
+                    color: .blue
+                ) {
+                    showNativeShareSheet = true
+                    haptics(.light)
+                }
+                
                 shareOptionButton(
                     icon: "doc.on.doc",
                     label: "Copy",
@@ -522,6 +548,63 @@ struct UnifiedShareSheet: View {
     @MainActor
     private func showStoryUploadedToast() {
         NotificationCenter.default.post(name: .storyUploadedFromShare, object: nil)
+    }
+    
+    // MARK: - Native Share Sheet Support
+    
+    private func prepareActivityItems() -> [Any] {
+        var items: [Any] = []
+        
+        // Add image if available (this will be used for rich previews in apps like Instagram, WhatsApp)
+        if let image = shareImage {
+            items.append(image)
+        }
+        
+        // Add text description with URL if postData exists
+        if let postData = postData, let content = postData.content, !content.isEmpty {
+            let shareText = "\(content)\n\n\(shareURL)"
+            items.append(shareText)
+        } else {
+            // Just add the URL if no content
+            if let url = URL(string: shareURL) {
+                items.append(url)
+            } else {
+                items.append(shareURL)
+            }
+        }
+        
+        return items
+    }
+    
+    private func loadShareImage() {
+        guard let postData = postData,
+              let firstMedia = postData.mediaRef?.first,
+              let mediaUrlString = firstMedia.sourceURL,
+              let mediaURL = URL(string: mediaUrlString) else {
+            return
+        }
+        
+        // Only load if it's an image (not video)
+        let isVideo = firstMedia.mimeType?.contains("video") ?? false
+        if isVideo {
+            return
+        }
+        
+        // Load image asynchronously
+        Task {
+            await withCheckedContinuation { continuation in
+                SDWebImageManager.shared.loadImage(
+                    with: mediaURL,
+                    options: [.highPriority],
+                    progress: nil
+                ) { image, _, _, _, _, _ in
+                    Task { @MainActor in
+                        self.shareImage = image
+                        continuation.resume()
+                    }
+                }
+            }
+        }
     }
 }
 
