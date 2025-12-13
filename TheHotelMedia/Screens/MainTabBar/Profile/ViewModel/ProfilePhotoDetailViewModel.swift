@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftfulRouting
 
 final class ProfilePhotoDetailViewModel: ObservableObject {
     
@@ -27,6 +28,10 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     @Published var reportType: String = "post"
     
     let profileData: ProfileData?
+    @Published var selectedPostID: String = ""
+    @Published var currentTab: ProfileTab = .photos // For compatibility with EditPostViewModel
+    
+
     let userProfileID: String
     let initialMediaID: String?
     
@@ -35,58 +40,60 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     private let singlePostDataManager = SinglePostDataManager()
     
     @AppStorage("ownUserID") var ownUserID: String = ""
+    var router: AnyRouter?
     
-    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil) {
+    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, onPostDeleted: ((String) -> Void)? = nil) {
         self.userProfileID = userProfileID
         self.initialMediaID = initialMediaID
         self.profileData = profileData
+        self.onPostDeleted = onPostDeleted
         
         print("📸 [PhotoDetail] Initialized for user: \(userProfileID), starting media: \(initialMediaID ?? "nil")")
     }
     
+    var onPostDeleted: ((String) -> Void)?
+    
     func loadPosts() {
-        guard !isLoading else { return }
-        guard hasMorePages else { return }
-        guard !userProfileID.isEmpty else { return }
-        
-        isLoading = true
-        
-        Task {
+        Task { @MainActor in
+            guard !isLoading else { return }
+            guard hasMorePages else { return }
+            guard !userProfileID.isEmpty else { return }
+            
+            isLoading = true
+            
             do {
                 let result = try await dataManager.getProfilePosts(id: userProfileID, pageNo: currentPage)
                 
                 var shouldFetchNextPage = false
                 
-                await MainActor.run {
-                    isLoading = false
-                    
-                    if result.status && (200...204).contains(result.statusCode) {
-                        if let newPosts = result.data {
-                            // Filter posts that have images
-                            let postsWithImages = newPosts.filter { post in
-                                post.mediaRef?.contains(where: { $0.mediaType == "image" }) ?? false
-                            }
-                            
-                            print("📸 [PhotoDetail] Loaded page \(currentPage): \(newPosts.count) posts, \(postsWithImages.count) with images")
-                            
-                            posts += postsWithImages
-                            currentPage = (result.pageNo ?? currentPage) + 1
-                            hasMorePages = currentPage <= (result.totalPages ?? 1)
-                            
-                            if let initialMediaID, targetPostID == nil {
-                                if let targetPost = posts.first(where: { post in
-                                    post.mediaRef?.contains(where: { $0.id == initialMediaID }) ?? false
-                                }) {
-                                    targetPostID = targetPost.id ?? targetPost.mediaRef?.first?.id
-                                    shouldAutoScroll = targetPostID != nil
-                                } else if hasMorePages {
-                                    shouldFetchNextPage = true
-                                }
+                isLoading = false
+                
+                if result.status && (200...204).contains(result.statusCode) {
+                    if let newPosts = result.data {
+                        // Filter posts that have images
+                        let postsWithImages = newPosts.filter { post in
+                            post.mediaRef?.contains(where: { $0.mediaType == "image" }) ?? false
+                        }
+                        
+                        print("📸 [PhotoDetail] Loaded page \(currentPage): \(newPosts.count) posts, \(postsWithImages.count) with images")
+                        
+                        posts += postsWithImages
+                        currentPage = (result.pageNo ?? currentPage) + 1
+                        hasMorePages = currentPage <= (result.totalPages ?? 1)
+                        
+                        if let initialMediaID, targetPostID == nil {
+                            if let targetPost = posts.first(where: { post in
+                                post.mediaRef?.contains(where: { $0.id == initialMediaID }) ?? false
+                            }) {
+                                targetPostID = targetPost.id ?? targetPost.mediaRef?.first?.id
+                                shouldAutoScroll = targetPostID != nil
+                            } else if hasMorePages {
+                                shouldFetchNextPage = true
                             }
                         }
-                    } else {
-                        print("❌ [PhotoDetail] Failed to load posts: \(result.message)")
                     }
+                } else {
+                    print("❌ [PhotoDetail] Failed to load posts: \(result.message)")
                 }
                 
                 if shouldFetchNextPage {
@@ -94,10 +101,8 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                 }
                 
             } catch {
-                await MainActor.run {
-                    isLoading = false
-                    print("❌ [PhotoDetail] Error loading posts: \(error)")
-                }
+                isLoading = false
+                print("❌ [PhotoDetail] Error loading posts: \(error)")
             }
         }
     }
@@ -152,8 +157,8 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     
     @MainActor
     func handleEllipsis(postID: String) {
-        guard userProfileID != ownUserID else { return }
         reportID = postID
+        selectedPostID = postID
         reportType = "post"
         showPostOptionView = true
     }
@@ -171,6 +176,79 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
             }
         }
     }
+
+    func showEditPostScreen() {
+        guard let postData = posts.first(where: { $0.id == selectedPostID }) else {
+            return
+        }
+        
+        // Check if I am the owner of the post
+        if let authorID = postData.postedBy?.id, authorID != ownUserID, let router {
+             ErrorModalManager.showErrorModal(router: router, errorText: "Cant update post as it is a collaborative project and you are not the owner")
+             return
+        }
+        
+        router?.showScreen(.push) { router in
+            EditPostScreen(viewModel: EditPostViewModel(router: router, postData: postData, onPostUpdated: { [weak self] in
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    // Reload posts to reflect changes
+                    self.posts = []
+                    self.currentPage = 1
+                    self.hasMorePages = true
+                    self.loadPosts()
+                }
+            }))
+            .environmentObject(ThemeManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
     
+    func showDeletePostModal() {
+        guard let router else { return }
+        BottomModalManager.horizontalStyleModal(
+            router: router,
+            title: "do_you_really_want_to_delete_this_post".localized(LocalizationManager.shared.language),
+            rightButtonTitle: "no".localized(LocalizationManager.shared.language),
+            leftButtonTitle: "yes".localized(LocalizationManager.shared.language)) {
+                self.deletePost(id: self.selectedPostID) {
+                    if let index = self.posts.firstIndex(where: {$0.id == self.selectedPostID}) {
+                        self.posts.remove(at: index)
+                        self.onPostDeleted?(self.selectedPostID)
+                    }
+                }
+                
+            } onRightButtonPressed: {
+                
+            } onDismiss: {
+                
+            }
+    }
+    
+    func deletePost(id: String, completionHandler: (() -> Void)?) {
+        guard let router else { return }
+        isLoading = true
+        Task {
+            do {
+                let result = try await postDataManager.deletePost(postID: id)
+                
+                await MainActor.run {
+                    isLoading = false
+                    
+                    if result.status && (200...204).contains(result.statusCode) {
+                        completionHandler?()
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
+                    }
+                }
+                
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    print(error)
+                }
+            }
+        }
+    }
 }
 

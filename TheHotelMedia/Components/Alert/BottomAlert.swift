@@ -30,7 +30,7 @@ struct BottomAlert: View {
         
         .frame(maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom)
-        .padding(.bottom)
+        .padding(.bottom, 60)
     }
 }
 

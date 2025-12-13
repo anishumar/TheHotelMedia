@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SDWebImageSwiftUI
+import SwiftfulRouting
 
 enum ProfileTab: String {
     case posts
@@ -93,10 +94,15 @@ struct UserProfileView: View {
                         if viewModel.currentTab == .photos {
                             photosTab
                                 .fullScreenCover(isPresented: $viewModel.showPhotoDetailScreen, content: {
-                                    ProfilePhotoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedPhotoMediaID, profileData: viewModel.profileData)
-                                        .environmentObject(themeManager)
-                                        .environmentObject(localizationManager)
-                                        .background(BackgroundClearView())
+                                    RouterView { _ in
+                                        ProfilePhotoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedPhotoMediaID, profileData: viewModel.profileData, onPostDeleted: {
+                                            postID in
+                                            viewModel.removePost(id: postID)
+                                        })
+                                            .environmentObject(themeManager)
+                                            .environmentObject(localizationManager)
+                                            .background(BackgroundClearView())
+                                    }
                                 })
                                 .transaction { transaction in
                                     transaction.disablesAnimations = true

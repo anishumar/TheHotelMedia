@@ -1391,4 +1391,24 @@ extension UserProfileViewModel {
             }
         }
     }
+    
+    func removePost(id: String) {
+        // Remove from posts
+        if let index = totalPostData.firstIndex(where: { $0.id == id }) {
+            totalPostData.remove(at: index)
+        }
+        
+        // Remove from photos
+        // Note: photosArray are MediaRef, and we enriched them with postID in getImages()
+        // We filter out any media that belongs to the deleted postID
+        photosArray.removeAll(where: { $0.postID == id })
+        
+        // Remove from videos
+        videosArray.removeAll(where: { $0.postID == id })
+        
+        // Remove from reviews if applicable
+        if let index = totalReviewData.firstIndex(where: { $0.id == id }) {
+            totalReviewData.remove(at: index)
+        }
+    }
 }

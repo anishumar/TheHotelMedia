@@ -19,8 +19,8 @@ struct ProfilePhotoDetailView: View {
     @State private var hasScrolledToInitial = false
     @State private var commentShowScreen = true
     
-    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil) {
-        _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData))
+    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, onPostDeleted: ((String) -> Void)? = nil) {
+        _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData, onPostDeleted: onPostDeleted))
     }
     
     var body: some View {
@@ -96,8 +96,50 @@ struct ProfilePhotoDetailView: View {
                                 )
                                 .id(postID)
                                 .onAppear {
+                                    viewModel.router = router
                                     if index == viewModel.posts.indices.last {
                                         viewModel.loadPosts()
+                                    }
+                                }
+                                .zIndex(viewModel.showPostOptionView && viewModel.selectedPostID == postID ? 100 : 0)
+                                .overlay(alignment: .topTrailing) {
+                                    if viewModel.showPostOptionView && viewModel.selectedPostID == postID {
+                                        ZStack(alignment: .topTrailing) {
+                                            themeManager.currentTheme.black05_white05
+                                                .ignoresSafeArea()
+                                                .onTapGesture {
+                                                    viewModel.showPostOptionView = false
+                                                }
+                                            
+                                            VStack(spacing: 6) {
+                                                if viewModel.userProfileID == viewModel.ownUserID {
+                                                    capsuleButtonView(title: "edit".localized(localizationManager.language))
+                                                        .onTapGesture {
+                                                            viewModel.showPostOptionView = false
+                                                            viewModel.showEditPostScreen()
+                                                        }
+                                                    
+                                                    capsuleButtonView(title: "delete".localized(localizationManager.language))
+                                                        .onTapGesture {
+                                                            viewModel.showPostOptionView = false
+                                                            viewModel.showDeletePostModal()
+                                                        }
+                                                } else {
+                                                    capsuleButtonView(title: "report".localized(localizationManager.language))
+                                                        .onTapGesture {
+                                                            viewModel.showPostOptionView = false
+                                                            viewModel.showReportScreen = true
+                                                        }
+                                                }
+                                            }
+                                            .padding(6)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 14)
+                                                    .fill(themeManager.currentTheme.darkGray08_hmIndigo08)
+                                            )
+                                            .padding(.top, 24)
+                                            .padding(.trailing, 16)
+                                        }
                                     }
                                 }
                             }
@@ -257,35 +299,13 @@ struct ProfilePhotoDetailView: View {
             }
         }
         .onAppear {
+            viewModel.router = router
             if viewModel.posts.isEmpty {
                 viewModel.loadPosts()
             }
         }
         .overlay {
-            ZStack(alignment: .topTrailing) {
-                if viewModel.showPostOptionView {
-                    themeManager.currentTheme.black05_white05
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            viewModel.showPostOptionView = false
-                        }
-                    
-                    VStack(spacing: 6) {
-                        capsuleButtonView(title: "report".localized(localizationManager.language))
-                            .onTapGesture {
-                                viewModel.showPostOptionView = false
-                                viewModel.showReportScreen = true
-                            }
-                    }
-                    .padding(6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(themeManager.currentTheme.darkGray08_hmIndigo08)
-                    )
-                    .padding(.top, 24)
-                    .padding(.trailing, 16)
-                }
-            }
+            // Options view moved to individual PostCardView for correct positioning
         }
         .sheet(isPresented: $viewModel.showReportScreen, content: {
             ReportView(viewModel: ReportViewModel(reportID: viewModel.reportID, reportType: viewModel.reportType, onReport: { message in
