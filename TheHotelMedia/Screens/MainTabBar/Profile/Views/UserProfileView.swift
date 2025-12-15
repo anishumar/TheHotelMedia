@@ -168,11 +168,13 @@ struct UserProfileView: View {
                             viewModel.showPostOptionView.toggle()
                         }
                     VStack(spacing: 6) {
-                        capsuleButtonView(title: "report".localized(localizationManager.language))
-                            .onTapGesture {
-                                viewModel.showPostOptionView.toggle()
-                                viewModel.showReportScreen = true
-                            }
+                        if !viewModel.publicProfileID.isEmpty {
+                            capsuleButtonView(title: "report".localized(localizationManager.language))
+                                .onTapGesture {
+                                    viewModel.showPostOptionView.toggle()
+                                    viewModel.showReportScreen = true
+                                }
+                        }
                         
                         if !viewModel.isReviewPost && viewModel.publicProfileID.isEmpty  {
                             capsuleButtonView(title: "edit".localized(localizationManager.language))
