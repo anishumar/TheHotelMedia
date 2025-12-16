@@ -17,6 +17,7 @@ struct ReelsViewRepresentable: UIViewControllerRepresentable {
     let onComment: ((String) -> Void)?
     let onShare: ((String) -> Void)?
     let onBookmark: ((String, Bool) -> Void)?
+    let onProfileTapped: ((String) -> Void)?
     
     func makeUIViewController(context: Context) -> ReelsViewController {
         let controller = ReelsViewController()
@@ -28,6 +29,7 @@ struct ReelsViewRepresentable: UIViewControllerRepresentable {
         controller.onComment = onComment
         controller.onShare = onShare
         controller.onBookmark = onBookmark
+        controller.onProfileTapped = onProfileTapped
         return controller
     }
     
@@ -42,6 +44,7 @@ struct ReelsViewRepresentable: UIViewControllerRepresentable {
         uiViewController.onComment = onComment
         uiViewController.onShare = onShare
         uiViewController.onBookmark = onBookmark
+        uiViewController.onProfileTapped = onProfileTapped
     }
 }
 

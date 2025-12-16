@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftfulRouting
 
 struct ProfileVideoDetailView: View {
     
@@ -64,6 +65,11 @@ struct ProfileVideoDetailView: View {
                     },
                     onBookmark: { postID, isSaved in
                         viewModel.bookmarkPost(postID: postID, isSaved: isSaved)
+                    },
+                    onProfileTapped: { profileID in
+                        guard !profileID.isEmpty else { return }
+                        viewModel.selectedProfileID = profileID
+                        viewModel.showProfileScreen = true
                     }
                 )
                 .frame(height: UIScreen.main.bounds.height - UIApplication.topSafeAreaHeightTHM - UIApplication.bottomSafeAreaHeightTHM - 60)
@@ -229,6 +235,19 @@ struct ProfileVideoDetailView: View {
             )
             .environmentObject(ThemeManager.shared)
             .environmentObject(LocalizationManager.shared)
+        }
+        .fullScreenCover(isPresented: $viewModel.showProfileScreen) {
+            VStack {
+                RouterView { router in
+                    UserProfileView2(viewModel: UserProfileViewModel(router: router, publicProfileID: viewModel.selectedProfileID))
+                        .environmentObject(themeManager)
+                        .environmentObject(localizationManager)
+                        .navigationBarBackButtonHidden()
+                        .background(BackgroundClearView())
+                }
+                .background(BackgroundClearView())
+            }
+            .background(BackgroundClearView())
         }
     }
     

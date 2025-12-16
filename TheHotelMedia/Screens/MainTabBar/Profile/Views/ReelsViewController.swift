@@ -24,6 +24,7 @@ protocol ReelCellDelegate: AnyObject {
     func didTapShare(postID: String)
     func didTapBookmark(postID: String, isSaved: Bool)
     func didTapViewComments(postID: String)
+    func didTapProfile(postID: String, userID: String)
 }
 
 // MARK: - Video Cell
@@ -220,6 +221,15 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         delegate?.didTapViewComments(postID: postID)
     }
     
+    @objc private func profileTapped() {
+        guard
+            let postID = currentPostID,
+            let userID = currentPost?.postedBy?.id,
+            !userID.isEmpty
+        else { return }
+        delegate?.didTapProfile(postID: postID, userID: userID)
+    }
+    
     private func setupBottomInfo() {
         bottomInfoView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
         contentView.addSubview(bottomInfoView)
@@ -231,14 +241,20 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         profileImageView.layer.cornerRadius = 20
         profileImageView.layer.borderWidth = 2
         profileImageView.layer.borderColor = UIColor.systemGreen.cgColor
+        profileImageView.isUserInteractionEnabled = true
         bottomInfoView.addSubview(profileImageView)
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        let profileTapGesture = UITapGestureRecognizer(target: self, action: #selector(profileTapped))
+        profileImageView.addGestureRecognizer(profileTapGesture)
         
         // Username
         usernameLabel.textColor = .white
         usernameLabel.font = .boldSystemFont(ofSize: 14)
+        usernameLabel.isUserInteractionEnabled = true
         bottomInfoView.addSubview(usernameLabel)
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
+        let usernameTapGesture = UITapGestureRecognizer(target: self, action: #selector(profileTapped))
+        usernameLabel.addGestureRecognizer(usernameTapGesture)
         
         // Follow button
         followButton.setTitle("Follow", for: .normal)
@@ -553,6 +569,7 @@ final class ReelsViewController: UIViewController {
     var onComment: ((String) -> Void)?
     var onShare: ((String) -> Void)?
     var onBookmark: ((String, Bool) -> Void)?
+    var onProfileTapped: ((String) -> Void)?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -778,6 +795,10 @@ extension ReelsViewController: ReelCellDelegate {
     
     func didTapViewComments(postID: String) {
         onComment?(postID)
+    }
+    
+    func didTapProfile(postID: String, userID: String) {
+        onProfileTapped?(userID)
     }
     
     func updatePostInReel(postID: String, updatedPost: PostData) {

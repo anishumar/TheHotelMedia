@@ -21,6 +21,8 @@ final class ProfileVideoDetailViewModel: ObservableObject {
     @Published var isSharePresented: Bool = false
     @Published var shareURL: URL = URL(string: "https://thehotelmedia.com/post")!
     @Published var sharePostData: PostData? = nil
+    @Published var selectedProfileID: String = ""
+    @Published var showProfileScreen: Bool = false
     
     let profileData: ProfileData?
     let userProfileID: String
