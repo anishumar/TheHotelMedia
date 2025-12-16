@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SDWebImageSwiftUI
+import SwiftfulRouting
 
 struct ProfilePhotoDetailView: View {
     
@@ -63,9 +64,9 @@ struct ProfilePhotoDetailView: View {
                                     onPressedShare: { postID, _ in
                                         viewModel.showShareView(postID: postID)
                                     },
-                onPressedEllpsis: { postID in
-                    viewModel.handleEllipsis(postID: postID)
-                },
+                                    onPressedEllpsis: { postID in
+                                        viewModel.handleEllipsis(postID: postID)
+                                    },
                                     onPressedLike: { liked, count in
                                         if let postID = post.id {
                                             viewModel.likePost(postID: postID, isLiked: !liked)
@@ -79,19 +80,12 @@ struct ProfilePhotoDetailView: View {
                                     onPressedProfile: { profileID in
                                         let targetID = profileID.isEmpty ? (post.postedBy?.id ?? "") : profileID
                                         guard !targetID.isEmpty else { return }
-                                        guard targetID != viewModel.userProfileID else { return }
                                         
-                                        dismiss()
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                            router.showScreen(.push) { router in
-                                                UserProfileView(
-                                                    createPostOn: .constant(false),
-                                                    viewModel: UserProfileViewModel(router: router, publicProfileID: targetID)
-                                                )
-                                                .environmentObject(ThemeManager.shared)
-                                                .navigationBarBackButtonHidden()
-                                            }
-                                        }
+                                        // Mirror behaviour from Profile -> Posts mode:
+                                        // just set the selected profile on the view model,
+                                        // the fullScreenCover below will present the profile screen.
+                                        viewModel.selectedProfileID = targetID
+                                        viewModel.showProfileScreen = true
                                     }
                                 )
                                 .id(postID)
@@ -236,19 +230,11 @@ struct ProfilePhotoDetailView: View {
                     onPressedProfile: { profileID in
                         guard !profileID.isEmpty else { return }
                         viewModel.showCommentSection = false
-                        dismiss()
-                        if profileID != viewModel.userProfileID {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                router.showScreen(.push) { router in
-                                    UserProfileView(
-                                        createPostOn: .constant(false),
-                                        viewModel: UserProfileViewModel(router: router, publicProfileID: profileID)
-                                    )
-                                    .environmentObject(ThemeManager.shared)
-                                    .navigationBarBackButtonHidden()
-                                }
-                            }
-                        }
+                        
+                        // Same behaviour as posts mode: set the target profile
+                        // and let the dedicated fullScreenCover handle navigation.
+                        viewModel.selectedProfileID = profileID
+                        viewModel.showProfileScreen = true
                     },
                     onPressedReply: { _ in },
                     onReportComment: { message in
@@ -317,6 +303,22 @@ struct ProfilePhotoDetailView: View {
             .presentationDragIndicator(.hidden)
             .presentationDetents([.fraction(Constants.getReportSheetHeight())])
         })
+        .fullScreenCover(isPresented: $viewModel.showProfileScreen) {
+            VStack {
+                RouterView { router in
+                    UserProfileView2(viewModel: UserProfileViewModel(router: router, publicProfileID: viewModel.selectedProfileID))
+                        .environmentObject(themeManager)
+                        .environmentObject(localizationManager)
+                        .navigationBarBackButtonHidden()
+                        .background(BackgroundClearView())
+                }
+                .background(BackgroundClearView())
+            }
+            .background(BackgroundClearView())
+        }
+        .transaction { transaction in
+            transaction.disablesAnimations = true
+        }
     }
     
     private var header: some View {

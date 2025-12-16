@@ -30,6 +30,8 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     let profileData: ProfileData?
     @Published var selectedPostID: String = ""
     @Published var currentTab: ProfileTab = .photos // For compatibility with EditPostViewModel
+    @Published var selectedProfileID: String = ""
+    @Published var showProfileScreen: Bool = false
     
 
     let userProfileID: String
