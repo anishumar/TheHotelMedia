@@ -19,17 +19,41 @@ struct VideoEditorView: UIViewControllerRepresentable {
         Coordinator(self)
     }
 
-    func makeUIViewController(context: Context) -> UIVideoEditorController {
+    func makeUIViewController(context: Context) -> UIViewController {
         UINavigationBar.appearance().tintColor = UIColor(ThemeManager.shared.currentTheme.label)
+        
+        // Validate video file exists and is editable
+        let videoPath = videoURL.path
+        guard FileManager.default.fileExists(atPath: videoPath) else {
+            print("❌ Video file does not exist at path: \(videoPath)")
+            DispatchQueue.main.async {
+                context.coordinator.parent.onComplete(nil)
+            }
+            // Return a placeholder view controller that will be dismissed
+            return UIViewController()
+        }
+        
+        guard UIVideoEditorController.canEditVideo(atPath: videoPath) else {
+            print("⚠️ Video cannot be edited by system at path: \(videoPath). Using fallback preview.")
+            
+            // Return fallback preview controller
+            let fallbackView = VideoPreviewFallbackView(videoURL: videoURL, onComplete: { url in
+                DispatchQueue.main.async {
+                    context.coordinator.parent.onComplete(url)
+                }
+            })
+            return UIHostingController(rootView: fallbackView)
+        }
+        
         let editor = UIVideoEditorController()
         editor.videoMaximumDuration = limit
-        editor.videoPath = videoURL.path
+        editor.videoPath = videoPath
         editor.delegate = context.coordinator
         editor.videoQuality = .typeHigh
         return editor
     }
 
-    func updateUIViewController(_ uiViewController: UIVideoEditorController, context: Context) {
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         // No need to update the view controller
     }
 
@@ -80,6 +104,79 @@ struct VideoEditorView: UIViewControllerRepresentable {
         }
     }
 }
+
+private struct VideoPreviewFallbackView: View {
+    @Environment(\.dismiss) private var dismiss
+    let videoURL: URL
+    let onComplete: (URL?) -> Void
+    @State private var player: AVPlayer?
+    
+    var body: some View {
+        ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+            
+            if let player = player {
+                FallbackVideoPlayerView(player: player)
+                    .edgesIgnoringSafeArea(.all)
+            }
+            
+            VStack {
+                HStack {
+                    Button("Cancel") {
+                        onComplete(nil)
+                        dismiss()
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    
+                    Spacer()
+                    
+                    Button("Choose") {
+                        onComplete(videoURL)
+                        dismiss()
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                }
+                .background(Color.black.opacity(0.5))
+                
+                Spacer()
+                
+                Text("Preview Mode (Simulator)\nTrimming not supported")
+                    .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(8)
+                    .padding(.bottom, 50)
+            }
+        }
+        .onAppear {
+            let item = AVPlayerItem(url: videoURL)
+            player = AVPlayer(playerItem: item)
+            player?.play()
+        }
+        .onDisappear {
+            player?.pause()
+        }
+    }
+}
+
+private struct FallbackVideoPlayerView: UIViewControllerRepresentable {
+    let player: AVPlayer
+    
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.player = player
+        controller.showsPlaybackControls = true
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
+}
+
+import AVKit
 
 //extension FileManager {
 //    var documentsDirectory: URL {

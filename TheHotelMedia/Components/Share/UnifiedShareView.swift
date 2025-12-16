@@ -469,15 +469,38 @@ struct UnifiedShareSheet: View {
     private func loadVideoAndOpenEditor(videoURL: URL, router: AnyRouter) async {
         // Download video to temporary location
         do {
-            let (tempURL, _) = try await URLSession.shared.download(from: videoURL)
+            let (tempURL, response) = try await URLSession.shared.download(from: videoURL)
             
-            await MainActor.run {
-                router.showScreen(.fullScreenCover) { router in
-                    VideoEditorView(videoURL: tempURL, limit: 30) { editedVideoURL in
-                        guard let editedVideoURL else { return }
-                        self.postStory(image: nil, videoURL: editedVideoURL, router: router)
+            // Create a temporary file with correct extension (better for auto-cleanup)
+            let fileManager = FileManager.default
+            let documentsURL = fileManager.temporaryDirectory
+            let uniqueID = UUID().uuidString
+            // Force mp4 extension as it's the most compatible with UIVideoEditorController
+            let fileName = "\(uniqueID).mp4"
+            let newURL = documentsURL.appendingPathComponent(fileName)
+            
+            // Move the file
+            if fileManager.fileExists(atPath: newURL.path) {
+                try fileManager.removeItem(at: newURL)
+            }
+            try fileManager.moveItem(at: tempURL, to: newURL)
+            
+            // Check if file is valid
+            let attributes = try fileManager.attributesOfItem(atPath: newURL.path)
+            let fileSize = attributes[.size] as? Int64 ?? 0
+            print("📦 Downloaded video size: \(fileSize) bytes at path: \(newURL.path)")
+            
+            if fileSize > 0 {
+                await MainActor.run {
+                    router.showScreen(.fullScreenCover) { router in
+                        VideoEditorView(videoURL: newURL, limit: 30) { editedVideoURL in
+                            guard let editedVideoURL else { return }
+                            self.postStory(image: nil, videoURL: editedVideoURL, router: router)
+                        }
                     }
                 }
+            } else {
+               throw NSError(domain: "VideoDownload", code: -1, userInfo: [NSLocalizedDescriptionKey: "Downloaded video is empty"])
             }
         } catch {
             await MainActor.run {
