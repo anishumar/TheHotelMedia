@@ -53,11 +53,11 @@ struct UnifiedShareSheet: View {
                 VStack(spacing: 0) {
                     // Share action buttons
                     shareOptionsRow
-                        .padding(.vertical, 20)
+                        .padding(.vertical, 15)
                     
                     Divider()
                         .background(themeManager.currentTheme.white06_darkGray06)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 8)
                     
                     // User grid section
                     userGridSection
@@ -153,7 +153,7 @@ struct UnifiedShareSheet: View {
     
     private var shareOptionsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 25) {
+            HStack(spacing: 20) {
                 shareOptionButton(
                     icon: "square.and.arrow.up",
                     label: "Share",
@@ -163,23 +163,7 @@ struct UnifiedShareSheet: View {
                     haptics(.light)
                 }
                 
-                shareOptionButton(
-                    icon: "doc.on.doc",
-                    label: "Copy",
-                    color: .blue
-                ) {
-                    UIPasteboard.general.string = shareURL
-                    haptics(.light)
-                }
-                
-                shareOptionButton(
-                    icon: "folder",
-                    label: "Save to Files",
-                    color: .blue
-                ) {
-                    // Implement save to files
-                    haptics(.light)
-                }
+
                 
                 // Share as Story button - only show if postData exists
                 if postData != nil {
@@ -219,14 +203,20 @@ struct UnifiedShareSheet: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(themeManager.currentTheme.black09_white)
             )
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 12)
             
             // User grid
             if !shareViewModel.filteredOnlineUsers.isEmpty || !shareViewModel.filteredRecentChats.isEmpty || !shareViewModel.filteredFollowersFollowing.isEmpty {
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: 8) {
                     // Online users grid
                     if !shareViewModel.filteredOnlineUsers.isEmpty {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 3), spacing: 15) {
+                        Text("Online")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(themeManager.currentTheme.label)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 12)
+                            
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                             ForEach(shareViewModel.filteredOnlineUsers) { user in
                                 userGridItem(user: user)
                             }
@@ -242,7 +232,13 @@ struct UnifiedShareSheet: View {
                     
                     // Recent chats grid
                     if !shareViewModel.filteredRecentChats.isEmpty {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 3), spacing: 15) {
+                        Text("Recent")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(themeManager.currentTheme.label)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 12)
+                            
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                             ForEach(shareViewModel.filteredRecentChats) { chat in
                                 if let username = chat.username,
                                    let userID = chat.id,
@@ -262,7 +258,13 @@ struct UnifiedShareSheet: View {
                     
                     // Followers and Following grid
                     if !shareViewModel.filteredFollowersFollowing.isEmpty {
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 3), spacing: 15) {
+                        Text("Peoples")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(themeManager.currentTheme.label)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 12)
+                            
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
                             ForEach(shareViewModel.filteredFollowersFollowing) { profile in
                                 if let username = profile.username,
                                    let name = profile.name {
@@ -292,10 +294,10 @@ struct UnifiedShareSheet: View {
                 ZStack {
                     Circle()
                         .fill(color.opacity(0.15))
-                        .frame(width: 60, height: 60)
+                        .frame(width: 48, height: 48)
                     
                     Image(systemName: icon)
-                        .font(.system(size: 24))
+                        .font(.system(size: 20))
                         .foregroundColor(color)
                 }
                 
@@ -307,7 +309,7 @@ struct UnifiedShareSheet: View {
     }
     
     private func userGridItem(user: ChatUser) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             ZStack(alignment: .bottomTrailing) {
                 WebImage(url: URL(string: user.profilePic?.small ?? "")) { image in
                     image
@@ -341,7 +343,7 @@ struct UnifiedShareSheet: View {
         .onTapGesture {
             haptics(.light)
             if let username = user.username,
-               let userID = user.userID,
+               let userID = user.userID ?? user.id,
                let name = user.name {
                 onChatSelected?(username, userID, user.profilePic?.small ?? "", name)
             }
@@ -349,7 +351,7 @@ struct UnifiedShareSheet: View {
     }
     
     private func chatGridItem(chat: RecentChat, username: String, userID: String, name: String) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             WebImage(url: URL(string: chat.profilePic?.small ?? "")) { image in
                 image
                     .resizable()
@@ -375,7 +377,7 @@ struct UnifiedShareSheet: View {
     }
     
     private func followerFollowingGridItem(profile: SearchProfileData, username: String, userID: String, name: String) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             WebImage(url: URL(string: profile.profilePic?.small ?? "")) { image in
                 image
                     .resizable()

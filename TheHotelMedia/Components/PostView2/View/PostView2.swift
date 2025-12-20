@@ -457,6 +457,8 @@ struct PostView2<Content: View>: View {
                 )
                 .environmentObject(ThemeManager.shared)
                 .environmentObject(LocalizationManager.shared)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             } else {
                 Text("Router not available")
                     .foregroundColor(.gray)

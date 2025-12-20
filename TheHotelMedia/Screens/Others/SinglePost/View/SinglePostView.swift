@@ -525,6 +525,7 @@ extension SinglePostView {
                     .environmentObject(ThemeManager.shared)
                     .environmentObject(LocalizationManager.shared)
                     .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
                 }
             HStack(spacing: 6) {
                 //                HMCustomButton(icon: .constant(isLiked ? "heartfill" : "heart"), count: $likeCount)

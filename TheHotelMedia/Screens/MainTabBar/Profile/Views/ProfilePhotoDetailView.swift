@@ -204,6 +204,7 @@ struct ProfilePhotoDetailView: View {
             .environmentObject(ThemeManager.shared)
             .environmentObject(LocalizationManager.shared)
             .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $viewModel.showCommentSection) {
             if #available(iOS 16.4, *) {

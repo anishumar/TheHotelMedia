@@ -202,6 +202,7 @@ struct ProfileVideoDetailView: View {
             .environmentObject(ThemeManager.shared)
             .environmentObject(LocalizationManager.shared)
                 .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $viewModel.showCommentSection) {
             CommentSectionView(

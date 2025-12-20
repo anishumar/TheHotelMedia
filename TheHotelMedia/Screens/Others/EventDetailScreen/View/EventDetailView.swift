@@ -260,6 +260,7 @@ extension EventDetailView {
                         .environmentObject(ThemeManager.shared)
                         .environmentObject(LocalizationManager.shared)
                             .presentationDetents([.medium, .large])
+                            .presentationDragIndicator(.visible)
                     }
                 Spacer()
             }
