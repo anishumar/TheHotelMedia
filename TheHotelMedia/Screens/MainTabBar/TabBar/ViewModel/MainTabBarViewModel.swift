@@ -259,9 +259,9 @@ final class MainTabBarViewModel: ObservableObject {
     
     func showCreateStoryScreen(uiImage: UIImage) {
         router.showScreen(.push) { router in
-            EditStoryImageView(viewModel: EditStoryImageViewModel(router: router, image: uiImage), returnedImage: { [weak self] edittedImage in
+            EditStoryImageView(viewModel: EditStoryImageViewModel(router: router, image: uiImage), returnedImage: { [weak self] edittedImage, mentions in
                 guard let self else { return }
-                postStory(image: edittedImage)
+                postStory(image: edittedImage, mentions: mentions)
                 
             }, onDismissed: {
 
@@ -359,7 +359,7 @@ final class MainTabBarViewModel: ObservableObject {
 
 // MARK: - Networking
 extension MainTabBarViewModel {
-    func postStory(image: UIImage? = nil, videoURL: URL? = nil) {
+    func postStory(image: UIImage? = nil, videoURL: URL? = nil, mentions: [String] = []) {
         
         if let image {
             let media = MediaAttachment(id: UUID().uuidString, type: .photo(image))
@@ -368,7 +368,8 @@ extension MainTabBarViewModel {
             
             Task {
                 do {
-                    let result = try await storyDataManager.postStory(attachments: [media])
+                    let parameters: [String: Any] = ["mentions": mentions]
+                    let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
                         isUploadingStory = false
@@ -396,7 +397,8 @@ extension MainTabBarViewModel {
             
             Task {
                 do {
-                    let result = try await storyDataManager.postStory(attachments: [media])
+                    let parameters: [String: Any] = ["mentions": mentions]
+                    let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
                         isUploadingStory = false

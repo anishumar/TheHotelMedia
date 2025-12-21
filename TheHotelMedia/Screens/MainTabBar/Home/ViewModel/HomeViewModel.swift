@@ -507,14 +507,15 @@ extension HomeViewModel {
                let duration = story.duration,
                let id = story.id,
                let mediaID = story.mediaID{
+                let mentions = story.mentions
                 if mimeType == "video/mp4" {
                     // Ensure minimum 15 seconds for videos
                     let videoDuration = max(duration, 15.0)
-                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, mentions: mentions, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
                 } else {
                     // Ensure minimum 15 seconds for images
                     let imageDuration = max(duration + 10.0, 15.0)
-                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, mentions: mentions, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
                 }
             }
         }
@@ -554,14 +555,15 @@ extension HomeViewModel {
                        let duration = story.duration,
                        let id = story.id,
                        let mediaID = story.mediaID {
+                        let mentions = story.mentions
                         if mimeType == "video/mp4" {
                             // Ensure minimum 15 seconds for videos
                             let videoDuration = max(duration, 15.0)
-                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, mentions: mentions, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
                         } else {
                             // Ensure minimum 15 seconds for images
                             let imageDuration = max(duration + 10.0, 15.0)
-                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, mentions: mentions, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
                         }
                     }
                 }

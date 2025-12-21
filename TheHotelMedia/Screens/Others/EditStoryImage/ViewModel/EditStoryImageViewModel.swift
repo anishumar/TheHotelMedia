@@ -11,6 +11,19 @@ import Combine
 import SwiftfulRouting
 
 
+
+struct TagBox: Identifiable {
+    var id = UUID().uuidString
+    var userID: String
+    var username: String
+    var offset: CGSize = .zero
+    var lastOffset: CGSize = .zero
+    var scale: CGFloat = 1.0
+    var lastScale: CGFloat = 1.0
+    var rotation: Angle = .zero
+    var lastRotation: Angle = .zero
+}
+
 class EditStoryImageViewModel: ObservableObject {
     
     var router: AnyRouter
@@ -32,6 +45,9 @@ class EditStoryImageViewModel: ObservableObject {
     @Published var currentImageHeightRatio: CGFloat = 1
     @Published var currentImageWidthRatio: CGFloat = 1
     @Published var currentImageStyle: String = "portrait"
+    @Published var taggedUsers: [TagBox] = []
+    
+    @Published var showUserSelectionSheet: Bool = false
     
     var allEmojis: [Emoji] {
         return [

@@ -448,8 +448,8 @@ struct UnifiedShareSheet: View {
                         router.showScreen(.push) { router in
                             EditStoryImageView(
                                 viewModel: EditStoryImageViewModel(router: router, image: image),
-                                returnedImage: { editedImage in
-                                    self.postStory(image: editedImage, videoURL: nil, router: router)
+                                returnedImage: { editedImage, mentions in
+                                    self.postStory(image: editedImage, videoURL: nil, mentions: mentions, router: router)
                                 },
                                 onDismissed: {
                                     continuation.resume()
@@ -497,7 +497,7 @@ struct UnifiedShareSheet: View {
                     router.showScreen(.fullScreenCover) { router in
                         VideoEditorView(videoURL: newURL, limit: 30) { editedVideoURL in
                             guard let editedVideoURL else { return }
-                            self.postStory(image: nil, videoURL: editedVideoURL, router: router)
+                            self.postStory(image: nil, videoURL: editedVideoURL, mentions: [], router: router)
                         }
                     }
                 }
@@ -512,7 +512,7 @@ struct UnifiedShareSheet: View {
         }
     }
     
-    private func postStory(image: UIImage?, videoURL: URL?, router: AnyRouter) {
+    private func postStory(image: UIImage?, videoURL: URL?, mentions: [String] = [], router: AnyRouter) {
         let storyDataManager = StoryDataManager()
         
         if let image = image {
@@ -520,7 +520,8 @@ struct UnifiedShareSheet: View {
             
             Task {
                 do {
-                    let result = try await storyDataManager.postStory(attachments: [media])
+                    let parameters: [String: Any] = ["mentions": mentions]
+                    let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
                         let range = 200...204

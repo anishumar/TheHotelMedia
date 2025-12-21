@@ -10,7 +10,7 @@ import SwiftUI
 struct EditStoryImageView: View {
     
     @StateObject var viewModel: EditStoryImageViewModel
-    var returnedImage: ((UIImage) -> Void)?
+    var returnedImage: ((UIImage, [String]) -> Void)?
     var onDismissed: (() -> Void)?
     @Environment(\.displayScale) var displayScale
     var emojiGrid: [GridItem] = [
@@ -93,6 +93,16 @@ struct EditStoryImageView: View {
 //            }
 //        }
 
+
+        .sheet(isPresented: $viewModel.showUserSelectionSheet) {
+            UserSelectionView(viewModel: UserSelectionViewModel(router: viewModel.router, onUserSelected: { id, username in
+                let newTag = TagBox(userID: id, username: username)
+                viewModel.taggedUsers.append(newTag)
+                viewModel.selectedType = .tag
+            }))
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
     }
 }
 
@@ -130,7 +140,8 @@ extension EditStoryImageView {
     
     func onTickButtonPressed() {
         if let uiImage = edittedImageView(roundedCorner: false).render(convertToColorDepth: true, scale: Constants.scale) {
-            returnedImage?(uiImage)
+            let taggedUserIDs = viewModel.taggedUsers.map { $0.userID }
+            returnedImage?(uiImage, taggedUserIDs)
         }
     }
 }
@@ -234,6 +245,17 @@ extension EditStoryImageView {
                     ZStack {
                         ForEach(viewModel.addedEmojis) { box in
                             emojiBoxView(box: box)
+                        }
+                    }
+                    .frame(
+                        width: viewModel.currentImageStyle == "portrait" ? height * viewModel.currentImageWidthRatio : width,
+                        height: viewModel.currentImageStyle == "portrait" ? height : width * viewModel.currentImageHeightRatio
+                    )
+                }
+                .overlay {
+                    ZStack {
+                        ForEach(viewModel.taggedUsers) { box in
+                            tagBoxView(box: box)
                         }
                     }
                     .frame(
@@ -432,10 +454,17 @@ extension EditStoryImageView {
     
     private func bottomButton(type: EditButton, action: (() -> Void)? = nil ) -> some View {
         VStack(spacing: 4) {
-            Image(type.rawValue.capitalized)
-                .renderingMode(.template)
-                .font(.system(size: 26))
-                .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
+            if type == .tag {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .renderingMode(.template)
+                    .font(.system(size: 26))
+                    .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
+            } else {
+                Image(type.rawValue.capitalized)
+                    .renderingMode(.template)
+                    .font(.system(size: 26))
+                    .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
+            }
             Text(type.rawValue.capitalized)
                 .font(.custom(Constants.comicFont , size: 9))
                 .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
@@ -462,7 +491,65 @@ extension EditStoryImageView {
                 // updating this bool so that new TextBox gets created.
                 viewModel.addNewBox = true
             }
+            Spacer()
+            bottomButton(type: .tag) {
+                viewModel.showUserSelectionSheet = true
+            }
         }
+    }
+    
+    private func tagBoxView(box: TagBox) -> some View {
+        let index = viewModel.taggedUsers.firstIndex { $0.id == box.id } ?? 0
+        
+        return VStack {
+            Text("@\(box.username)")
+                .font(.custom(Constants.comicBold, size: 20)) // Fixed size for now, scaled by scaleEffect
+                .foregroundColor(.blue)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.2), radius: 5)
+                )
+        }
+        .rotationEffect(box.rotation)
+        .scaleEffect(box.scale)
+        .offset(box.offset)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    let newTranslation = CGSize(
+                        width: value.translation.width + box.lastOffset.width,
+                        height: value.translation.height + box.lastOffset.height
+                    )
+                    viewModel.taggedUsers[index].offset = newTranslation
+                }
+                .onEnded { value in
+                    viewModel.taggedUsers[index].lastOffset = CGSize(
+                        width: value.translation.width + box.lastOffset.width,
+                        height: value.translation.height + box.lastOffset.height
+                    )
+                }
+        )
+        .simultaneousGesture(
+            RotationGesture()
+                .onChanged { angle in
+                    viewModel.taggedUsers[index].rotation = angle + box.lastRotation
+                }
+                .onEnded { angle in
+                    viewModel.taggedUsers[index].lastRotation = angle + box.lastRotation
+                }
+        )
+        .simultaneousGesture(
+            MagnificationGesture()
+                .onChanged { value in
+                    viewModel.taggedUsers[index].scale = box.lastScale * value
+                }
+                .onEnded { value in
+                    viewModel.taggedUsers[index].lastScale = viewModel.taggedUsers[index].scale
+                }
+        )
     }
     
     

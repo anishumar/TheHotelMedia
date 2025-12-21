@@ -18,6 +18,7 @@ struct THMStory: Identifiable, Hashable {
     public var isViewed: Bool = false
     public var likesRef: [StoryLikeRef]? = nil
     public var viewsRef: [StoryLikeRef]? = nil
+    public var mentions: [String]? = nil
     public var duration: Double = Constants.storySecond
     public var config: THMStoryConfiguration
     
@@ -29,6 +30,7 @@ struct THMStory: Identifiable, Hashable {
                 isViewed: Bool = false,
                 likesRef: [StoryLikeRef]? = nil,
                 viewsRef: [StoryLikeRef]? = nil,
+                mentions: [String]? = nil,
                 duration: Double = 5,
                 config: THMStoryConfiguration) {
         
@@ -42,6 +44,7 @@ struct THMStory: Identifiable, Hashable {
         self.isViewed = isViewed
         self.likesRef = likesRef
         self.viewsRef = viewsRef
+        self.mentions = mentions
         Constants.storySecond = duration
     }
 }

@@ -43,6 +43,7 @@ struct THMStoryDetailView: View {
     @State private var hideProfile: Bool = false
     @State private var manualPaused: Bool = false
     @State private var longPressStarted: Bool = false
+    @State private var showTaggedUsers: Bool = false
     @GestureState private var longPress: Bool = false
     
     @State private var longPressTask: Task<Void, Never>?
@@ -240,6 +241,28 @@ struct THMStoryDetailView: View {
                     }
                 }
                 getEmojiView(story: story)
+                
+                if let mentions = story.mentions, !mentions.isEmpty {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Button(action: {
+                                videoPaused = true
+                                pauseVideo()
+                                showTaggedUsers = true
+                            }, label: {
+                                Image(systemName: "person.2.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white)
+                                    .shadow(radius: 2)
+                                    .padding(8)
+                            })
+                            Spacer()
+                        }
+                        .padding(.bottom, 80) // Adjust padding to sit above message bar
+                        .padding(.leading, 12)
+                    }
+                }
             }
             .onAppear {
                 print(model.stories)
@@ -327,6 +350,17 @@ struct THMStoryDetailView: View {
                 videoPaused = false
             }
         })
+        .sheet(isPresented: $showTaggedUsers, onDismiss: {
+            videoPaused = false
+            playVideo()
+        }) {
+            if let mentions = model.stories[Int(timerProgress)].mentions {
+                // We need a router here. Ideally THMStoryDetailView should share its router or get one.
+                // Using viewModel.router since THMStoryDetailViewModel has one.
+                StoryTaggedUsersView(viewModel: StoryTaggedUsersViewModel(router: detailViewModel.router, userIDs: mentions))
+                    .presentationDetents([.medium, .large])
+            }
+        }
     }
 }
 

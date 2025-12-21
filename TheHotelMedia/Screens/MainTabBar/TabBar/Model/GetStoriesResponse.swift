@@ -33,6 +33,7 @@ struct MyStory: Codable, Identifiable {
     let likedByMe: Bool?
     let seenByMe: Bool?
     let duration: Double?
+    let mentions: [String]?
     var videoThumbnail: UIImage? = nil
 
     enum CodingKeys: String, CodingKey {
@@ -44,6 +45,7 @@ struct MyStory: Codable, Identifiable {
         case likedByMe
         case seenByMe
         case duration
+        case mentions
         case thumbnailUrl
     }
 }

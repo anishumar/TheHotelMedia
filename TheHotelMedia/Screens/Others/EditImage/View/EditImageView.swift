@@ -14,6 +14,7 @@ enum EditButton: String {
     case filter
     case emoji
     case text
+    case tag
 }
 
 // Define enum without associated values for iteration
