@@ -38,6 +38,9 @@ class BookingTableInfoViewModel: ObservableObject {
     @Published var isBookingSuccessful: Bool = false
 
     
+    @Published var daysInMonth: [Date] = []
+    @Published var currentMonthDate: Date = Date()
+    
     var cancellables = Set<AnyCancellable>()
     let localizationManager = LocalizationManager.shared
     
@@ -45,6 +48,10 @@ class BookingTableInfoViewModel: ObservableObject {
         self.router = router
         self.profileData = profileData
         addSubscribers()
+        
+        // Initial setup
+        updateDaysForCurrentMonth()
+        
         if let address = profileData.businessProfileRef?.address {
             var addressString = ""
             if let street = address.street {
@@ -108,6 +115,12 @@ class BookingTableInfoViewModel: ObservableObject {
                 selectedSlot = nil
             }
             .store(in: &cancellables)
+        
+        $currentMonthDate
+            .sink { [weak self] _ in
+                self?.updateDaysForCurrentMonth()
+            }
+            .store(in: &cancellables)
     }
     
     
@@ -169,11 +182,15 @@ class BookingTableInfoViewModel: ObservableObject {
     
     func convertTo24HourFormat(_ time12Hour: String) -> String? {
         let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.dateFormat = "h:mm a"
         dateFormatter.amSymbol = "AM"
         dateFormatter.pmSymbol = "PM"
         
-        guard let date = dateFormatter.date(from: time12Hour) else { return nil }
+        guard let date = dateFormatter.date(from: time12Hour) else {
+            print("❌ Failed to parse time string: \(time12Hour)")
+            return nil
+        }
         
         dateFormatter.dateFormat = "HH:mm"
         return dateFormatter.string(from: date)
@@ -195,6 +212,50 @@ class BookingTableInfoViewModel: ObservableObject {
 // MARK: - Networking
 extension BookingTableInfoViewModel {
     
+    // MARK: - Date Helper
+    func updateDaysForCurrentMonth() {
+        let calendar = Calendar.current
+        guard let range = calendar.range(of: .day, in: .month, for: currentMonthDate) else { return }
+        
+        let components = calendar.dateComponents([.year, .month], from: currentMonthDate)
+        guard let year = components.year, let month = components.month else { return }
+        
+        // Start of today (at 00:00:00) to ensure we include today but exclude yesterday
+        let todayStart = calendar.startOfDay(for: Date())
+        
+        var tempDays: [Date] = []
+        for day in range {
+            let dateComponents = DateComponents(year: year, month: month, day: day)
+            if let date = calendar.date(from: dateComponents) {
+                // Only add date if it is today or in the future
+                if date >= todayStart {
+                    tempDays.append(date)
+                }
+            }
+        }
+        
+        self.daysInMonth = tempDays
+    }
+
+    func changeMonth(by value: Int) {
+        let calendar = Calendar.current
+        if let newDate = calendar.date(byAdding: .month, value: value, to: currentMonthDate) {
+            currentMonthDate = newDate
+        }
+    }
+    
+    func isSelectedDate(_ date: Date) -> Bool {
+        guard let selectedDateString = selectedDate else { return false }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        if let selected = formatter.date(from: selectedDateString) {
+            return Calendar.current.isDate(date, inSameDayAs: selected)
+        }
+        return false
+    }
+
+
+    // MARK: - Networking
     func bookTable() {
         guard let selectedSlot, let selectedDate else {
             ErrorModalManager.showErrorModal(router: router, errorText: "Please select a time slot before proceeding.".localized(localizationManager.language))
@@ -203,12 +264,18 @@ extension BookingTableInfoViewModel {
         
         showLoadingIndicator = true
         Task {
+            // API Requirement: numberOfGuests should be Int.
+            // Validator rejects HH:mm:ss. Trying HH:mm based on suspicion of misleading error message.
+            let timeString = convertTo24HourFormat(selectedSlot.time) ?? ""
+            
             let parameters: [String: Any] = [
-                "numberOfGuests": "\(guestCount)",
-                "date": formatDate(selectedDate) ?? "",
-                "time": convertTo24HourFormat(selectedSlot.time) ?? "",
+                "numberOfGuests": guestCount, // Int
+                "date": selectedDate ?? "",
+                "time": timeString, // HH:mm
                 "businessProfileID": profileData.businessProfileID ?? ""
             ]
+            
+            print("📤 Booking Parameters: \(parameters)")
             
             do {
                 let result = try await dataManager.bookTable(parameters: parameters)
@@ -222,12 +289,6 @@ extension BookingTableInfoViewModel {
                     } else {
                         ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                     }
-//                    if result.status && range.contains(result.statusCode) {
-//                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-//                            guard let self else { return }
-//                            dismissScreen()
-//                        }
-//                    }
                 }
                 
             } catch {

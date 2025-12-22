@@ -1478,17 +1478,16 @@ extension UserProfileView {
         )
         .shadow(color: .black.opacity(0.3), radius: 3)
         .onTapGesture {
-            if booking == "booking" {
-                viewModel.showBookingInfoScreen()
-                
-            } else if booking == "book-table" {
-                viewModel.showBookTableScreen()
+            let businessTypeName = viewModel.profileData?.businessProfileRef?.businessTypeRef?.name?.lowercased() ?? ""
+            
+            if booking == "book-table" || businessTypeName.contains("restaurant") || businessTypeName.contains("bar") {
+                 viewModel.showBookTableScreen()
                 
             } else if booking == "book-banquet" {
                 viewModel.showBookBanquetScreen()
                 
             } else {
-                viewModel.showBookingInfoScreen()
+                 viewModel.showBookingInfoScreen()
             }
             
         }
