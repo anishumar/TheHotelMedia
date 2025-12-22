@@ -61,7 +61,9 @@ class PhoneLoginViewModel: ObservableObject {
         $selectedCountry
             .sink { [weak self] country in
                 guard let self, let country else { return }
-                self.dialCode = country.phoneCode
+                DispatchQueue.main.async {
+                    self.dialCode = country.phoneCode
+                }
             }
             .store(in: &cancellables)
     }

@@ -39,6 +39,8 @@ class CountryPickerViewCoordinator: NSObject, CountryPickerViewControllerDelegat
     }
     
     func countryPickerView(_ countryPickerView: CountryPickerView, didSelectCountry country: Country) {
-        selectedCountry = country
+        DispatchQueue.main.async {
+            self.selectedCountry = country
+        }
     }
 }

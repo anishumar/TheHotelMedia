@@ -253,12 +253,7 @@ extension OtpViewModel {
                                 return
                             }
                             
-                            ErrorModalManager.showErrorModal(router: router, errorText: result.message)
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                                guard let self else { return }
-                                showChangePasswordScreen(email: email, resetToken: resetToken)
-                            }
+                            showChangePasswordScreen(email: email, resetToken: resetToken)
                             
                         }
                     } else {
