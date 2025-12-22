@@ -1024,15 +1024,7 @@ extension UserProfileView {
                 }
                 
                 
-                if !viewModel.userIsIndividual && !viewModel.isBlockedByMe {
-                    capsuleButton(image: "BookIcon", title: "visit".localized(localizationManager.language).capitalized) {
-                        // action
-                        if let websiteURL = URL(string: viewModel.profileData?.businessProfileRef?.website ?? ""), UIApplication.shared.canOpenURL(websiteURL) {
-                            viewModel.redirectedToWebsite(id: viewModel.profileData?.businessProfileID ?? "")
-                            UIApplication.shared.open(websiteURL)
-                        }
-                    }
-                }
+
                 
 //                if viewModel.userIsIndividual || viewModel.isBlockedByMe {
 //                    capsuleButton(image: "PaperPlane", title: "share_profile".localized(localizationManager.language)) {
