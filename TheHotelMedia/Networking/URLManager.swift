@@ -385,6 +385,10 @@ extension URL {
         URL(string: "\(URL.default)/auth/social/login")!
     }
     
+    static var otpLogin: URL {
+        URL(string: "\(URL.default)/auth/otp-login")!
+    }
+    
     static var getProfessions: URL {
         URL(string: "\(URL.default)/professions")!
     }

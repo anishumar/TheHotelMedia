@@ -24,7 +24,9 @@ struct SUCountryPickerView: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: CountryPickerViewController, context: Context) {
         // Handle updates if needed, such as updating the selected country
-
+        if let country = selectedCountry {
+            uiViewController.setCountry(country)
+        }
     }
 }
 

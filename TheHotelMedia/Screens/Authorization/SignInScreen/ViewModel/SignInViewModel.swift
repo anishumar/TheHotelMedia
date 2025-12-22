@@ -48,7 +48,7 @@ final class SignInViewModel: ObservableObject {
     @ObservedObject var networkMonitor = NetworkMonitor()
     
     let googleAuthManager = GoogleAuthViewModel()
-    let facebookLoginManager = FacebookLoginViewModel()
+//    let facebookLoginManager = FacebookLoginViewModel()
     let professionManager = IndividualProfessionDataManager()
     
     let localizationManager = LocalizationManager.shared
@@ -105,6 +105,14 @@ final class SignInViewModel: ObservableObject {
     func showOtpScreen() {
         router.showScreen(.push) { router in
             OtpView(viewModel: OtpViewModel(router: router, emailID: self.emailFieldText, otpType: "email-verification"))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
+    
+    func showPhoneLoginScreen() {
+        router.showScreen(.push) { router in
+            PhoneLoginView(viewModel: PhoneLoginViewModel(router: router))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
         }
@@ -208,17 +216,17 @@ final class SignInViewModel: ObservableObject {
     }
     
     
-    func signUpWithFacebook() {
-        facebookLoginManager.logIn { [weak self] token in
-            guard let self else { return }
-            facebookSocialLogin(id: token)
-            
-        } onReceiveError: { [weak self] error in
-            guard let self else { return }
-            ErrorModalManager.showErrorModal(router: router, errorText: error.localizedDescription)
-        }
-
-    }
+//    func signUpWithFacebook() {
+//        facebookLoginManager.logIn { [weak self] token in
+//            guard let self else { return }
+//            facebookSocialLogin(id: token)
+//            
+//        } onReceiveError: { [weak self] error in
+//            guard let self else { return }
+//            ErrorModalManager.showErrorModal(router: router, errorText: error.localizedDescription)
+//        }
+//
+//    }
     
     
     func signUpWithGoogle() {
@@ -447,51 +455,51 @@ extension SignInViewModel {
     }
     
     
-    func facebookSocialLogin(id: String) {
-        
-        showLoadingIndicator = true
-        
-        Task {
-            do {
-                // Wait for FCM token before making API call
-                let notificationToken = await waitForFCMToken()
-        
-        let parameters: [String: Any] = [
-            "socialType": "facebook",
-            "token": id,
-            "deviceID": deviceIDManager.getDeviceID(),
-            "devicePlatform": "ios",
-                    "notificationToken": notificationToken,
-            "lat": latitude,
-            "lng": longitude,
-            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
-        ]
-        
-                let result = try await dataManager.socialLogin(parameters: parameters)
-                
-                await MainActor.run {
-                    let range = 200...204
-                    
-                    if let status = result.status,
-                       let statusCode = result.statusCode {
-                        
-                        if status && range.contains(statusCode) {
-                            handleLoginResponse(response: result)
-                        } else {
-                            ErrorModalManager.showErrorModal(router: router, errorText: result.message ?? "")
-                        }
-                    }
-                    
-                    showLoadingIndicator = false
-                }
-            } catch {
-                print(error)
-                await MainActor.run {
-                    showLoadingIndicator = false
-                }
-            }
-        }
-    }
+//    func facebookSocialLogin(id: String) {
+//        
+//        showLoadingIndicator = true
+//        
+//        Task {
+//            do {
+//                // Wait for FCM token before making API call
+//                let notificationToken = await waitForFCMToken()
+//        
+//        let parameters: [String: Any] = [
+//            "socialType": "facebook",
+//            "token": id,
+//            "deviceID": deviceIDManager.getDeviceID(),
+//            "devicePlatform": "ios",
+//                    "notificationToken": notificationToken,
+//            "lat": latitude,
+//            "lng": longitude,
+//            "language": LocalizationManager.shared.language.rawValue.replacingOccurrences(of: "-IN", with: "")
+//        ]
+//        
+//                let result = try await dataManager.socialLogin(parameters: parameters)
+//                
+//                await MainActor.run {
+//                    let range = 200...204
+//                    
+//                    if let status = result.status,
+//                       let statusCode = result.statusCode {
+//                        
+//                        if status && range.contains(statusCode) {
+//                            handleLoginResponse(response: result)
+//                        } else {
+//                            ErrorModalManager.showErrorModal(router: router, errorText: result.message ?? "")
+//                        }
+//                    }
+//                    
+//                    showLoadingIndicator = false
+//                }
+//            } catch {
+//                print(error)
+//                await MainActor.run {
+//                    showLoadingIndicator = false
+//                }
+//            }
+//        }
+//    }
     
     
     func appleSocialLogin(idToken: String, name: String? = nil, email: String? = nil) {

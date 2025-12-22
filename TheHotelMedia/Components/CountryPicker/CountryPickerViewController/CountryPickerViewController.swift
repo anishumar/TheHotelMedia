@@ -27,11 +27,22 @@ class CountryPickerViewController: UIViewController {
     private func loadCountryPickerView() {
         countryPickerView = CountryPickerView()
         countryPickerView.delegate = self
+        countryPickerView.showCountryCodeInView = false
+        countryPickerView.showPhoneCodeInView = true
+        self.view.addSubview(countryPickerView)
+        
+        countryPickerView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            countryPickerView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            countryPickerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            countryPickerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            countryPickerView.heightAnchor.constraint(equalToConstant: 50)
+        ])
     }
     
     private func configureTapGesture() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(showCountriesList))
-        view.addGestureRecognizer(tap)
+       // let tap = UITapGestureRecognizer(target: self, action: #selector(showCountriesList))
+       // view.addGestureRecognizer(tap)
     }
     
     @objc func showCountriesList() {
@@ -44,5 +55,11 @@ class CountryPickerViewController: UIViewController {
 extension CountryPickerViewController: CountryPickerViewDelegate {
     func countryPickerView(_ countryPickerView: CountryPickerView, didSelectCountry country: Country) {
         delegate?.countryPickerView(countryPickerView, didSelectCountry: country)
+    }
+}
+
+extension CountryPickerViewController {
+    func setCountry(_ country: Country) {
+        countryPickerView.setCountryByCode(country.code)
     }
 }

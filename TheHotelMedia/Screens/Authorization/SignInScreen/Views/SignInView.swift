@@ -386,18 +386,40 @@ extension SignInView {
     
     private var socialButtonSection: some View {
         HStack(spacing: 32) {
-            Button(action: {
-                viewModel.signUpWithFacebook()
-                
-            }, label: {
-                SocialLoginButton(icon: "FacebookIcon")
-                    .frame(width: 48, height: 48)
-            })
+//            Button(action: {
+//                viewModel.signUpWithFacebook()
+//                
+//            }, label: {
+//                SocialLoginButton(icon: "FacebookIcon")
+//                    .frame(width: 48, height: 48)
+//            })
             Button(action: {
                 viewModel.signUpWithGoogle()
             }, label: {
                 SocialLoginButton(icon: "GoogleIcon")
                     .frame(width: 48, height: 48)
+            })
+            
+            Button(action: {
+                viewModel.showPhoneLoginScreen()
+            }, label: {
+                ZStack {
+                    Circle()
+                        .fill(themeManager.currentTheme.darkGray_hmIndigo03)
+                        .frame(width: 48)
+                    
+                    Circle()
+                        .stroke(lineWidth: 1)
+                        .fill(Color.hmIndigo)
+                        .frame(width: 48)
+                    
+                    Image(systemName: "phone.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
+                        .foregroundColor(themeManager.currentTheme.label)
+                }
+                .frame(width: 48, height: 48)
             })
             
             ZStack {

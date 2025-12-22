@@ -14,7 +14,7 @@ import FirebaseAuth
 import GoogleSignIn
 import UserNotifications
 import AVFoundation
-import FacebookLogin
+//import FacebookLogin
 
 
 
@@ -98,10 +98,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
             SocketIOViewModel.shared.configureSocket()
         }
         
-        ApplicationDelegate.shared.application(
-            application,
-            didFinishLaunchingWithOptions: launchOptions
-        )
+//        ApplicationDelegate.shared.application(
+//            application,
+//            didFinishLaunchingWithOptions: launchOptions
+//        )
         
         #if targetEnvironment(simulator)
         // Disable reCAPTCHA verification for Simulator testing
@@ -128,12 +128,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
             return true
         }
         
-        return ApplicationDelegate.shared.application(
-            app,
-            open: url,
-            sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
-            annotation: options[UIApplication.OpenURLOptionsKey.annotation]
-        )
+//        return ApplicationDelegate.shared.application(
+//            app,
+//            open: url,
+//            sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
+//            annotation: options[UIApplication.OpenURLOptionsKey.annotation]
+//        )
+        return false
     }
     
     
@@ -142,12 +143,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
             return
         }
         
-        ApplicationDelegate.shared.application(
-            UIApplication.shared,
-            open: url,
-            sourceApplication: nil,
-            annotation: [UIApplication.OpenURLOptionsKey.annotation]
-        )
+//        ApplicationDelegate.shared.application(
+//            UIApplication.shared,
+//            open: url,
+//            sourceApplication: nil,
+//            annotation: [UIApplication.OpenURLOptionsKey.annotation]
+//        )
     }
     
     

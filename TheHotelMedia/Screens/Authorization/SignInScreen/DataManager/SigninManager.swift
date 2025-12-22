@@ -34,4 +34,10 @@ class SigninManager {
         
         return result
     }
+    
+    func otpLogin(parameters: [String: Any]) async throws -> LoginResponse {
+        let resource = Resource<LoginResponse>(url: .otpLogin, method: .post(parameters))
+        let result = try await baseNetworkManager.load(resource)
+        return result
+    }
 }

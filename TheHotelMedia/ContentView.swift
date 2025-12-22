@@ -7,7 +7,7 @@
 
 import SwiftUI
 import SwiftfulRouting
-import FacebookLogin
+//import FacebookLogin
 
 struct ContentView: View {
     
@@ -50,11 +50,11 @@ struct ContentView: View {
                                     SignInView(viewModel: SignInViewModel(router: router))
                                         .environmentObject(themeManager)
                                         .navigationBarBackButtonHidden()
-                                        .onOpenURL { url in
-                                            ApplicationDelegate.shared.application(UIApplication.shared,
-                                                                                   open: url,sourceApplication: nil,
-                                                                                   annotation: UIApplication.OpenURLOptionsKey.annotation)
-                                        }
+//                                        .onOpenURL { url in
+//                                            ApplicationDelegate.shared.application(UIApplication.shared,
+//                                                                                   open: url,sourceApplication: nil,
+//                                                                                   annotation: UIApplication.OpenURLOptionsKey.annotation)
+//                                        }
                                 }
                             }
                             .transition(.move(edge: .trailing))
