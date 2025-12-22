@@ -7,6 +7,9 @@
 
 import UIKit
 import SwiftUI
+import FirebaseAuth
+import FacebookLogin
+import GoogleSignIn
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -57,5 +60,29 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         
     }
-}
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        
+        print("🔗 SceneDelegate received URL: \(url.absoluteString)")
+        
+        // Prioritize Firebase Auth handling
+        if Auth.auth().canHandle(url) {
+            print("✅ Firebase Auth handled the URL")
+            return
+        }
+        
+        if GIDSignIn.sharedInstance.handle(url) {
+            print("✅ Google Sign-In handled the URL")
+            return
+        }
+        
+        ApplicationDelegate.shared.application(
+            UIApplication.shared,
+            open: url,
+            sourceApplication: nil,
+            annotation: [UIApplication.OpenURLOptionsKey.annotation]
+        )
+    }
 

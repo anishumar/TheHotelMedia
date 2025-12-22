@@ -25,7 +25,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.156125638721-eeh3s3mk2te4g38d3emuif6mqnlb7e15</string>
+				<string>com.googleusercontent.apps.863883177284-5do9l5hnsi0101qpi663mfrbbdu98rn6</string>
 			</array>
 		</dict>
 		<dict>
@@ -86,7 +86,7 @@
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>GIDClientID</key>
-	<string>156125638721-eeh3s3mk2te4g38d3emuif6mqnlb7e15.apps.googleusercontent.com</string>
+	<string>863883177284-5do9l5hnsi0101qpi663mfrbbdu98rn6.apps.googleusercontent.com</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>fbapi</string>

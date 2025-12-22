@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 import SwiftfulRouting
 import CountryPickerView
+import FirebaseAuth
 
 
 class RoomDetailViewModel: ObservableObject {
@@ -48,6 +49,9 @@ class RoomDetailViewModel: ObservableObject {
     
     @AppStorage("phoneNumber") var phoneNumber: String = ""
     @AppStorage("dialCode") var dialCode: String = ""
+    
+    
+    @AppStorage("verificationID") var currentVerificationID: String = ""
     
     init(router: AnyRouter, profileData: ProfileData, bookingDetail: BookingDetail, checkInData: CheckInData, roomID: String, isPresentedAsSheet: Bool = false, roomPricePerNight: Double) {
         self.router = router
@@ -247,36 +251,31 @@ extension RoomDetailViewModel {
         
         showLoadingIndicator = true
         
-        let parameters: [String: Any] = [
-            "dialCode": toVerifyDialCode,
-            "phoneNumber": toVerifyPhoneNumber
-        ]
+        let phoneNumber = toVerifyDialCode + toVerifyPhoneNumber
+        print("📱 Requesting OTP for number: \(phoneNumber)")
         
-        Task {
-            do {
-                let result = try await verifyDataManager.requestOtp(parameters: parameters)
+        PhoneAuthProvider.provider().verifyPhoneNumber(phoneNumber, uiDelegate: nil) { [weak self] verificationID, error in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.showLoadingIndicator = false
                 
-                await MainActor.run {
-                    showLoadingIndicator = false
-                    let range = 200...204
-                    if result.status && range.contains(result.statusCode) {
-                        if !resend {
-                            withAnimation(.easeInOut) {
-                                showContactModal = false
-                                showVerifyModal = true
-                            }
-                        } else {
-                            ErrorModalManager.showErrorModal(router: router, errorText: result.message)
-                        }
-                    } else {
-                        ErrorModalManager.showErrorModal(router: router, errorText: result.message)
-                    }
-                    
+                if let error = error {
+                    ErrorModalManager.showErrorModal(router: self.router, errorText: error.localizedDescription)
+                    return
                 }
                 
-            } catch {
-                await MainActor.run {
-                    showLoadingIndicator = false
+                if let verificationID = verificationID {
+                    self.currentVerificationID = verificationID
+                    
+                    if !resend {
+                        withAnimation(.easeInOut) {
+                            self.showContactModal = false
+                            self.showVerifyModal = true
+                        }
+                    } else {
+                        // Optional: Show "OTP Resent" toast/alert
+                    }
                 }
             }
         }
@@ -284,45 +283,44 @@ extension RoomDetailViewModel {
     
     
     func verifyOtp() {
-        guard otpFieldText.count >= 5 else {
-            ErrorModalManager.showErrorModal(router: router, errorText: "Please enter the full OTP sent to your mobile number.")
+        guard otpFieldText.count >= 6 else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Please enter the full 6-digit OTP.")
             return
         }
         
         showLoadingIndicator = true
         
+        let credential = PhoneAuthProvider.provider().credential(
+            withVerificationID: currentVerificationID,
+            verificationCode: otpFieldText
+        )
+        
         let dialCode = toVerifyDialCode
         let phoneNumber = toVerifyPhoneNumber
         
-        let parameters: [String: Any] = [
-            "dialCode": toVerifyDialCode,
-            "phoneNumber": toVerifyPhoneNumber,
-            "otp": otpFieldText
-        ]
-        
-        Task {
-            do {
-                let result = try await verifyDataManager.verifyOtp(parameters: parameters)
+        Auth.auth().signIn(with: credential) { [weak self] authResult, error in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.showLoadingIndicator = false
                 
-                await MainActor.run {
-                    showLoadingIndicator = false
-                    let range = 200...204
-                    if result.status && range.contains(result.statusCode) {
-                        showVerifyModal = false
-                        self.phoneNumber = phoneNumber
-                        self.dialCode = dialCode
-                        checkInData.user?.mobileVerified = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-                            guard let self else { return }
-                            showCheckoutScreen()
-                        }
-                    }
-                    ErrorModalManager.showErrorModal(router: router, errorText: result.message)
-                    
+                if let error = error {
+                    ErrorModalManager.showErrorModal(router: self.router, errorText: error.localizedDescription)
+                    print(error.localizedDescription)
+                    return
                 }
-            } catch {
-                await MainActor.run {
-                    showLoadingIndicator = false
+                
+                // User is signed in
+                // Sign out immediately as we only needed verification
+                try? Auth.auth().signOut()
+                
+                self.showVerifyModal = false
+                self.phoneNumber = phoneNumber
+                self.dialCode = dialCode
+                self.checkInData.user?.mobileVerified = true
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.showCheckoutScreen()
                 }
             }
         }

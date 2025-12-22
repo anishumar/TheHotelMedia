@@ -10,6 +10,7 @@ import GooglePlaces
 import GoogleMaps
 import FirebaseCore
 import FirebaseMessaging
+import FirebaseAuth
 import GoogleSignIn
 import UserNotifications
 import AVFoundation
@@ -102,6 +103,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
             didFinishLaunchingWithOptions: launchOptions
         )
         
+        #if targetEnvironment(simulator)
+        // Disable reCAPTCHA verification for Simulator testing
+        Auth.auth().settings?.isAppVerificationDisabledForTesting = true
+        print("⚠️ Firebase App Verification disabled for Simulator")
+        #endif
         
         return true
     }
@@ -112,6 +118,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey : Any] = [:]
     ) -> Bool {
+        // Prioritize Firebase Auth handling
+        if Auth.auth().canHandle(url) {
+            print("✅ Firebase Auth handled the URL in AppDelegate")
+            return true
+        }
+        
         if GIDSignIn.sharedInstance.handle(url) {
             return true
         }
@@ -175,6 +187,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         Messaging.messaging().apnsToken = deviceToken
+        Auth.auth().setAPNSToken(deviceToken, type: .unknown)
         print("✅ APNS Token registered, requesting FCM token...")
         
         // Request FCM token after APNS token is set
@@ -217,6 +230,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
                      fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        if Auth.auth().canHandleNotification(userInfo) {
+            completionHandler(.noData)
+            return
+        }
         
         print(userInfo)
         if let type = userInfo["screen"] as? String {
