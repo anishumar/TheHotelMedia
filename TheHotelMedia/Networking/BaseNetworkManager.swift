@@ -778,24 +778,11 @@ class BaseNetworkManager {
                 "x-access-token": accessToken
             ]
             
-            var updatedMediaAttachments: [MediaAttachment] = []
-            
-            for attachment in attachments {
-                switch attachment.type {
-                case .video(_ , let videoURL):
-                    if let newvideoURL = try? await encodeVideo(at: videoURL) {
-                        updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .video(attachment.thumbnail, newvideoURL)))
-                    }
-                    
-                case .photo(let image):
-                    updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .photo(image)))
-                }
-            }
-            
+            // Skip video encoding - upload directly like posts do
             request = session.upload(multipartFormData: { [weak self] multipartFormData in
                 guard let self else { return }
                 
-                for attachment in updatedMediaAttachments {
+                for attachment in attachments {
                     switch attachment.type {
                     case .photo(let image):
                         if let imageData = image.jpegData(compressionQuality: 0.8) {
@@ -804,6 +791,7 @@ class BaseNetworkManager {
                     case .video( _, let videoURL):
                         if let videoData = try? Data(contentsOf: videoURL) {
                             if let mimeType = self.mimeType(for: videoURL) {
+                                print("📹 Uploading video: \(videoURL.lastPathComponent), MIME: \(mimeType)")
                                 multipartFormData.append(videoData, withName: "videos", fileName: videoURL.lastPathComponent, mimeType: mimeType)
                             }
                         }

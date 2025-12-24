@@ -62,6 +62,7 @@
 		0445BB042C609EE700FF2085 /* RandomProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB032C609EE700FF2085 /* RandomProfile.swift */; };
 		0445BB072C60A69E00FF2085 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB062C60A69E00FF2085 /* SDWebImageSwiftUI */; };
 		0445BB0A2C60E93C00FF2085 /* CreatePostScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */; };
+		304FE51965F69413979E2540 /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304FE519650DFA08811045D7 /* CameraView.swift */; };
 		0445BB102C61075C00FF2085 /* Flow in Frameworks */ = {isa = PBXBuildFile; productRef = 0445BB0F2C61075C00FF2085 /* Flow */; };
 		044C2D662D37C9450078843F /* SuggestionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044C2D652D37C9450078843F /* SuggestionListView.swift */; };
 		044E3AD72C9C010200C29D32 /* SelectOptionModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044E3AD62C9C010200C29D32 /* SelectOptionModal.swift */; };
@@ -711,6 +712,7 @@
 		04442A192C745742004E676C /* UserProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewModel.swift; sourceTree = "<group>"; };
 		0445BB032C609EE700FF2085 /* RandomProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomProfile.swift; sourceTree = "<group>"; };
 		0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePostScreen.swift; sourceTree = "<group>"; };
+		304FE519650DFA08811045D7 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		044C2D652D37C9450078843F /* SuggestionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionListView.swift; sourceTree = "<group>"; };
 		044E3AD62C9C010200C29D32 /* SelectOptionModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectOptionModal.swift; sourceTree = "<group>"; };
 		044E3ADA2C9C2D2100C29D32 /* BaseNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseNetworkManager.swift; sourceTree = "<group>"; };
@@ -3746,6 +3748,7 @@
 			isa = PBXGroup;
 			children = (
 				0445BB092C60E93C00FF2085 /* CreatePostScreen.swift */,
+				304FE519650DFA08811045D7 /* CameraView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -5177,6 +5180,7 @@
 				04AA97A42CE315AD00696EF9 /* DeleteStoryResponse.swift in Sources */,
 				04F26A2E2CB7F09E00EA681E /* DateManager.swift in Sources */,
 				0445BB0A2C60E93C00FF2085 /* CreatePostScreen.swift in Sources */,
+				304FE51965F69413979E2540 /* CameraView.swift in Sources */,
 				04EDIT012E00000700AA1234 /* EditPostScreen.swift in Sources */,
 				04D004E42C53D3DE009F3976 /* SocialLoginButton.swift in Sources */,
 				04E892232D672C1B005B458E /* CheckInResponse.swift in Sources */,
@@ -5554,6 +5558,7 @@
 				88B000042D159999003208B3 /* StoryTaggedUsersViewModel.swift in Sources */,
 				346414D485E4C33E3A9A814D /* PhoneLoginViewModel.swift in Sources */,
 				C87B4976557287DC4E921D8D /* PhoneLoginView.swift in Sources */,
+				8930B6C2FB4A2B257ED05828 /* CameraView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

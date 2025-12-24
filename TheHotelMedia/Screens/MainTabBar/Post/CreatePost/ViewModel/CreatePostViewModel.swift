@@ -45,6 +45,7 @@ final class CreatePostViewModel: ObservableObject {
     @Published var showPicker = false
     @Published var feeling: Feeling?
     @Published var showCameraPicker: Bool = false
+    @Published var showCustomCamera: Bool = false
     @Published var showLoadingAnimation: Bool = false
     @Published var postUploaded: Bool = false
     @Published var messageText: String = ""
@@ -306,6 +307,7 @@ final class CreatePostViewModel: ObservableObject {
     }
     
     
+    
     func showBottomAlert(message: String) {
         router.showModal(transition: .move(edge: .bottom)) {
             BottomAlert(message: message)
@@ -314,6 +316,17 @@ final class CreatePostViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5 ) {
             self.router.dismissModal()
         }
+    }
+    
+    
+    // MARK: - Custom Camera Handlers
+    
+    func handleCameraPhoto(_ image: UIImage) {
+        selectedImage = image
+    }
+    
+    func handleCameraVideo(_ url: URL) {
+        selectedVideoUrl = url
     }
 }
 

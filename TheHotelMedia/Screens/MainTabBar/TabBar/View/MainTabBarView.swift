@@ -128,8 +128,17 @@ struct MainTabBarView: View {
                         selection: $viewModel.photoPickerItems,
                         maxSelectionCount: 1
                     )
-                    .fullScreenCover(isPresented: $viewModel.shouldPresentCamera) {
-                        SUImagePickerView(sourceType: .camera, image: $viewModel.selectedStoryImage, isPresented: $viewModel.shouldPresentCamera)
+                    .fullScreenCover(isPresented: $viewModel.showStoryCameraView) {
+                        CameraView(
+                            isPresented: $viewModel.showStoryCameraView,
+                            onPhotoCaptured: { image in
+                                viewModel.handleStoryCameraPhoto(image)
+                            },
+                            onVideoCaptured: { url in
+                                viewModel.handleStoryCameraVideo(url)
+                            }
+                        )
+                        .environmentObject(themeManager)
                     }
             }
         }
@@ -257,7 +266,7 @@ struct MainTabBarView: View {
                         withAnimation(.easeInOut(duration: 0.1)) {
                             viewModel.showDialogBox.toggle()
                         }
-                        viewModel.shouldPresentCamera.toggle()
+                        viewModel.showStoryCameraView.toggle()
                     } onRightButtonPressed: {
                         withAnimation(.easeInOut(duration: 0.1)) {
                             viewModel.showDialogBox.toggle()
@@ -434,7 +443,7 @@ extension MainTabBarView {
             }, onOpenCamera: {
                 viewModel.createPostOn = false
                 viewModel.showDialogBox = false
-                viewModel.shouldPresentCamera = true
+                viewModel.showStoryCameraView = true
             }, onScrollChange: { isScrolling in
                 viewModel.isScrolling.send(isScrolling)
             })

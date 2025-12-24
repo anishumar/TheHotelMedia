@@ -10,6 +10,7 @@ import SwiftfulRouting
 import Combine
 import PhotosUI
 import Mantis
+import UserNotifications
 
 
 enum ChatNavigationSource {
@@ -35,6 +36,7 @@ final class MainTabBarViewModel: ObservableObject {
     @Published var hideTabBar: Bool = false
     @Published var hasSafeArea: Bool = false
     @Published var shouldPresentCamera: Bool = false
+    @Published var showStoryCameraView: Bool = false
     @Published var shouldPresentImagePicker: Bool = false
     @Published var showDialogBox: Bool = false
     @Published var selectedStoryImage: Image? = nil
@@ -194,7 +196,14 @@ final class MainTabBarViewModel: ObservableObject {
         $trimmedStoryVideo
             .sink { [weak self] videoURL in
                 guard let self else { return }
-                postStory(videoURL: videoURL)
+                if let videoURL {
+                    print("📹 trimmedStoryVideo set to: \(videoURL)")
+                    postStory(videoURL: videoURL)
+                    // Reset to prevent duplicate uploads
+                    DispatchQueue.main.async {
+                        self.trimmedStoryVideo = nil
+                    }
+                }
             }
             .store(in: &cancellables)
 
@@ -354,6 +363,23 @@ final class MainTabBarViewModel: ObservableObject {
             }
         }
     }
+    
+    // MARK: - Camera Handlers
+    
+    /// Handle photo captured from camera for story
+    func handleStoryCameraPhoto(_ image: UIImage) {
+        selectedStoryImage2 = image
+        showStoryCameraView = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            self.showCropView.toggle()
+        }
+    }
+    
+    /// Handle video captured from camera for story
+    func handleStoryCameraVideo(_ url: URL) {
+        selectedStoryVideo = url
+        showStoryCameraView = false
+    }
 }
 
 
@@ -366,59 +392,127 @@ extension MainTabBarViewModel {
             
             isUploadingStory = true
             
+            // Send "Upload in Progress" notification
+            sendStoryUploadNotification(isInProgress: true)
+            
             Task {
+                defer {
+                    Task { @MainActor in
+                        self.isUploadingStory = false
+                    }
+                }
+                
                 do {
                     let parameters: [String: Any] = ["mentions": mentions]
                     let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
-                        isUploadingStory = false
                         let range = 200...204
                         
                         if result.status && range.contains(result.statusCode) {
+                            print("✅ Image story uploaded successfully")
                             uploadedStory = true
+                            // Send "Upload Successful" notification
+                            sendStoryUploadNotification(isInProgress: false, success: true)
                         } else {
+                            print("❌ Image story upload failed: \(result.message)")
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                         }
                     }
                     
                 } catch {
                     await MainActor.run {
-                        isUploadingStory = false
                         let errorMessage = getStoryUploadErrorMessage(from: error)
+                        print("❌ Image story upload error: \(errorMessage)")
                         ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                     }
                 }
             }
         } else if let videoURL {
+            print("📹 postStory called with videoURL: \(videoURL)")
             let media = MediaAttachment(id: UUID().uuidString, type: .video(UIImage(), videoURL))
             
             isUploadingStory = true
             
+            // Send "Upload in Progress" notification
+            sendStoryUploadNotification(isInProgress: true)
+            
+            // Failsafe: Force reset loading state after 10 seconds
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                if self.isUploadingStory {
+                    print("⚠️ Failsafe triggered: Force resetting loading state after 10 seconds")
+                    self.isUploadingStory = false
+                    ErrorModalManager.showErrorModal(router: self.router, errorText: "Upload is taking too long. Please try again with a smaller video or check your connection.")
+                }
+            }
+            
             Task {
+                defer {
+                    Task { @MainActor in
+                        self.isUploadingStory = false
+                        print("🔄 isUploadingStory set to false")
+                    }
+                }
+                
                 do {
+                    print("⏳ Starting video upload...")
                     let parameters: [String: Any] = ["mentions": mentions]
-                    let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
+                    
+                    // Add timeout to prevent infinite hanging
+                    let result = try await withTimeout(seconds: 60) {
+                        try await self.storyDataManager.postStory(attachments: [media], parameters: parameters)
+                    }
+                    
+                    print("📦 Received response from server")
                     
                     await MainActor.run {
-                        isUploadingStory = false
                         let range = 200...204
                         
                         if result.status && range.contains(result.statusCode) {
+                            print("✅ Video story uploaded successfully")
                             uploadedStory = true
+                            // Send "Upload Successful" notification
+                            sendStoryUploadNotification(isInProgress: false, success: true)
                         } else {
+                            print("❌ Video story upload failed: \(result.message)")
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                         }
                     }
                     
+                } catch is TimeoutError {
+                    print("⏱️ Video upload timed out after 60 seconds")
+                    await MainActor.run {
+                        ErrorModalManager.showErrorModal(router: router, errorText: "Upload timed out. Please check your connection and try again.")
+                    }
                 } catch {
                     await MainActor.run {
-                        isUploadingStory = false
                         let errorMessage = getStoryUploadErrorMessage(from: error)
+                        print("❌ Video story upload error: \(errorMessage)")
                         ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                     }
                 }
             }
+        } else {
+            print("⚠️ postStory called with nil image and videoURL")
+        }
+    }
+    
+    // Timeout helper
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+            
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw TimeoutError()
+            }
+            
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
         }
     }
     
@@ -520,6 +614,32 @@ extension MainTabBarViewModel {
             }
         }
     }
+    
+    // MARK: - Push Notifications
+    
+    /// Send iOS local push notification for story upload progress
+    private func sendStoryUploadNotification(isInProgress: Bool, success: Bool? = nil, errorMessage: String? = nil) {
+        let content = UNMutableNotificationContent()
+        
+        if isInProgress {
+            content.title = "Upload in Progress"
+            content.body = "Your upload is ongoing."
+        } else if let success = success, success {
+            content.title = "Upload Successful"
+            content.body = "Your story has been uploaded successfully."
+        } else {
+            content.title = "⚠️ Upload Failed"
+            content.body = errorMessage ?? "Something went wrong while uploading your story."
+        }
+        
+        let request = UNNotificationRequest(identifier: "storyUploadNotification", content: content, trigger: nil)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Story upload notification failed with error: \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
 
@@ -528,3 +648,5 @@ extension Notification.Name {
     static let isScrolling = Notification.Name("isScrolling")
     static let navigateTo = Notification.Name("navigateTo")
 }
+
+struct TimeoutError: Error {}

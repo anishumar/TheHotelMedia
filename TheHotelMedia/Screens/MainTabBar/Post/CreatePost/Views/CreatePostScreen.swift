@@ -631,11 +631,20 @@ struct CreatePostScreen: View {
                             }
                             
                         customButton(icon: themeManager.currentTheme.CameraIcon2, title: "camera".localized(localizationManager.language))
-                            .fullScreenCover(isPresented: $viewModel.showCameraPicker) {
-                                SUImagePickerView(sourceType: .camera, image: $viewModel.selectedCameraImage, isPresented: $viewModel.showCameraPicker)
+                            .fullScreenCover(isPresented: $viewModel.showCustomCamera) {
+                                CameraView(
+                                    isPresented: $viewModel.showCustomCamera,
+                                    onPhotoCaptured: { image in
+                                        viewModel.handleCameraPhoto(image)
+                                    },
+                                    onVideoCaptured: { url in
+                                        viewModel.handleCameraVideo(url)
+                                    }
+                                )
+                                .environmentObject(themeManager)
                             }
                             .onTapGesture {
-                                viewModel.showCameraPicker.toggle()
+                                viewModel.showCustomCamera.toggle()
                             }
                         
                     }
