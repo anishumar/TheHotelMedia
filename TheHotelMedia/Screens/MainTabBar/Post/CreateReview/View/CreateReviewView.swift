@@ -251,8 +251,10 @@ extension CreateReviewView {
         HStack {
             Image(icon)
                 .resizable()
+                .renderingMode(.template)
                 .scaledToFit()
                 .frame(width: 32, height: 32)
+                .foregroundColor(.hmIndigo)
             Text(title)
                 .font(.custom(Constants.comicFont, size: 13))
                 .foregroundColor(themeManager.currentTheme.white08_darkGray08)
@@ -485,8 +487,10 @@ extension CreateReviewView {
             HStack {
                 Image(themeManager.currentTheme.CheckIn)
                     .resizable()
+                    .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 32, height: 32)
+                    .foregroundColor(.hmIndigo)
                     .padding(.leading, 8)
                 
                 Text("check_in".localized(localizationManager.language))

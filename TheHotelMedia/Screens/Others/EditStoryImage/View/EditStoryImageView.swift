@@ -359,7 +359,7 @@ extension EditStoryVideoView {
         return VStack {
             Text("@\(box.username)")
                 .font(.custom(Constants.comicBold, size: 20))
-                .foregroundColor(.blue)
+                .foregroundColor(.hmIndigo)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(
@@ -447,9 +447,11 @@ extension EditStoryVideoView {
     private func editStoryVideoButton(type: EditButton, action: (() -> Void)? = nil ) -> some View {
         VStack(spacing: 4) {
             if type == .tag {
-                Image(systemName: "person.crop.circle.badge.plus")
+                Image(themeManager.currentTheme.TagIcon)
+                    .resizable()
                     .renderingMode(.template)
-                    .font(.system(size: 26))
+                    .scaledToFit()
+                    .frame(width: 26, height: 26)
                     .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
             } else {
                 Image(type.rawValue.capitalized)
@@ -967,9 +969,11 @@ extension EditStoryImageView {
     private func bottomButton(type: EditButton, action: (() -> Void)? = nil ) -> some View {
         VStack(spacing: 4) {
             if type == .tag {
-                Image(systemName: "person.crop.circle.badge.plus")
+                Image(themeManager.currentTheme.TagIcon)
+                    .resizable()
                     .renderingMode(.template)
-                    .font(.system(size: 26))
+                    .scaledToFit()
+                    .frame(width: 26, height: 26)
                     .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
             } else {
                 Image(type.rawValue.capitalized)
@@ -1016,7 +1020,7 @@ extension EditStoryImageView {
         return VStack {
             Text("@\(box.username)")
                 .font(.custom(Constants.comicBold, size: 20)) // Fixed size for now, scaled by scaleEffect
-                .foregroundColor(.blue)
+                .foregroundColor(.hmIndigo)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(

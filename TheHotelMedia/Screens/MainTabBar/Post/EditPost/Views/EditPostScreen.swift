@@ -206,15 +206,18 @@ extension EditPostScreen {
             if let icon {
                 Image(icon)
                     .resizable()
+                    .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 32, height: 32)
+                    .foregroundColor(.hmIndigo)
                     .padding(.leading, 8)
             } else if let systemIcon {
                 Image(systemName: systemIcon)
                     .resizable()
+                    .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 26, height: 26)
-                    .foregroundColor(themeManager.currentTheme.white08_darkGray08)
+                    .foregroundColor(.hmIndigo)
                     .padding(.leading, 12)
             }
             Text(title)
