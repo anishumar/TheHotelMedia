@@ -344,7 +344,8 @@ extension THMStoryDetailView2 {
     
     private func storyVideoView(urlString: String) -> some View {
         VStack {
-            if let url = URL(string: urlString) {
+            if let encodedUrlString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+               let url = URL(string: encodedUrlString) {
                 CustomVideoPlayer(player: player, contentMode: .resizeAspect, backgroundColor: UIColor(themeManager.currentTheme.backgroundColor)) {
                     player.play()
                 } onTimeControlStatusChange: { status in
@@ -377,12 +378,18 @@ extension THMStoryDetailView2 {
                 .onAppear {
                     let playerItem = AVPlayerItem(url: url)
                     player = AVPlayer(playerItem: playerItem)
-//                    player.automaticallyWaitsToMinimizeStalling = false
+                    player.automaticallyWaitsToMinimizeStalling = false
                     updateStoryView()
                 }
                 .onDisappear {
                     player = AVPlayer()
                 }
+            } else {
+                Text("Error: Invalid Video URL")
+                    .foregroundColor(.white)
+                    .onAppear {
+                        print("❌ Invalid Story Video URL: \(urlString)")
+                    }
             }
         }
     }

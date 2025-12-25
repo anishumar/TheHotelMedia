@@ -180,11 +180,24 @@ final class MainTabBarViewModel: ObservableObject {
             .sink { [weak self] url in
                 guard let self else { return }
                 if let url {
+                    print("🎬 [MainTabBarViewModel] Presenting VideoEditorView for URL: \(url)")
                     router.showScreen(.fullScreenCover) { router in
-                        VideoEditorView(videoURL: url, limit: 30) { [weak self] editedVideoURL in
+                        VideoEditorView(videoURL: url, limit: self.videoLimit) { [weak self] (editedVideoURL: URL?) in
                             guard let self else { return }
-                            trimmedStoryVideo = editedVideoURL
-                            hasSelectedSomeMedia = false
+                            print("✅ [MainTabBarViewModel] VideoEditorView completed. Edited URL: \(String(describing: editedVideoURL))")
+                            
+                            // Ensure progress indicator is off
+                            self.hasSelectedSomeMedia = false
+                            
+                            if let editedVideoURL {
+                                // Increased delay to ensure full dismissal of the cover before pushing
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                    print("🚀 [MainTabBarViewModel] Proceeding to showCreateStoryVideoScreen")
+                                    self.showCreateStoryVideoScreen(videoURL: editedVideoURL)
+                                }
+                            } else {
+                                print("ℹ️ [MainTabBarViewModel] No video URL returned, likely cancelled.")
+                            }
                         }
                     }
                 }
@@ -194,7 +207,8 @@ final class MainTabBarViewModel: ObservableObject {
         $trimmedStoryVideo
             .sink { [weak self] videoURL in
                 guard let self else { return }
-                postStory(videoURL: videoURL)
+                // This is now handled via showCreateStoryVideoScreen flow
+                // postStory(videoURL: videoURL) 
             }
             .store(in: &cancellables)
 
@@ -267,6 +281,21 @@ final class MainTabBarViewModel: ObservableObject {
 
             })
             .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
+    
+    func showCreateStoryVideoScreen(videoURL: URL) {
+        router.showScreen(.push) { router in
+            EditStoryVideoView(viewModel: EditStoryVideoViewModel(router: router, videoURL: videoURL), returnedVideo: { [weak self] (editedVideoURL: URL, mentions: [String]) in
+                guard let self else { return }
+                postStory(videoURL: editedVideoURL, mentions: mentions)
+            }, onDismissed: {
+                
+            })
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
             .navigationBarBackButtonHidden()
         }
     }

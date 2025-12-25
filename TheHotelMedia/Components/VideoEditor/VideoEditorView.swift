@@ -153,11 +153,28 @@ private struct VideoPreviewFallbackView: View {
             }
         }
         .onAppear {
+            print("🎬 [VideoEditorView] Fallback player appearing for URL: \(videoURL)")
+            
+            // Check file existence one more time
+            if !FileManager.default.fileExists(atPath: videoURL.path) {
+                print("❌ [VideoEditorView] Error: File does NOT exist at path when trying to play: \(videoURL.path)")
+            }
+            
             let item = AVPlayerItem(url: videoURL)
             player = AVPlayer(playerItem: item)
+            
+            // Observe failure
+            NotificationCenter.default.addObserver(forName: .AVPlayerItemFailedToPlayToEndTime, object: item, queue: .main) { notification in
+                if let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error {
+                    print("❌ [VideoEditorView] Fallback player item failed: \(error.localizedDescription)")
+                }
+            }
+            
             player?.play()
+            print("▶️ [VideoEditorView] Fallback player told to play")
         }
         .onDisappear {
+            print("⏹️ [VideoEditorView] Fallback player disappearing")
             player?.pause()
         }
     }

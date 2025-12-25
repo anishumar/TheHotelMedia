@@ -97,9 +97,22 @@ class AVPlayerView: UIView {
         playerStatusObserver = item.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
             guard let self = self else { return }
             if item.status == .readyToPlay {
+                print("🟢 [CustomVideoPlayer] Player Item is ready to play")
                 self.onReadyToPlay?()
             } else if item.status == .failed {
-                print("Player failed with error: \(String(describing: item.error))")
+                print("🔴 [CustomVideoPlayer] Player Item failed with error: \(String(describing: item.error))")
+                if let error = item.error as NSError? {
+                    print("🔴 [CustomVideoPlayer] Error Domain: \(error.domain)")
+                    print("🔴 [CustomVideoPlayer] Error Code: \(error.code)")
+                    print("🔴 [CustomVideoPlayer] Error Description: \(error.localizedDescription)")
+                    
+                    // Specific check for common simulator errors
+                    if error.domain == "AVFoundationErrorDomain" && error.code == -11828 {
+                        print("⚠️ [CustomVideoPlayer] -11828 is often 'Unsupported File Type'. Check video codec (e.g., must be H.264).")
+                    }
+                }
+            } else {
+                print("⏳ [CustomVideoPlayer] Player Item status: \(item.status.rawValue)")
             }
         }
     }

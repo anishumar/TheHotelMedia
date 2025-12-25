@@ -9,6 +9,110 @@ import SwiftUI
 import SwiftUICoreImage
 import Combine
 import SwiftfulRouting
+import AVFoundation
+
+struct EditStoryVideoViewModel_Wrapper { // Just to isolate if needed, but I'll just append
+}
+
+class EditStoryVideoViewModel: ObservableObject {
+    
+    var router: AnyRouter
+    var cancellables = Set<AnyCancellable>()
+    
+    @Published var videoURL: URL
+    @Published var selectedType: EditButton? = nil
+    @Published var textBoxes: [TextBox] = []
+    @Published var addedEmojis: [EmojiBox] = []
+    @Published var addNewBox: Bool = true
+    @Published var currentIndex = 0
+    @Published var showHeader: Bool = true
+    @Published var showEmojiDeleteButon: Bool = false
+    @Published var currentEmojiIndex: Int = 0
+    @Published var taggedUsers: [TagBox] = []
+    @Published var showUserSelectionSheet: Bool = false
+    
+    var allEmojis: [Emoji] {
+        return [
+            // Smileys & Emotion
+            Emoji(emoji: "😀"), Emoji(emoji: "😃"), Emoji(emoji: "😄"), Emoji(emoji: "😁"), Emoji(emoji: "😆"), Emoji(emoji: "😅"),
+            Emoji(emoji: "😂"), Emoji(emoji: "🤣"), Emoji(emoji: "😊"), Emoji(emoji: "😇"), Emoji(emoji: "🙂"), Emoji(emoji: "🙃"),
+            Emoji(emoji: "😉"), Emoji(emoji: "😌"), Emoji(emoji: "😍"), Emoji(emoji: "🥰"), Emoji(emoji: "😘"), Emoji(emoji: "😗"),
+            Emoji(emoji: "😙"), Emoji(emoji: "😚"), Emoji(emoji: "😋"), Emoji(emoji: "😜"), Emoji(emoji: "🤪"), Emoji(emoji: "😝"),
+            Emoji(emoji: "🤑"), Emoji(emoji: "🤗"), Emoji(emoji: "🤭"), Emoji(emoji: "🤫"), Emoji(emoji: "🤔"), Emoji(emoji: "🤐"),
+            Emoji(emoji: "🤨"), Emoji(emoji: "😐"), Emoji(emoji: "😑"), Emoji(emoji: "😶"), Emoji(emoji: "😏"), Emoji(emoji: "😒"),
+            Emoji(emoji: "🙄"), Emoji(emoji: "😬"), Emoji(emoji: "🤥"), Emoji(emoji: "😌"), Emoji(emoji: "😔"), Emoji(emoji: "😪"),
+            Emoji(emoji: "🤤"), Emoji(emoji: "😴"), Emoji(emoji: "😷"), Emoji(emoji: "🤒"), Emoji(emoji: "🤕"), Emoji(emoji: "🤢"),
+            Emoji(emoji: "🤮"), Emoji(emoji: "🤧"), Emoji(emoji: "🥵"), Emoji(emoji: "🥶"), Emoji(emoji: "🥴"), Emoji(emoji: "😵"),
+            Emoji(emoji: "🤯"), Emoji(emoji: "🤠"), Emoji(emoji: "🥳"), Emoji(emoji: "😎"), Emoji(emoji: "🤓"), Emoji(emoji: "🧐"),
+            
+            // Gestures & Hands
+            Emoji(emoji: "👋"), Emoji(emoji: "🤚"), Emoji(emoji: "🖐"), Emoji(emoji: "✋"), Emoji(emoji: "👌"), Emoji(emoji: "✌️"),
+            Emoji(emoji: "🤞"), Emoji(emoji: "🤟"), Emoji(emoji: "🤘"), Emoji(emoji: "🤙"), Emoji(emoji: "👈"), Emoji(emoji: "👉"),
+            Emoji(emoji: "👆"), Emoji(emoji: "👇"), Emoji(emoji: "👍"), Emoji(emoji: "👎"), Emoji(emoji: "✊"), Emoji(emoji: "👊"),
+            Emoji(emoji: "🤛"), Emoji(emoji: "🤜"), Emoji(emoji: "👏"), Emoji(emoji: "🙌"), Emoji(emoji: "👐"), Emoji(emoji: "🤲"),
+            
+            // Animals & Nature
+            Emoji(emoji: "🐶"), Emoji(emoji: "🐱"), Emoji(emoji: "🐭"), Emoji(emoji: "🐹"), Emoji(emoji: "🐰"), Emoji(emoji: "🦊"),
+            Emoji(emoji: "🐻"), Emoji(emoji: "🐼"), Emoji(emoji: "🐨"), Emoji(emoji: "🐯"), Emoji(emoji: "🦁"), Emoji(emoji: "🐮"),
+            Emoji(emoji: "🐷"), Emoji(emoji: "🐽"), Emoji(emoji: "🐸"), Emoji(emoji: "🐵"), Emoji(emoji: "🙈"), Emoji(emoji: "🙉"),
+            Emoji(emoji: "🙊"), Emoji(emoji: "🐒"), Emoji(emoji: "🐔"), Emoji(emoji: "🐧"), Emoji(emoji: "🐦"), Emoji(emoji: "🐤"),
+            Emoji(emoji: "🐣"), Emoji(emoji: "🐥"), Emoji(emoji: "🦆"), Emoji(emoji: "🦅"), Emoji(emoji: "🦉"), Emoji(emoji: "🦇"),
+            
+            // Food & Drink
+            Emoji(emoji: "🍏"), Emoji(emoji: "🍎"), Emoji(emoji: "🍐"), Emoji(emoji: "🍊"), Emoji(emoji: "🍋"), Emoji(emoji: "🍌"),
+            Emoji(emoji: "🍉"), Emoji(emoji: "🍇"), Emoji(emoji: "🍓"), Emoji(emoji: "🫐"), Emoji(emoji: "🍈"), Emoji(emoji: "🍒"),
+            Emoji(emoji: "🍑"), Emoji(emoji: "🍍"), Emoji(emoji: "🥭"), Emoji(emoji: "🥥"), Emoji(emoji: "🥝"), Emoji(emoji: "🍅"),
+            Emoji(emoji: "🍆"), Emoji(emoji: "🥑"), Emoji(emoji: "🥦"), Emoji(emoji: "🥕"), Emoji(emoji: "🌽"), Emoji(emoji: "🌶"),
+            
+            // Travel & Places
+            Emoji(emoji: "🚗"), Emoji(emoji: "🚕"), Emoji(emoji: "🚙"), Emoji(emoji: "🚌"), Emoji(emoji: "🚎"), Emoji(emoji: "🏎"),
+            Emoji(emoji: "🚓"), Emoji(emoji: "🚑"), Emoji(emoji: "🚒"), Emoji(emoji: "🚚"), Emoji(emoji: "🚜"), Emoji(emoji: "✈️"),
+            Emoji(emoji: "🚂"), Emoji(emoji: "🚀"), Emoji(emoji: "🛸"), Emoji(emoji: "🚁"), Emoji(emoji: "🚤"), Emoji(emoji: "🛳"),
+            
+            // Objects & Symbols
+            Emoji(emoji: "⌚"), Emoji(emoji: "📱"), Emoji(emoji: "💻"), Emoji(emoji: "🖥"), Emoji(emoji: "🖨"), Emoji(emoji: "⌨️"),
+            Emoji(emoji: "💽"), Emoji(emoji: "📀"), Emoji(emoji: "💾"), Emoji(emoji: "📷"), Emoji(emoji: "📹"), Emoji(emoji: "📞"),
+            Emoji(emoji: "📺"), Emoji(emoji: "🔈"), Emoji(emoji: "🔉"), Emoji(emoji: "🔊"), Emoji(emoji: "🔇"), Emoji(emoji: "🔔"),
+            Emoji(emoji: "🔕"), Emoji(emoji: "🔒"), Emoji(emoji: "🔓"), Emoji(emoji: "🔑"), Emoji(emoji: "🔨"), Emoji(emoji: "💡")
+        ]
+    }
+    
+    init(router: AnyRouter, videoURL: URL) {
+        self.router = router
+        self.videoURL = videoURL
+        addSubscribers()
+    }
+    
+    func addSubscribers() {
+        $selectedType
+            .combineLatest($addNewBox)
+            .sink { [weak self] (type, addNewBox) in
+                guard let self else { return }
+                if type == .text {
+                    if addNewBox {
+                        textBoxes.append(TextBox())
+                        currentIndex = textBoxes.count - 1
+                    }
+                    showHeader = false
+                } else {
+                    showHeader = true
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    func cancelTextView() {
+        if !textBoxes.isEmpty && currentIndex < textBoxes.count {
+            textBoxes.remove(at: currentIndex)
+        }
+        currentIndex = 0
+        selectedType = nil
+    }
+    
+    func dismissScreen() {
+        router.dismissScreen()
+    }
+}
 
 
 

@@ -491,26 +491,27 @@ class BaseNetworkManager {
                 "Content-Type": "multipart/form-data",
                 "x-access-token": accessToken
             ]
-           /*
+            
             var updatedMediaAttachments: [MediaAttachment] = []
 
             for attachment in attachments {
                 switch attachment.type {
                 case .video(_ , let videoURL):
                     if let newvideoURL = try? await encodeVideo(at: videoURL) {
-                        updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .video(attachment.thumbnail, videoURL)))
+                        updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .video(attachment.thumbnail, newvideoURL)))
+                    } else {
+                        updatedMediaAttachments.append(attachment)
                     }
                     
                 case .photo(let image):
                     updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .photo(image)))
                 }
             }
-            */ // Previous code for converting .mov to mp4 for uplaoding.
             
             request = session.upload(multipartFormData: { [weak self] multipartFormData in
                 guard let self else { return }
                 
-                for attachment in attachments {
+                for attachment in updatedMediaAttachments {
                     switch attachment.type {
                     case .photo(let image):
                         if let imageData = image.jpegData(compressionQuality: 0.5) {
@@ -519,8 +520,6 @@ class BaseNetworkManager {
                     case .video( _, let videoURL):
                         if let videoData = try? Data(contentsOf: videoURL) {
                             if let mimeType = self.mimeType(for: videoURL) {
-                                print(mimeType)
-                                print(videoURL.lastPathComponent)
                                 multipartFormData.append(videoData, withName: "media", fileName: videoURL.lastPathComponent, mimeType: mimeType)
                             }
                         }
@@ -785,6 +784,8 @@ class BaseNetworkManager {
                 case .video(_ , let videoURL):
                     if let newvideoURL = try? await encodeVideo(at: videoURL) {
                         updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .video(attachment.thumbnail, newvideoURL)))
+                    } else {
+                        updatedMediaAttachments.append(attachment)
                     }
                     
                 case .photo(let image):
@@ -810,10 +811,9 @@ class BaseNetworkManager {
                     }
                 }
                 
-                // Add body parameters (excluding tagged array which is handled separately)
+                // Add body parameters
                 for (key, value) in parameters {
-                    // Skip tagged array - handle separately
-                    if key == "tagged" { continue }
+                    if key == "tagged" || key == "mentions" { continue }
                     
                     if let valueString = value as? String,
                        let data = valueString.data(using: .utf8) {
@@ -826,9 +826,10 @@ class BaseNetworkManager {
                     }
                 }
                 
-                // Handle tagged array
-                if let tagged = parameters["tagged"] as? [String] {
-                    for tagID in tagged {
+                // Handle mentions/tagged array
+                let tags = (parameters["tagged"] as? [String]) ?? (parameters["mentions"] as? [String])
+                if let tags = tags {
+                    for tagID in tags {
                         if let data = tagID.data(using: .utf8) {
                             multipartFormData.append(data, withName: "tagged[]")
                         }
@@ -962,7 +963,7 @@ class BaseNetworkManager {
         }
         
         // Create and configure the export session
-        guard let exportSession = AVAssetExportSession(asset: avAsset, presetName: AVAssetExportPresetHEVCHighestQuality) else {
+        guard let exportSession = AVAssetExportSession(asset: avAsset, presetName: AVAssetExportPreset1280x720) else {
             throw NSError(domain: "com.example.videoexport",
                           code: -1,
                           userInfo: [NSLocalizedDescriptionKey: "Failed to create export session."])
