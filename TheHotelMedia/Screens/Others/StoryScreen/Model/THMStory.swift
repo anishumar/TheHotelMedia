@@ -22,6 +22,15 @@ struct THMStory: Identifiable, Hashable {
     public var duration: Double = Constants.storySecond
     public var config: THMStoryConfiguration
     
+    // New tagging fields
+    public var location: Location? = nil
+    public var locationPositionX: Double? = nil
+    public var locationPositionY: Double? = nil
+    public var userTagged: String? = nil
+    public var userTaggedId: String? = nil
+    public var userTaggedPositionX: Double? = nil
+    public var userTaggedPositionY: Double? = nil
+    
     public init(id: String = UUID().uuidString,
                 mediaID: String,
                 mediaURL: String,
@@ -32,7 +41,14 @@ struct THMStory: Identifiable, Hashable {
                 viewsRef: [StoryLikeRef]? = nil,
                 mentions: [String]? = nil,
                 duration: Double = 5,
-                config: THMStoryConfiguration) {
+                config: THMStoryConfiguration,
+                location: Location? = nil,
+                locationPositionX: Double? = nil,
+                locationPositionY: Double? = nil,
+                userTagged: String? = nil,
+                userTaggedId: String? = nil,
+                userTaggedPositionX: Double? = nil,
+                userTaggedPositionY: Double? = nil) {
         
         self.id = id
         self.mediaID = mediaID
@@ -45,6 +61,13 @@ struct THMStory: Identifiable, Hashable {
         self.likesRef = likesRef
         self.viewsRef = viewsRef
         self.mentions = mentions
+        self.location = location
+        self.locationPositionX = locationPositionX
+        self.locationPositionY = locationPositionY
+        self.userTagged = userTagged
+        self.userTaggedId = userTaggedId
+        self.userTaggedPositionX = userTaggedPositionX
+        self.userTaggedPositionY = userTaggedPositionY
         Constants.storySecond = duration
     }
 }

@@ -273,9 +273,21 @@ final class MainTabBarViewModel: ObservableObject {
     
     func showCreateStoryScreen(uiImage: UIImage) {
         router.showScreen(.push) { router in
-            EditStoryImageView(viewModel: EditStoryImageViewModel(router: router, image: uiImage), returnedImage: { [weak self] edittedImage, mentions in
+            EditStoryImageView(viewModel: EditStoryImageViewModel(router: router, image: uiImage), returnedImage: { [weak self] edittedImage, taggingData in
                 guard let self else { return }
-                postStory(image: edittedImage, mentions: mentions)
+                postStory(
+                    image: edittedImage,
+                    mentions: taggingData.mentions,
+                    placeName: taggingData.placeName,
+                    lat: taggingData.lat,
+                    lng: taggingData.lng,
+                    locationPositionX: taggingData.locationPositionX,
+                    locationPositionY: taggingData.locationPositionY,
+                    userTagged: taggingData.userTagged,
+                    userTaggedId: taggingData.userTaggedId,
+                    userTaggedPositionX: taggingData.userTaggedPositionX,
+                    userTaggedPositionY: taggingData.userTaggedPositionY
+                )
                 
             }, onDismissed: {
 
@@ -288,9 +300,21 @@ final class MainTabBarViewModel: ObservableObject {
     
     func showCreateStoryVideoScreen(videoURL: URL) {
         router.showScreen(.push) { router in
-            EditStoryVideoView(viewModel: EditStoryVideoViewModel(router: router, videoURL: videoURL), returnedVideo: { [weak self] (editedVideoURL: URL, mentions: [String]) in
+            EditStoryVideoView(viewModel: EditStoryVideoViewModel(router: router, videoURL: videoURL), returnedVideo: { [weak self] (editedVideoURL: URL, taggingData: StoryTaggingData) in
                 guard let self else { return }
-                postStory(videoURL: editedVideoURL, mentions: mentions)
+                postStory(
+                    videoURL: editedVideoURL,
+                    mentions: taggingData.mentions,
+                    placeName: taggingData.placeName,
+                    lat: taggingData.lat,
+                    lng: taggingData.lng,
+                    locationPositionX: taggingData.locationPositionX,
+                    locationPositionY: taggingData.locationPositionY,
+                    userTagged: taggingData.userTagged,
+                    userTaggedId: taggingData.userTaggedId,
+                    userTaggedPositionX: taggingData.userTaggedPositionX,
+                    userTaggedPositionY: taggingData.userTaggedPositionY
+                )
             }, onDismissed: {
                 
             })
@@ -388,8 +412,36 @@ final class MainTabBarViewModel: ObservableObject {
 
 // MARK: - Networking
 extension MainTabBarViewModel {
-    func postStory(image: UIImage? = nil, videoURL: URL? = nil, mentions: [String] = []) {
+    func postStory(
+        image: UIImage? = nil,
+        videoURL: URL? = nil,
+        mentions: [String] = [],
+        placeName: String? = nil,
+        lat: Double? = nil,
+        lng: Double? = nil,
+        locationPositionX: Double? = nil,
+        locationPositionY: Double? = nil,
+        userTagged: String? = nil,
+        userTaggedId: String? = nil,
+        userTaggedPositionX: Double? = nil,
+        userTaggedPositionY: Double? = nil
+    ) {
         
+        var parameters: [String: Any] = ["mentions": mentions]
+        
+        if let placeName = placeName, let lat = lat, let lng = lng {
+            parameters["placeName"] = placeName
+            parameters["lat"] = "\(lat)"
+            parameters["lng"] = "\(lng)"
+            if let x = locationPositionX { parameters["locationPositionX"] = "\(x)" }
+            if let y = locationPositionY { parameters["locationPositionY"] = "\(y)" }
+        }
+        
+        if let userTagged = userTagged { parameters["userTagged"] = userTagged }
+        if let userTaggedId = userTaggedId { parameters["userTaggedId"] = userTaggedId }
+        if let x = userTaggedPositionX { parameters["userTaggedPositionX"] = "\(x)" }
+        if let y = userTaggedPositionY { parameters["userTaggedPositionY"] = "\(y)" }
+
         if let image {
             let media = MediaAttachment(id: UUID().uuidString, type: .photo(image))
             
@@ -397,7 +449,6 @@ extension MainTabBarViewModel {
             
             Task {
                 do {
-                    let parameters: [String: Any] = ["mentions": mentions]
                     let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
@@ -426,7 +477,6 @@ extension MainTabBarViewModel {
             
             Task {
                 do {
-                    let parameters: [String: Any] = ["mentions": mentions]
                     let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {

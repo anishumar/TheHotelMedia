@@ -508,14 +508,22 @@ extension HomeViewModel {
                let id = story.id,
                let mediaID = story.mediaID{
                 let mentions = story.mentions
+                let location = story.location
+                let locX = story.locationPositionX
+                let locY = story.locationPositionY
+                let userTagged = story.userTagged
+                let userTaggedId = story.userTaggedId
+                let userX = story.userTaggedPositionX
+                let userY = story.userTaggedPositionY
+                
                 if mimeType == "video/mp4" {
                     // Ensure minimum 15 seconds for videos
                     let videoDuration = max(duration, 15.0)
-                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, mentions: mentions, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, mentions: mentions, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video), location: location, locationPositionX: locX, locationPositionY: locY, userTagged: userTagged, userTaggedId: userTaggedId, userTaggedPositionX: userX, userTaggedPositionY: userY))
                 } else {
                     // Ensure minimum 15 seconds for images
                     let imageDuration = max(duration + 10.0, 15.0)
-                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, mentions: mentions, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                    thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, likesRef: likesRef, viewsRef: viewsRef, mentions: mentions, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image ), location: location, locationPositionX: locX, locationPositionY: locY, userTagged: userTagged, userTaggedId: userTaggedId, userTaggedPositionX: userX, userTaggedPositionY: userY))
                 }
             }
         }
@@ -556,14 +564,22 @@ extension HomeViewModel {
                        let id = story.id,
                        let mediaID = story.mediaID {
                         let mentions = story.mentions
+                        let location = story.location
+                        let locX = story.locationPositionX
+                        let locY = story.locationPositionY
+                        let userTagged = story.userTagged
+                        let userTaggedId = story.userTaggedId
+                        let userX = story.userTaggedPositionX
+                        let userY = story.userTaggedPositionY
+
                         if mimeType == "video/mp4" {
                             // Ensure minimum 15 seconds for videos
                             let videoDuration = max(duration, 15.0)
-                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, mentions: mentions, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video)))
+                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, mentions: mentions, duration: videoDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .video), location: location, locationPositionX: locX, locationPositionY: locY, userTagged: userTagged, userTaggedId: userTaggedId, userTaggedPositionX: userX, userTaggedPositionY: userY))
                         } else {
                             // Ensure minimum 15 seconds for images
                             let imageDuration = max(duration + 10.0, 15.0)
-                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, mentions: mentions, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image )))
+                            thmStories.append(THMStory(id: id, mediaID: mediaID ,mediaURL: sourceURL, date: createdAt, isLiked: likedByMe, mentions: mentions, duration: imageDuration, config: .init(storyType: .plain(config: .init(showLikeButton: false)), mediaType: .image ), location: location, locationPositionX: locX, locationPositionY: locY, userTagged: userTagged, userTaggedId: userTaggedId, userTaggedPositionX: userX, userTaggedPositionY: userY))
                         }
                     }
                 }

@@ -127,6 +127,11 @@ struct ReviewedBusinessProfileRef: Codable, Equatable, Hashable, Identifiable {
 struct Location: Codable, Equatable, Hashable {
     let lat, lng: Double?
     let placeName: String?
+    
+    var dictionary: [String: Any]? {
+        guard let data = try? JSONEncoder().encode(self) else { return nil }
+        return try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
+    }
 }
 
 // MARK: - MediaRef

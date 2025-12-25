@@ -448,8 +448,8 @@ struct UnifiedShareSheet: View {
                         router.showScreen(.push) { router in
                             EditStoryImageView(
                                 viewModel: EditStoryImageViewModel(router: router, image: image),
-                                returnedImage: { editedImage, mentions in
-                                    self.postStory(image: editedImage, videoURL: nil, mentions: mentions, router: router)
+                                returnedImage: { editedImage, taggingData in
+                                    self.postStory(image: editedImage, videoURL: nil, taggingData: taggingData, router: router)
                                 },
                                 onDismissed: {
                                     continuation.resume()
@@ -497,7 +497,7 @@ struct UnifiedShareSheet: View {
                     router.showScreen(.fullScreenCover) { router in
                         VideoEditorView(videoURL: newURL, limit: 30) { editedVideoURL in
                             guard let editedVideoURL else { return }
-                            self.postStory(image: nil, videoURL: editedVideoURL, mentions: [], router: router)
+                            self.postStory(image: nil, videoURL: editedVideoURL, taggingData: nil, router: router)
                         }
                     }
                 }
@@ -512,15 +512,33 @@ struct UnifiedShareSheet: View {
         }
     }
     
-    private func postStory(image: UIImage?, videoURL: URL?, mentions: [String] = [], router: AnyRouter) {
+    private func postStory(image: UIImage?, videoURL: URL?, taggingData: StoryTaggingData?, router: AnyRouter) {
         let storyDataManager = StoryDataManager()
+        
+        // Prepare parameters
+        var parameters: [String: Any] = [:]
+        if let taggingData = taggingData {
+            parameters["mentions"] = taggingData.mentions
+            
+            if let userTag = taggingData.userTagged {
+                parameters["userTagged"] = userTag
+                parameters["userTaggedId"] = taggingData.userTaggedId
+                parameters["userTaggedPositionX"] = taggingData.userTaggedPositionX
+                parameters["userTaggedPositionY"] = taggingData.userTaggedPositionY
+            }
+            
+            if let location = taggingData.location {
+                parameters["location"] = location.dictionary
+                parameters["locationPositionX"] = taggingData.locationPositionX
+                parameters["locationPositionY"] = taggingData.locationPositionY
+            }
+        }
         
         if let image = image {
             let media = MediaAttachment(id: UUID().uuidString, type: .photo(image))
             
             Task {
                 do {
-                    let parameters: [String: Any] = ["mentions": mentions]
                     let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
@@ -548,7 +566,7 @@ struct UnifiedShareSheet: View {
                     let thumbnail = try await videoURL.generateVideoThumbnail()
                     let media = MediaAttachment(id: UUID().uuidString, type: .video(thumbnail ?? UIImage(), videoURL))
                     
-                    let result = try await storyDataManager.postStory(attachments: [media])
+                    let result = try await storyDataManager.postStory(attachments: [media], parameters: parameters)
                     
                     await MainActor.run {
                         let range = 200...204

@@ -126,6 +126,8 @@ struct THMStoryDetailView2: View {
                 .overlay {
                     tapStoryOverlayView
                 }
+                .overlay(getLocationTagOverlay(story: story))
+                .overlay(getUserTagOverlay(story: story))
                 .overlay(alignment: .top) {
                     progressBarsAndUserView
                 }
@@ -172,6 +174,8 @@ struct THMStoryDetailView2: View {
                     currentStoryIndex = 0
                     totalStories = model.stories.count
                     configureProgress()
+                    
+
                 }
             }
             .rotation3DEffect(
@@ -663,5 +667,80 @@ extension THMStoryDetailView2 {
         )
         messageFieldText = ""
         endEditing()
+    }
+    
+    @ViewBuilder
+    func getLocationTagOverlay(story: THMStory) -> some View {
+        if let placeName = story.location?.placeName,
+           let x = story.locationPositionX,
+           let y = story.locationPositionY {
+            
+            let isVideo = story.config.mediaType == .video
+            
+            VStack(spacing: 0) {
+                HStack(spacing: 4) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.caption)
+                    Text(placeName)
+                        .font(.custom(Constants.comicBold, size: 20))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(LinearGradient(colors: [.hmIndigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .shadow(color: .black.opacity(0.2), radius: 5)
+                )
+            }
+            .offset(x: x, y: y)
+            .zIndex(100)
+            .opacity(isVideo ? 1.0 : 0.01) // Invisible for images (baked-in), visible for video
+            .onTapGesture {
+                // Handle location tap - e.g. open maps
+                if let lat = story.location?.lat, let lng = story.location?.lng {
+                   let placeNameEncoded = placeName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                   let url = URL(string: "http://maps.apple.com/?ll=\(lat),\(lng)&q=\(placeNameEncoded)")!
+                   if UIApplication.shared.canOpenURL(url) {
+                       UIApplication.shared.open(url)
+                   }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func getUserTagOverlay(story: THMStory) -> some View {
+        if let username = story.userTagged,
+           let userID = story.userTaggedId,
+           let x = story.userTaggedPositionX,
+           let y = story.userTaggedPositionY {
+            
+            let isVideo = story.config.mediaType == .video
+            
+            VStack {
+                Text("@\(username)")
+                    .font(.custom(Constants.comicBold, size: 20))
+                    .foregroundColor(.hmIndigo)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.2), radius: 5)
+                    )
+            }
+            .offset(x: x, y: y)
+            .zIndex(100)
+            .opacity(isVideo ? 1.0 : 0.01) // Invisible for images (baked-in), visible for video
+            .onTapGesture {
+                detailViewModel.navigatingToProfile = true
+                stopVideo()
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    detailViewModel.showStoryUserProfile(id: userID)
+                }
+            }
+        }
     }
 }

@@ -11,7 +11,7 @@ import AVKit
 struct EditStoryVideoView: View {
     
     @StateObject var viewModel: EditStoryVideoViewModel
-    var returnedVideo: ((URL, [String]) -> Void)?
+    var returnedVideo: ((URL, StoryTaggingData) -> Void)?
     var onDismissed: (() -> Void)?
     
     @EnvironmentObject var localizationManager: LocalizationManager
@@ -127,7 +127,53 @@ extension EditStoryVideoView {
     
     func onTickButtonPressed() {
         let taggedUserIDs = viewModel.taggedUsers.map { $0.userID }
-        returnedVideo?(viewModel.videoURL, taggedUserIDs)
+        // For positions, we might want to pass the whole TagBox or a mapped structure if API supports it.
+        // Current API has userTaggedPositionX/Y (single user?). The prompt asked for "user and location tagging... include positional data".
+        // The data model has `userTagged` (String?) and `userTaggedId` (String?). It seems it might only support ONE tagged user or a string representation?
+        // Wait, GetStoriesResponse has `userTagged` (String?).
+        // Let's assume we pass the FIRST tagged user for now if the API only takes one set of coordinates, or check if we can pass multiple.
+        // The updated MainTabBarViewModel signature takes `userTagged`, `userTaggedId` strings.
+        
+        var userTagged: String? = nil
+        var userTaggedId: String? = nil
+        var userTaggedPositionX: Double? = nil
+        var userTaggedPositionY: Double? = nil
+        
+        if let firstUser = viewModel.taggedUsers.first {
+            userTagged = firstUser.username
+            userTaggedId = firstUser.userID
+            userTaggedPositionX = firstUser.offset.width
+            userTaggedPositionY = firstUser.offset.height
+        }
+        
+        var placeName: String? = nil
+        var lat: Double? = nil
+        var lng: Double? = nil
+        var locationPositionX: Double? = nil
+        var locationPositionY: Double? = nil
+        
+        if let loc = viewModel.locationTag {
+            placeName = loc.placeName
+            lat = loc.lat
+            lng = loc.lng
+            locationPositionX = loc.offset.width
+            locationPositionY = loc.offset.height
+        }
+        
+        let taggingData = StoryTaggingData(
+            mentions: taggedUserIDs,
+            placeName: placeName,
+            lat: lat,
+            lng: lng,
+            locationPositionX: locationPositionX,
+            locationPositionY: locationPositionY,
+            userTagged: userTagged,
+            userTaggedId: userTaggedId,
+            userTaggedPositionX: userTaggedPositionX,
+            userTaggedPositionY: userTaggedPositionY
+        )
+        
+        returnedVideo?(viewModel.videoURL, taggingData)
     }
 }
 
@@ -230,6 +276,10 @@ extension EditStoryVideoView {
                 
                 ForEach(viewModel.taggedUsers) { box in
                     editStoryVideoTagBoxView(box: box)
+                }
+                
+                if let locationTag = viewModel.locationTag {
+                    editStoryVideoLocationTagBoxView(box: locationTag)
                 }
             }
             .frame(width: width, height: height)
@@ -441,6 +491,10 @@ extension EditStoryVideoView {
             editStoryVideoButton(type: .tag) {
                 viewModel.showUserSelectionSheet = true
             }
+            Spacer()
+            editStoryVideoButton(type: .location) {
+                viewModel.showCheckinScreen()
+            }
         }
     }
     
@@ -471,6 +525,79 @@ extension EditStoryVideoView {
                 viewModel.selectedType = type
             }
         }
+    }
+    
+
+    
+    private func editStoryVideoLocationTagBoxView(box: LocationTagBox) -> some View {
+        return VStack(spacing: 0) {
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.caption)
+                Text(box.placeName)
+                    .font(.custom(Constants.comicBold, size: 20))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(LinearGradient(colors: [.hmIndigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .shadow(color: .black.opacity(0.2), radius: 5)
+            )
+        }
+        .rotationEffect(box.rotation)
+        .scaleEffect(box.scale)
+        .offset(box.offset)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    if var loc = viewModel.locationTag {
+                         let newTranslation = CGSize(
+                             width: value.translation.width + loc.lastOffset.width,
+                             height: value.translation.height + loc.lastOffset.height
+                         )
+                         loc.offset = newTranslation
+                         viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { value in
+                    if var loc = viewModel.locationTag {
+                        loc.lastOffset = loc.offset
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
+        .simultaneousGesture(
+            RotationGesture()
+                .onChanged { angle in
+                    if var loc = viewModel.locationTag {
+                        loc.rotation = angle + loc.lastRotation
+                        viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { angle in
+                    if var loc = viewModel.locationTag {
+                        loc.lastRotation = loc.rotation
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
+        .simultaneousGesture(
+            MagnificationGesture()
+                .onChanged { value in
+                    if var loc = viewModel.locationTag {
+                        loc.scale = loc.lastScale * value
+                        viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { value in
+                    if var loc = viewModel.locationTag {
+                        loc.lastScale = loc.scale
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
     }
     
     private var editStoryVideoGrayCapsuleBackground: some View {
@@ -524,7 +651,7 @@ extension EditStoryVideoView {
 struct EditStoryImageView: View {
     
     @StateObject var viewModel: EditStoryImageViewModel
-    var returnedImage: ((UIImage, [String]) -> Void)?
+    var returnedImage: ((UIImage, StoryTaggingData) -> Void)?
     var onDismissed: (() -> Void)?
     @Environment(\.displayScale) var displayScale
     var emojiGrid: [GridItem] = [
@@ -653,9 +780,51 @@ extension EditStoryImageView {
     
     
     func onTickButtonPressed() {
+        // Render image first
         if let uiImage = edittedImageView(roundedCorner: false).render(convertToColorDepth: true, scale: Constants.scale) {
+            
             let taggedUserIDs = viewModel.taggedUsers.map { $0.userID }
-            returnedImage?(uiImage, taggedUserIDs)
+            
+            var userTagged: String? = nil
+            var userTaggedId: String? = nil
+            var userTaggedPositionX: Double? = nil
+            var userTaggedPositionY: Double? = nil
+            
+            if let firstUser = viewModel.taggedUsers.first {
+                userTagged = firstUser.username
+                userTaggedId = firstUser.userID
+                userTaggedPositionX = firstUser.offset.width
+                userTaggedPositionY = firstUser.offset.height
+            }
+            
+            var placeName: String? = nil
+            var lat: Double? = nil
+            var lng: Double? = nil
+            var locationPositionX: Double? = nil
+            var locationPositionY: Double? = nil
+            
+            if let loc = viewModel.locationTag {
+                placeName = loc.placeName
+                lat = loc.lat
+                lng = loc.lng
+                locationPositionX = loc.offset.width
+                locationPositionY = loc.offset.height
+            }
+            
+            let taggingData = StoryTaggingData(
+                mentions: taggedUserIDs,
+                placeName: placeName,
+                lat: lat,
+                lng: lng,
+                locationPositionX: locationPositionX,
+                locationPositionY: locationPositionY,
+                userTagged: userTagged,
+                userTaggedId: userTaggedId,
+                userTaggedPositionX: userTaggedPositionX,
+                userTaggedPositionY: userTaggedPositionY
+            )
+            
+            returnedImage?(uiImage, taggingData)
         }
     }
 }
@@ -770,6 +939,10 @@ extension EditStoryImageView {
                     ZStack {
                         ForEach(viewModel.taggedUsers) { box in
                             tagBoxView(box: box)
+                        }
+                        
+                        if let locationTag = viewModel.locationTag {
+                            locationTagBoxView(box: locationTag)
                         }
                     }
                     .frame(
@@ -1011,7 +1184,82 @@ extension EditStoryImageView {
             bottomButton(type: .tag) {
                 viewModel.showUserSelectionSheet = true
             }
+            Spacer()
+            bottomButton(type: .location) {
+                viewModel.showCheckinScreen()
+            }
         }
+    }
+    
+    private func locationTagBoxView(box: LocationTagBox) -> some View {
+        return VStack(spacing: 0) {
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.caption)
+                Text(box.placeName)
+                    .font(.custom(Constants.comicBold, size: 20))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(LinearGradient(colors: [.hmIndigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .shadow(color: .black.opacity(0.2), radius: 5)
+            )
+        }
+        .rotationEffect(box.rotation)
+        .scaleEffect(box.scale)
+        .offset(box.offset)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    if var loc = viewModel.locationTag {
+                         let newTranslation = CGSize(
+                             width: value.translation.width + loc.lastOffset.width,
+                             height: value.translation.height + loc.lastOffset.height
+                         )
+                         loc.offset = newTranslation
+                         viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { value in
+                    if var loc = viewModel.locationTag {
+                        loc.lastOffset = loc.offset
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
+        .simultaneousGesture(
+            RotationGesture()
+                .onChanged { angle in
+                    if var loc = viewModel.locationTag {
+                        loc.rotation = angle + loc.lastRotation
+                        viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { angle in
+                    if var loc = viewModel.locationTag {
+                        loc.lastRotation = loc.rotation
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
+        .simultaneousGesture(
+            MagnificationGesture()
+                .onChanged { value in
+                    if var loc = viewModel.locationTag {
+                        loc.scale = loc.lastScale * value
+                        viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { value in
+                    if var loc = viewModel.locationTag {
+                        loc.lastScale = loc.scale
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
     }
     
     private func tagBoxView(box: TagBox) -> some View {

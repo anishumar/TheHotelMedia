@@ -116,6 +116,8 @@ struct THMStoryDetailView: View {
                                         ? -Constants.MessageView.height : .zero
                                     )
                             )
+                            .overlay(getLocationTagOverlay(story: story))
+                            .overlay(getUserTagOverlay(story: story))
                             .overlay(content: {
                                 if keyboardManager.isKeyboardOpen {
                                     Color.black.opacity(0.001)
@@ -881,6 +883,73 @@ extension THMStoryDetailView {
                     .fill(.hmIndigo.opacity(0.5))
             }
         )
+    }
+    
+    @ViewBuilder
+    func getLocationTagOverlay(story: THMStory) -> some View {
+        if let placeName = story.location?.placeName,
+           let x = story.locationPositionX,
+           let y = story.locationPositionY {
+            
+            VStack(spacing: 0) {
+                HStack(spacing: 4) {
+                    Image(systemName: "mappin.and.ellipse")
+                        .font(.caption)
+                    Text(placeName)
+                        .font(.custom(Constants.comicBold, size: 20))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(LinearGradient(colors: [.hmIndigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .shadow(color: .black.opacity(0.2), radius: 5)
+                )
+            }
+            .offset(x: x, y: y)
+            .onTapGesture {
+                // Handle location tap - e.g. open maps
+                if let lat = story.location?.lat, let lng = story.location?.lng {
+                   let url = URL(string: "http://maps.apple.com/?ll=\(lat),\(lng)")!
+                   if UIApplication.shared.canOpenURL(url) {
+                       UIApplication.shared.open(url)
+                   }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func getUserTagOverlay(story: THMStory) -> some View {
+        if let username = story.userTagged,
+           let userID = story.userTaggedId,
+           let x = story.userTaggedPositionX,
+           let y = story.userTaggedPositionY {
+            
+            VStack {
+                Text("@\(username)")
+                    .font(.custom(Constants.comicBold, size: 20))
+                    .foregroundColor(.hmIndigo)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.2), radius: 5)
+                    )
+            }
+            .offset(x: x, y: y)
+            .onTapGesture {
+                detailViewModel.navigatingToProfile = true
+                videoPaused = true
+                pauseVideo()
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    detailViewModel.showStoryUserProfile(id: userID)
+                }
+            }
+        }
     }
 }
 

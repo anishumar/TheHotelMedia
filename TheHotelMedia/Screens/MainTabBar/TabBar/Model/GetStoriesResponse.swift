@@ -35,6 +35,15 @@ struct MyStory: Codable, Identifiable {
     let duration: Double?
     let mentions: [String]?
     var videoThumbnail: UIImage? = nil
+    
+    // New tagging fields
+    let location: Location?
+    let locationPositionX: Double?
+    let locationPositionY: Double?
+    let userTagged: String?
+    let userTaggedId: String?
+    let userTaggedPositionX: Double?
+    let userTaggedPositionY: Double?
 
     enum CodingKeys: String, CodingKey {
         case id = "_id"
@@ -47,6 +56,13 @@ struct MyStory: Codable, Identifiable {
         case duration
         case mentions
         case thumbnailUrl
+        case location
+        case locationPositionX
+        case locationPositionY
+        case userTagged
+        case userTaggedId
+        case userTaggedPositionX
+        case userTaggedPositionY
     }
 }
 

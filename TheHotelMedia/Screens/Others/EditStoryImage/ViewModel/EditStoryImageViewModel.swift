@@ -14,6 +14,19 @@ import AVFoundation
 struct EditStoryVideoViewModel_Wrapper { // Just to isolate if needed, but I'll just append
 }
 
+struct LocationTagBox: Identifiable {
+    var id = UUID().uuidString
+    var placeName: String
+    var lat: Double
+    var lng: Double
+    var offset: CGSize = .zero
+    var lastOffset: CGSize = .zero
+    var scale: CGFloat = 1.0
+    var lastScale: CGFloat = 1.0
+    var rotation: Angle = .zero
+    var lastRotation: Angle = .zero
+}
+
 class EditStoryVideoViewModel: ObservableObject {
     
     var router: AnyRouter
@@ -29,7 +42,9 @@ class EditStoryVideoViewModel: ObservableObject {
     @Published var showEmojiDeleteButon: Bool = false
     @Published var currentEmojiIndex: Int = 0
     @Published var taggedUsers: [TagBox] = []
+    @Published var locationTag: LocationTagBox? = nil
     @Published var showUserSelectionSheet: Bool = false
+    @Published var showLocationSelectionSheet: Bool = false
     
     var allEmojis: [Emoji] {
         return [
@@ -112,6 +127,24 @@ class EditStoryVideoViewModel: ObservableObject {
     func dismissScreen() {
         router.dismissScreen()
     }
+    
+    func showCheckinScreen() {
+        router.showScreen(.fullScreenCover) { router in
+            CheckinScreen(viewModel: CheckinViewModel(router: router, onSelectingPlace: { [weak self] place in
+                guard let self else { return }
+                
+                if let name = place.businessProfileRef?.name,
+                   let lat = place.businessProfileRef?.address?.lat,
+                   let lng = place.businessProfileRef?.address?.lng {
+                    
+                    self.locationTag = LocationTagBox(placeName: name, lat: lat, lng: lng)
+                    self.selectedType = .tag // Or a new type for location if needed, but managing overlays similarly
+                    // If we want to switch to location tag editing specifically, we might need a separate state or just handle it in the view
+                }
+            }))
+            .environmentObject(ThemeManager.shared)
+        }
+    }
 }
 
 
@@ -150,8 +183,10 @@ class EditStoryImageViewModel: ObservableObject {
     @Published var currentImageWidthRatio: CGFloat = 1
     @Published var currentImageStyle: String = "portrait"
     @Published var taggedUsers: [TagBox] = []
+    @Published var locationTag: LocationTagBox? = nil
     
     @Published var showUserSelectionSheet: Bool = false
+    @Published var showLocationSelectionSheet: Bool = false
     
     var allEmojis: [Emoji] {
         return [
@@ -273,5 +308,22 @@ class EditStoryImageViewModel: ObservableObject {
     func dismissScreen() {
 //        router.dismissEnvironment()
         router.dismissScreen()
+    }
+    
+    func showCheckinScreen() {
+        router.showScreen(.fullScreenCover) { router in
+            CheckinScreen(viewModel: CheckinViewModel(router: router, onSelectingPlace: { [weak self] place in
+                guard let self else { return }
+                
+                if let name = place.businessProfileRef?.name,
+                   let lat = place.businessProfileRef?.address?.lat,
+                   let lng = place.businessProfileRef?.address?.lng {
+                    
+                    self.locationTag = LocationTagBox(placeName: name, lat: lat, lng: lng)
+                    self.selectedType = .tag
+                }
+            }))
+            .environmentObject(ThemeManager.shared)
+        }
     }
 }
