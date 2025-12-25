@@ -769,6 +769,30 @@ class UserProfileViewModel: ObservableObject {
             }
         }
     }
+    
+    func showRestaurantMenu() {
+        var businessID = ""
+        var isAdmin = false
+        
+        if publicProfileID.isEmpty {
+            // Own profile
+            businessID = profileData?.businessProfileID ?? ""
+            isAdmin = true
+        } else {
+            // Public profile
+            businessID = profileData?.businessProfileID ?? ""
+            isAdmin = false
+        }
+        
+        guard !businessID.isEmpty else { return }
+        
+        router.showScreen(.push) { router in
+            RestaurantMenuView(viewModel: RestaurantMenuViewModel(router: router, businessProfileID: businessID, isAdmin: isAdmin))
+                .environmentObject(ThemeManager.shared)
+                .environmentObject(LocalizationManager.shared)
+                .navigationBarBackButtonHidden()
+        }
+    }
 }
 
 

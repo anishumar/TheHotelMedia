@@ -496,4 +496,16 @@ extension URL {
     static var getJobDetail: URL {
         URL(string: "\(URL.default)/jobs/")!
     }
+    
+    static var restaurantMenu: URL {
+        URL(string: "\(URL.default)/business/restaurant/menu")!
+    }
+    
+    static func getRestaurantMenu(businessProfileID: String) -> URL {
+        URL(string: "\(URL.default)/business/restaurant/\(businessProfileID)/menu")!
+    }
+    
+    static func deleteRestaurantMenuItem(id: String) -> URL {
+        URL(string: "\(URL.default)/business/restaurant/menu/\(id)")!
+    }
 }

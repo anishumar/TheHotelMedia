@@ -1007,6 +1007,13 @@ extension UserProfileView2 {
                     viewModel.showShareView()
                 }
                 
+                let businessTypeName = viewModel.profileData?.businessProfileRef?.businessTypeRef?.name?.lowercased() ?? ""
+                if businessTypeName.contains("restaurant") {
+                    capsuleButton(image: "Paper", title: "View Menu") {
+                        viewModel.showRestaurantMenu()
+                    }
+                }
+                
             } else {
                 if let isConnected = viewModel.profileData?.isConnected,
                    let isRequested = viewModel.profileData?.isRequested,
@@ -1050,6 +1057,13 @@ extension UserProfileView2 {
                     capsuleButton(image: "MessageIcon3", title: "message".localized(localizationManager.language).capitalized) {
                         // action
                         viewModel.showChatScreen()
+                    }
+                }
+                
+                let businessTypeName = viewModel.profileData?.businessProfileRef?.businessTypeRef?.name?.lowercased() ?? ""
+                if businessTypeName.contains("restaurant") {
+                    capsuleButton(image: "Paper", title: "View Menu") {
+                        viewModel.showRestaurantMenu()
                     }
                 }
                 

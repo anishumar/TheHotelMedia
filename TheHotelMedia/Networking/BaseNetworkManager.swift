@@ -91,6 +91,7 @@ enum HttpMethod {
     case createEvent(UIImage, [String: Any])
     case createStory([MediaAttachment], [String: Any])
     case updatePost([MediaAttachment], [String], [String: Any], [String])
+    case uploadRestaurantMenu([URL])
     
     var name: String {
         switch self {
@@ -126,6 +127,8 @@ enum HttpMethod {
             return "POST"
         case .updatePost:
             return "PUT"
+        case .uploadRestaurantMenu:
+            return "POST"
         }
     }
     
@@ -163,6 +166,8 @@ enum HttpMethod {
             return .post
         case .updatePost:
             return .put
+        case .uploadRestaurantMenu:
+            return .post
         }
     }
     
@@ -840,6 +845,24 @@ class BaseNetworkManager {
             
         case .postJSON:
             break
+            
+        case .uploadRestaurantMenu(let fileURLs):
+            header = [
+                "Content-Type": "multipart/form-data",
+                "x-access-token": accessToken
+            ]
+            
+            request = session.upload(multipartFormData: { [weak self] multipartFormData in
+                guard let self else { return }
+                
+                for url in fileURLs {
+                    if let fileData = try? Data(contentsOf: url) {
+                        let mimeType = self.mimeType(for: url) ?? (url.pathExtension.lowercased() == "pdf" ? "application/pdf" : "image/jpeg")
+                        let fileName = url.lastPathComponent
+                        multipartFormData.append(fileData, withName: "menu", fileName: fileName, mimeType: mimeType)
+                    }
+                }
+            }, to: resource.url, headers: HTTPHeaders(header))
             
         default:
             break
