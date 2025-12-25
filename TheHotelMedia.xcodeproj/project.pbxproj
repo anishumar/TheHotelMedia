@@ -12,6 +12,7 @@
 		0401C3AB2CE1E924002B9E41 /* StoryDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0401C3AA2CE1E924002B9E41 /* StoryDataManager.swift */; };
 		0401C3AE2CE1E9C6002B9E41 /* PostStoryResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0401C3AD2CE1E9C6002B9E41 /* PostStoryResponse.swift */; };
 		0401C3B02CE215A7002B9E41 /* GetStoriesResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0401C3AF2CE215A7002B9E41 /* GetStoriesResponse.swift */; };
+		0401C3B02CE215A7002B9E42 /* StoryTaggingData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0401C3AF2CE215A7002B9E42 /* StoryTaggingData.swift */; };
 		0404C7772CE5D83F0082EF5B /* CenterCustomModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0404C7762CE5D83F0082EF5B /* CenterCustomModal.swift */; };
 		0408A9C62D63558D00676491 /* TransactionValidateResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0408A9C52D63558D00676491 /* TransactionValidateResponse.swift */; };
 		0409D1BF2D098EB5003B27AD /* CustomHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0409D1BE2D098EB5003B27AD /* CustomHeaderView.swift */; };
@@ -669,6 +670,7 @@
 		0401C3AA2CE1E924002B9E41 /* StoryDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryDataManager.swift; sourceTree = "<group>"; };
 		0401C3AD2CE1E9C6002B9E41 /* PostStoryResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostStoryResponse.swift; sourceTree = "<group>"; };
 		0401C3AF2CE215A7002B9E41 /* GetStoriesResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetStoriesResponse.swift; sourceTree = "<group>"; };
+		0401C3AF2CE215A7002B9E42 /* StoryTaggingData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTaggingData.swift; sourceTree = "<group>"; };
 		0404C7762CE5D83F0082EF5B /* CenterCustomModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenterCustomModal.swift; sourceTree = "<group>"; };
 		0408A9C52D63558D00676491 /* TransactionValidateResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionValidateResponse.swift; sourceTree = "<group>"; };
 		0409D1BE2D098EB5003B27AD /* CustomHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomHeaderView.swift; sourceTree = "<group>"; };
@@ -1327,6 +1329,7 @@
 			children = (
 				0401C3AD2CE1E9C6002B9E41 /* PostStoryResponse.swift */,
 				0401C3AF2CE215A7002B9E41 /* GetStoriesResponse.swift */,
+				0401C3AF2CE215A7002B9E42 /* StoryTaggingData.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -5267,6 +5270,7 @@
 				042E505C2CDC913300D12F26 /* EventJoinResponse.swift in Sources */,
 				04AFE8BD2CAA81230090E459 /* EditCategoryScreen.swift in Sources */,
 				0401C3B02CE215A7002B9E41 /* GetStoriesResponse.swift in Sources */,
+				0401C3B02CE215A7002B9E42 /* StoryTaggingData.swift in Sources */,
 				04A313662D76FF3B00E1AB97 /* BookingSummaryResponse.swift in Sources */,
 				04A453962CE45A8900BF55B0 /* BottomCustomModalView4.swift in Sources */,
 				04A834D02CD9CDE900854253 /* THMStoryUIModel.swift in Sources */,
