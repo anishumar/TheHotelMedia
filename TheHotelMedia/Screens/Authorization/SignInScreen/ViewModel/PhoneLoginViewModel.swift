@@ -44,6 +44,7 @@ class PhoneLoginViewModel: ObservableObject {
     @AppStorage("businessTypeID") var businessTypeID: String = ""
     @AppStorage("businessSubTypeID") var businessSubTypeID: String = ""
     @AppStorage("firstTimeAfterLogin") var firstTimeAfterLogin: Bool = true
+    @AppStorage("businessProfileCreatedAt") var businessProfileCreatedAt: String = ""
     
     @Published var showNotApprovedModal: Bool = false
     @Published var showProfessionModal: Bool = false
@@ -279,6 +280,8 @@ class PhoneLoginViewModel: ObservableObject {
                  showProfessionModal = true
             }
             
+
+            
         } else {
             // Business Logic
             guard let accessToken = data.accessToken else { return }
@@ -288,9 +291,33 @@ class PhoneLoginViewModel: ObservableObject {
                 self.refreshToken = reflex
             }
             
-             // Additional checks for business (amenities, logo, etc.)
-            hasLoggedIn = true
-            firstTimeAfterLogin = true
+            if let createdAt = data.createdAt {
+                self.businessProfileCreatedAt = createdAt
+            }
+            
+            // Grace Period Check
+            let hasSubscription = data.hasSubscription ?? false
+             
+             if !hasSubscription {
+                 let createdAt = data.createdAt
+                 if Date.isWithinGracePeriod(dateString: createdAt) {
+                     hasLoggedIn = true
+                     firstTimeAfterLogin = true
+                 } else {
+                     showSubscriptionScreen()
+                 }
+             } else {
+                 hasLoggedIn = true
+                 firstTimeAfterLogin = true
+             }
+        }
+    }
+    
+    func showSubscriptionScreen() {
+        router.showScreen(.push) { router in
+            SubscriptionView(viewModel: SubscriptionViewModel(router: router))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
         }
     }
 }

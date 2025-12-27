@@ -31,6 +31,7 @@ struct LoginData: Codable {
     var isApproved: Bool?
     var isDocumentUploaded: Bool?
     var businessProfileRef: BusinessProfileReference?
+    var createdAt: String?
 }
 
 

@@ -101,7 +101,7 @@ final class BusinessLogoDetailViewModel: ObservableObject {
     
     func showNextScreen() {
         router.showScreen(.push) { router in
-            SupportingDocumentsView(viewModel: SupportingDocumentsViewModel(router: router))
+            TermsAndConditionView(viewModel: TermsAndConditionViewModel(router: router))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
         }

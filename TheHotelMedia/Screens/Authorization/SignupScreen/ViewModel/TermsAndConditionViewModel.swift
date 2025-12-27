@@ -20,6 +20,7 @@ final class TermsAndConditionViewModel: ObservableObject {
     @AppStorage("hasLoggedIn") var hasLoggedIn: Bool = false
     @AppStorage("isIndividual") var isIndividual: Bool = false
     @AppStorage("firstTimeAfterLogin") var firstTimeAfterLogin: Bool = true
+    @AppStorage("businessProfileCreatedAt") var businessProfileCreatedAt: String = ""
     
 //    @EnvironmentObject var networkMonitor: NetworkMonitor
     
@@ -92,11 +93,20 @@ extension TermsAndConditionViewModel {
                 
                 if result.status && result.statusCode == 200 || result.status && result.statusCode == 201 {
                     await MainActor.run {
+                        print("DEBUG: Terms checks - isIndividual: \(isIndividual)")
                         if isIndividual {
                             hasLoggedIn = true
                             firstTimeAfterLogin = true
                         } else {
-                            showSubscriptionScreen()
+                            print("DEBUG: Business Terms Check - createdAt: \(self.businessProfileCreatedAt)")
+                            if Date.isWithinGracePeriod(dateString: self.businessProfileCreatedAt) {
+                                print("DEBUG: Grace Period Active -> Going Home")
+                                hasLoggedIn = true
+                                firstTimeAfterLogin = true
+                            } else {
+                                print("DEBUG: Grace Period EXPIRED -> Going Subscription")
+                                showSubscriptionScreen()
+                            }
                         }
                     }
                 }

@@ -27,13 +27,16 @@ class SubscriptionViewModel: ObservableObject {
     
     @AppStorage("locationString") var locationString: String = ""
     @AppStorage("isIndividual") var isIndividual: Bool = false
+
     @AppStorage("hasSubscription") var hasSubscription: Bool = false
+    @AppStorage("businessProfileCreatedAt") var businessProfileCreatedAt: String = ""
     
     
     let iapManager = StoreKitAndIAPManager()
     
     init(router: AnyRouter) {
         self.router = router
+        checkGracePeriod()
 //        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
 //            self.plans.append(Constants.individualPlan)
 //            self.plansToShow.append(Constants.individualPlan)
@@ -143,6 +146,14 @@ class SubscriptionViewModel: ObservableObject {
     func cancelSubscriptions() {
         for cancellable in cancellables {
             cancellable.cancel()
+        }
+    }
+    
+
+    
+    func checkGracePeriod() {
+        if Date.isWithinGracePeriod(dateString: businessProfileCreatedAt) {
+            router.dismissScreen()
         }
     }
     

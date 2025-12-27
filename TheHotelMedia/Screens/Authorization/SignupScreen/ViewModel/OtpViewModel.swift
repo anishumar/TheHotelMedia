@@ -31,6 +31,7 @@ final class OtpViewModel: ObservableObject {
     @AppStorage("isIndividual") var isIndividual: Bool = false
     @AppStorage("hasLoggedIn") var hasLoggedIn: Bool = false
     @AppStorage("fcmtoken") var fcmtoken: String = ""
+    @AppStorage("businessProfileCreatedAt") var businessProfileCreatedAt: String = ""
     
 //    @EnvironmentObject var networkMonitor: NetworkMonitor
     
@@ -335,11 +336,36 @@ extension OtpViewModel {
                     showIndividualLogoScreen()
                     
                 } else {
-                    showBusinessQuestionsView()
+                    let hasSubscription = data.hasSubscription ?? false
+                    
+                    if !hasSubscription {
+                        let createdAt = data.createdAt
+                        if let createdAt {
+                            self.businessProfileCreatedAt = createdAt
+                        }
+                        
+                        print("DEBUG: OtpViewModel - createdAt: \(String(describing: createdAt))")
+                        
+                        if Date.isWithinGracePeriod(dateString: createdAt) {
+                            showBusinessQuestionsView()
+                        } else {
+                            showSubscriptionScreen()
+                        }
+                    } else {
+                         showBusinessQuestionsView()
+                    }
                 }
             }
         } else {
             ErrorModalManager.showErrorModal(router: router, errorText: message)
+        }
+    }
+    
+    func showSubscriptionScreen() {
+        router.showScreen(.push) { router in
+            SubscriptionView(viewModel: SubscriptionViewModel(router: router))
+                .environmentObject(ThemeManager.shared)
+                .navigationBarBackButtonHidden()
         }
     }
 }
