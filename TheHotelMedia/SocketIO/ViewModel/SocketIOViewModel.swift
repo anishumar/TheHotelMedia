@@ -54,16 +54,20 @@ class SocketIOViewModel: ObservableObject {
         socketManager?.defaultSocket.on(clientEvent: .connect) { [weak self] data, ack in
             guard let self else { return }
             print("Socket Connected!!!")
-            isConnected = true
-            onConnected?()
-            lastConnectedUser = currentConnectUser
+            DispatchQueue.main.async {
+                self.isConnected = true
+                onConnected?()
+                self.lastConnectedUser = currentConnectUser
+            }
         }
         
         
         socketManager?.defaultSocket.on(clientEvent: .disconnect) { [weak self] data, ack in
             guard let self else { return }
             print("Socket Disconnected!!!")
-            isConnected = false
+            DispatchQueue.main.async {
+                self.isConnected = false
+            }
         }
         
         
@@ -75,16 +79,20 @@ class SocketIOViewModel: ObservableObject {
         socketManager?.defaultSocket.on("private message") { [weak self] data, ack in
             guard let self else { return }
             if let message = JSONSerializationManager.getSingleMessage(data: data) {
-                newMessage = message
+                DispatchQueue.main.async {
+                    self.newMessage = message
+                }
             }
-            chatScreenEmit(query: "", pageNo: 1)
+            self.chatScreenEmit(query: "", pageNo: 1)
         }
         
         
         socketManager?.defaultSocket.on("users") { [weak self] data, ack in
             guard let self else { return }
             if let array = JSONSerializationManager.getUserList(data: data) {
-                userList = array
+                DispatchQueue.main.async {
+                    self.userList = array
+                }
             }
         }
         
@@ -96,10 +104,12 @@ class SocketIOViewModel: ObservableObject {
                let pageNo = pageNumber,
                let totalPages = totalPages {
                 
-                recentChatPageNo = pageNo
-                recentChatTotalPages = totalPages
-                refreshRecent = pageNo == 1
-                recentChat = array
+                DispatchQueue.main.async {
+                    self.recentChatPageNo = pageNo
+                    self.recentChatTotalPages = totalPages
+                    self.refreshRecent = pageNo == 1
+                    self.recentChat = array
+                }
             }
         }
         
@@ -111,21 +121,27 @@ class SocketIOViewModel: ObservableObject {
                let pageNo = pageNumber,
                let totalPages = totalPages {
                 
-                privateChatPageNo = pageNo
-                privateChatTotalPages = totalPages
-                refreshMessages = pageNo == 1
-                privateMessagesList = array
+                DispatchQueue.main.async {
+                    self.privateChatPageNo = pageNo
+                    self.privateChatTotalPages = totalPages
+                    self.refreshMessages = pageNo == 1
+                    self.privateMessagesList = array
+                }
             }
         }
         
         socketManager?.defaultSocket.on("user connected") { [weak self] data, ack in
             guard let self else { return }
-            userConnectedOrDisconnected = true
+            DispatchQueue.main.async {
+                self.userConnectedOrDisconnected = true
+            }
         }
         
         socketManager?.defaultSocket.on("user disconnected") { [weak self] data, ack in
             guard let self else { return }
-            userConnectedOrDisconnected = false
+            DispatchQueue.main.async {
+                self.userConnectedOrDisconnected = false
+            }
         }
         
         print(username)

@@ -211,9 +211,12 @@ class PhoneLoginViewModel: ObservableObject {
                         if status && range.contains(statusCode) {
                             handleLoginResponse(response: result)
                         } else {
-                             // Handle error cases similar to SignInViewModel
+                            // Handle error cases similar to SignInViewModel
                             if let message = result.message {
-                                if message.contains("deleted") || message.contains("inactive") {
+                                // Allow login if account is under review (403) or just show modal if deleted/inactive
+                                if statusCode == 403 && !message.contains("deleted") && !message.contains("inactive") {
+                                     handleLoginResponse(response: result)
+                                } else if message.contains("deleted") || message.contains("inactive") {
                                     errorText = message
                                     showNotApprovedModal = true
                                 } else {

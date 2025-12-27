@@ -145,6 +145,10 @@ struct MediaRef: Codable, Equatable, Identifiable, Hashable {
     var videoThumbnail: UIImage? = nil
     var postID: String? = ""  // Setting this value on our own.
     var postType: String? = ""  // Setting this value on our own.
+    var likes: Int? = 0
+    var comments: Int? = 0
+    var likedByMe: Bool? = false
+    var savedByMe: Bool? = false
 
     enum CodingKeys: String, CodingKey {
         case id = "_id"

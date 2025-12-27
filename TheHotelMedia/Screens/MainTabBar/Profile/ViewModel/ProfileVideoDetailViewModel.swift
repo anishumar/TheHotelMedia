@@ -41,13 +41,16 @@ final class ProfileVideoDetailViewModel: ObservableObject {
         }
     }
     
-    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil) {
+    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, onPostUpdated: ((PostData) -> Void)? = nil) {
         self.userProfileID = userProfileID
         self.initialMediaID = initialMediaID
         self.profileData = profileData
+        self.onPostUpdated = onPostUpdated
         
         print("🎥 [VideoDetail] Initialized for user: \(userProfileID), starting media: \(initialMediaID ?? "nil")")
     }
+    
+    var onPostUpdated: ((PostData) -> Void)?
     
     @MainActor
     func loadVideos() {
@@ -133,6 +136,7 @@ final class ProfileVideoDetailViewModel: ObservableObject {
                             updatedPost.likes = isLiked ? 0 : 1
                         }
                         videoPosts[index] = updatedPost
+                        onPostUpdated?(updatedPost)
                     }
                 }
             } catch {
@@ -151,6 +155,7 @@ final class ProfileVideoDetailViewModel: ObservableObject {
                         var updatedPost = videoPosts[index]
                         updatedPost.savedByMe = !isSaved
                         videoPosts[index] = updatedPost
+                        onPostUpdated?(updatedPost)
                     }
                 }
             } catch {

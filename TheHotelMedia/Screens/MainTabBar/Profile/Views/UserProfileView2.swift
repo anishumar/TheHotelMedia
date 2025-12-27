@@ -94,7 +94,11 @@ struct UserProfileView2: View {
                                             ProfilePhotoDetailView(
                                                 userProfileID: viewModel.publicProfileID.isEmpty ? viewModel.userProfileID : viewModel.publicProfileID,
                                                 initialMediaID: viewModel.selectedPhotoMediaID,
-                                                profileData: viewModel.profileData
+                                                profileData: viewModel.profileData,
+                                                preloadedPhotos: viewModel.photosArray,
+                                                onPostUpdated: { updatedPost in
+                                                    viewModel.updateLocalPostState(updatedPost: updatedPost)
+                                                }
                                             )
                                             .environmentObject(themeManager)
                                             .environmentObject(localizationManager)
@@ -116,7 +120,9 @@ struct UserProfileView2: View {
                                 } else if viewModel.currentTab == .videos {
                                     videosTab
                                         .fullScreenCover(isPresented: $viewModel.showVideoDetailScreen, content: {
-                                            ProfileVideoDetailView(userProfileID: viewModel.publicProfileID.isEmpty ? viewModel.userProfileID : viewModel.publicProfileID, initialMediaID: viewModel.selectedVideoMediaID, profileData: viewModel.profileData)
+                                            ProfileVideoDetailView(userProfileID: viewModel.publicProfileID.isEmpty ? viewModel.userProfileID : viewModel.publicProfileID, initialMediaID: viewModel.selectedVideoMediaID, profileData: viewModel.profileData, onPostUpdated: { updatedPost in
+                                                viewModel.updateLocalPostState(updatedPost: updatedPost)
+                                            })
                                                 .environmentObject(themeManager)
                                                 .environmentObject(localizationManager)
                                                 .background(BackgroundClearView())

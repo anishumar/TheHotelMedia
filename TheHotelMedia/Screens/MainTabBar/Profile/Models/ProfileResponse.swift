@@ -18,7 +18,8 @@ struct ProfileResponse: Codable, Refreshable {
 
 // MARK: - ProfileData
 struct ProfileData: Codable, Equatable, Hashable {
-    let posts, follower, following: Int?
+    var posts: Int?
+    let follower, following: Int?
     let profileCompleted: Double?
     let id, bio, accountType, type, booking: String?
     let isVerified, isApproved, isActivated, isDeleted: Bool?

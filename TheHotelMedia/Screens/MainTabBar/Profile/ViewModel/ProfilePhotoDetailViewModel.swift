@@ -43,19 +43,27 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     
     @AppStorage("ownUserID") var ownUserID: String = ""
     var router: AnyRouter?
-    
-    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, onPostDeleted: ((String) -> Void)? = nil) {
-        self.userProfileID = userProfileID
-        self.initialMediaID = initialMediaID
-        self.profileData = profileData
-        self.onPostDeleted = onPostDeleted
-        
-        print("📸 [PhotoDetail] Initialized for user: \(userProfileID), starting media: \(initialMediaID ?? "nil")")
-    }
+    private var preloadedPhotos: [MediaRef]?
     
     var onPostDeleted: ((String) -> Void)?
     
+    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, preloadedPhotos: [MediaRef]? = nil, onPostDeleted: ((String) -> Void)? = nil, onPostUpdated: ((PostData) -> Void)? = nil) {
+        self.userProfileID = userProfileID
+        self.initialMediaID = initialMediaID
+        self.profileData = profileData
+        self.preloadedPhotos = preloadedPhotos
+        self.onPostDeleted = onPostDeleted
+        self.onPostUpdated = onPostUpdated
+        
+        print("📸 [PhotoDetail] Initialized for user: \(userProfileID), starting media: \(initialMediaID ?? "nil"), preloaded: \(preloadedPhotos?.count ?? 0)")
+    }
+    
+    var onPostUpdated: ((PostData) -> Void)?
+    
+
+    
     func loadPosts() {
+        print("🔍 [PhotoDetail] loadPosts called. isLoading: \(isLoading), hasMorePages: \(hasMorePages), userID: \(userProfileID)")
         Task { @MainActor in
             guard !isLoading else { return }
             guard hasMorePages else { return }
@@ -63,25 +71,63 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
             
             isLoading = true
             
+            // Use preloaded photos for the first page if available
+            if currentPage == 1, let preloaded = preloadedPhotos, !preloaded.isEmpty {
+                 print("📸 [PhotoDetail] Using \(preloaded.count) preloaded photos.")
+                 let newPosts = preloaded.map { createDummyPost(from: $0) }
+                 posts = newPosts
+                 
+                 isLoading = false
+                 preloadedPhotos = nil // Clear so we don't reuse
+                 
+                 // Increment currentPage so we don't re-fetch page 1 immediately
+                 // Since we don't know exactly how many pages preloaded represents, we increment by one.
+                 // This ensures the NEXT fetch is for Page 2.
+                 currentPage += 1
+                 
+                 // Logic to find target post
+                 if let initialMediaID, targetPostID == nil {
+                     if let targetPost = posts.first(where: { post in
+                         post.mediaRef?.contains(where: { $0.id == initialMediaID }) ?? false
+                     }) {
+                         targetPostID = targetPost.id ?? targetPost.mediaRef?.first?.id
+                         shouldAutoScroll = targetPostID != nil
+                         print("🔍 [PhotoDetail] Match found for \(initialMediaID) -> \(targetPostID ?? "nil")")
+                     }
+                 }
+                 return
+            }
+            
             do {
-                let result = try await dataManager.getProfilePosts(id: userProfileID, pageNo: currentPage)
+                print("🔍 [PhotoDetail] Fetching posts for user: \(userProfileID), page: \(currentPage)")
+                let result = try await dataManager.getProfilePostImages(id: userProfileID, pageNo: currentPage)
                 
                 var shouldFetchNextPage = false
                 
                 isLoading = false
                 
                 if result.status && (200...204).contains(result.statusCode) {
-                    if let newPosts = result.data {
-                        // Filter posts that have images
-                        let postsWithImages = newPosts.filter { post in
-                            post.mediaRef?.contains(where: { $0.mediaType == "image" }) ?? false
+                    if let newImages = result.data {
+                        print("🔍 [PhotoDetail] Fetched \(newImages.count) images.")
+                        
+                        // Map MediaRef to PostData
+                        let newPosts = newImages.map { media in
+                            createDummyPost(from: media)
                         }
                         
-                        print("📸 [PhotoDetail] Loaded page \(currentPage): \(newPosts.count) posts, \(postsWithImages.count) with images")
+                        print("📸 [PhotoDetail] Loaded page \(currentPage): \(newPosts.count) posts mapped from images")
                         
-                        posts += postsWithImages
+                        // Deduplicate before appending
+                        let existingIDs = Set(posts.compactMap { $0.id })
+                        let uniqueNewPosts = newPosts.filter { post in
+                            guard let id = post.id else { return true }
+                            return !existingIDs.contains(id)
+                        }
+                        
+                        posts += uniqueNewPosts
                         currentPage = (result.pageNo ?? currentPage) + 1
                         hasMorePages = currentPage <= (result.totalPages ?? 1)
+                        print("🔍 [PhotoDetail] Next Page: \(currentPage), Total Pages: \(result.totalPages ?? 0), Has More: \(hasMorePages)")
                         
                         if let initialMediaID, targetPostID == nil {
                             if let targetPost = posts.first(where: { post in
@@ -89,13 +135,17 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                             }) {
                                 targetPostID = targetPost.id ?? targetPost.mediaRef?.first?.id
                                 shouldAutoScroll = targetPostID != nil
+                                print("🔍 [PhotoDetail] Found target post for media \(initialMediaID): \(targetPostID ?? "nil")")
                             } else if hasMorePages {
+                                print("🔍 [PhotoDetail] Target media \(initialMediaID) not found in this batch. Fetching next page...")
                                 shouldFetchNextPage = true
                             }
                         }
+                    } else {
+                        print("🔍 [PhotoDetail] result.data is nil")
                     }
                 } else {
-                    print("❌ [PhotoDetail] Failed to load posts: \(result.message)")
+                    print("❌ [PhotoDetail] Failed to load posts: \(result.message). Status: \(result.status), Code: \(result.statusCode)")
                 }
                 
                 if shouldFetchNextPage {
@@ -108,6 +158,62 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
             }
         }
     }
+
+    private func createDummyPost(from media: MediaRef) -> PostData {
+        let postedBy = PostedBy(
+            id: profileData?.id,
+            accountType: profileData?.accountType,
+            businessProfileID: profileData?.businessProfileID,
+            name: profileData?.name,
+            username: profileData?.username,
+            businessProfileRef: nil, // We don't have Ref easily available, but name/id is most important
+            profilePic: profileData?.profilePic
+        )
+        
+        return PostData(
+            id: media.postID ?? media.id, // Prefer Enriched PostID, fallback to MediaID
+            data: nil,
+            isPublished: true,
+            feelings: nil,
+            googleReviewedBusiness: nil,
+            publicUserID: nil,
+            reviews: nil,
+            businessProfileID: profileData?.businessProfileID,
+            postType: "image",
+            userID: profileData?.id,
+            content: "", // Caption not available in MediaRef
+            location: nil,
+            createdAt: nil, // Date not available in MediaRef
+            mediaRef: [media],
+            taggedRef: nil,
+            postedBy: postedBy,
+            likes: media.likes ?? 0,
+            comments: media.comments ?? 0,
+            likedByMe: media.likedByMe ?? false,
+            savedByMe: media.savedByMe ?? false,
+            reviewedBusinessProfileID: nil,
+            placeID: nil,
+            rating: nil,
+            reviewedBusinessProfileRef: nil,
+            name: nil,
+            startTime: nil,
+            startDate: nil,
+            venue: nil,
+            type: nil,
+            refreshPost: nil,
+            endDate: nil,
+            endTime: nil,
+            streamingLink: nil,
+            shared: nil,
+            views: media.views,
+            imJoining: nil,
+            placeName: nil,
+            commentsCount: 0,
+            interestedPeople: nil,
+            eventJoinsRef: nil,
+            collaboratorRef: nil
+        )
+    }
     
     // MARK: - Actions
     func likePost(postID: String, isLiked: Bool) {
@@ -116,15 +222,19 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                 let _ = try await postDataManager.likeAPost(postID: postID)
                 await MainActor.run {
                     // Update post data optimistically
-                    if let index = posts.firstIndex(where: { $0.id == postID }) {
-                        var updatedPost = posts[index]
-                        updatedPost.likedByMe = !isLiked
-                        if let currentLikes = updatedPost.likes {
-                            updatedPost.likes = isLiked ? max(0, currentLikes - 1) : currentLikes + 1
-                        } else {
-                            updatedPost.likes = isLiked ? 0 : 1
+                    // Update ALL occurrences of this post (since multiple photos might share the same postID)
+                    for index in posts.indices {
+                        if posts[index].id == postID {
+                            var updatedPost = posts[index]
+                            updatedPost.likedByMe = !isLiked
+                            if let currentLikes = updatedPost.likes {
+                                updatedPost.likes = isLiked ? max(0, currentLikes - 1) : currentLikes + 1
+                            } else {
+                                updatedPost.likes = isLiked ? 0 : 1
+                            }
+                            posts[index] = updatedPost
+                            onPostUpdated?(updatedPost)
                         }
-                        posts[index] = updatedPost
                     }
                 }
             } catch {
@@ -139,10 +249,14 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                 let _ = try await postDataManager.saveAPost(postID: postID)
                 await MainActor.run {
                     // Update post data optimistically
-                    if let index = posts.firstIndex(where: { $0.id == postID }) {
-                        var updatedPost = posts[index]
-                        updatedPost.savedByMe = !isSaved
-                        posts[index] = updatedPost
+                    // Update ALL occurrences of this post
+                    for index in posts.indices {
+                        if posts[index].id == postID {
+                            var updatedPost = posts[index]
+                            updatedPost.savedByMe = !isSaved
+                            posts[index] = updatedPost
+                            onPostUpdated?(updatedPost)
+                        }
                     }
                 }
             } catch {

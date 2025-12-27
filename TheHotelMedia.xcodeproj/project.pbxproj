@@ -559,6 +559,7 @@
 		04DF66362D3E231200CBA305 /* PostViewsReponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DF66352D3E231200CBA305 /* PostViewsReponse.swift */; };
 		04DF6ADD2C7D919A00323534 /* PostCardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DF6ADC2C7D919A00323534 /* PostCardViewModel.swift */; };
 		04DF7F212DA7A59000513E77 /* Array + Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DF7F202DA7A59000513E77 /* Array + Ext.swift */; };
+		94DF7F9A2DA7A59000513E88 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94DF7F992DA7A59000513E88 /* Date+Extensions.swift */; };
 		04E03D692D000D19007A510B /* ReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E03D682D000D19007A510B /* ReportView.swift */; };
 		04E03D6B2D000D71007A510B /* ReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E03D6A2D000D71007A510B /* ReportViewModel.swift */; };
 		04E03D6E2D00136D007A510B /* ReportDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E03D6D2D00136D007A510B /* ReportDataManager.swift */; };
@@ -1195,6 +1196,7 @@
 		04DF66352D3E231200CBA305 /* PostViewsReponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewsReponse.swift; sourceTree = "<group>"; };
 		04DF6ADC2C7D919A00323534 /* PostCardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostCardViewModel.swift; sourceTree = "<group>"; };
 		04DF7F202DA7A59000513E77 /* Array + Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array + Ext.swift"; sourceTree = "<group>"; };
+		94DF7F992DA7A59000513E88 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
 		04E03D682D000D19007A510B /* ReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportView.swift; sourceTree = "<group>"; };
 		04E03D6A2D000D71007A510B /* ReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportViewModel.swift; sourceTree = "<group>"; };
 		04E03D6D2D00136D007A510B /* ReportDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportDataManager.swift; sourceTree = "<group>"; };
@@ -3631,6 +3633,7 @@
 				04B337CF2CA2C0C300D0CDBC /* EnvironmentValues + Ext.swift */,
 				04D214A32D5DBC3200AF82FE /* Double + Ext.swift */,
 				04DF7F202DA7A59000513E77 /* Array + Ext.swift */,
+				94DF7F992DA7A59000513E88 /* Date+Extensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -5089,6 +5092,7 @@
 				04D004E22C53BBCD009F3976 /* GrayTextField.swift in Sources */,
 				04D004C52C537A80009F3976 /* OnboardingView.swift in Sources */,
 				04DF7F212DA7A59000513E77 /* Array + Ext.swift in Sources */,
+				94DF7F9A2DA7A59000513E88 /* Date+Extensions.swift in Sources */,
 				04CE9BAA2CC8DAC3000A831C /* GetNotificationResponse.swift in Sources */,
 				04BCB39F2C7715370092D141 /* InsightsView.swift in Sources */,
 				044C2D662D37C9450078843F /* SuggestionListView.swift in Sources */,

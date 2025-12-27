@@ -44,6 +44,9 @@ class UserProfileViewModel: ObservableObject {
     var postDataTotalPages: Int = 1
     var imageDataPageNo: Int = 1
     var imageDataTotalPages: Int = 1
+    var totalImageResources: Int = 0
+    var totalVideoResources: Int = 0
+    var totalReviewResources: Int = 0
     var loadImageData: Bool = true
     @Published var loadingImageData: Bool = false
     @Published var videosArray: [MediaRef] = []
@@ -361,6 +364,17 @@ class UserProfileViewModel: ObservableObject {
     func changeHeight() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             self.height = 800
+        }
+    }
+    
+    func updateTotalPostCount() {
+        let total = totalImageResources + totalVideoResources
+        
+        // Use the maximum of backend count or our calculated total to ensure we don't show 0 incorrectly
+        // but also don't undercount if there are text-only posts not in images/videos
+        let currentPosts = profileData?.posts ?? 0
+        if currentPosts < total {
+            profileData?.posts = total
         }
     }
     
@@ -819,6 +833,7 @@ extension UserProfileViewModel {
                                 self.profileData = data
                                 self.userProfileID = data.id ?? ""
                                 self.isPrivateAccount = false
+                                self.updateTotalPostCount()
                                 self.getImages()
                             }
                         } else {
@@ -840,6 +855,7 @@ extension UserProfileViewModel {
                                 self.userProfileID = self.publicProfileID
                                 
                                 if !self.isPrivateAccount || data.isConnected ?? false {
+                                    self.updateTotalPostCount()
                                     self.getImages()
                                 }
                             }
@@ -1039,6 +1055,9 @@ extension UserProfileViewModel {
                     
                     let range = 200...204
                     if result.status && range.contains(result.statusCode) {
+                        self.totalImageResources = result.totalResources ?? 0
+                        self.updateTotalPostCount()
+                        
                         if let data = result.data {
                             if let firstMedia = result.data?.first {
                                 if photosArray.contains([firstMedia]) {
@@ -1056,7 +1075,11 @@ extension UserProfileViewModel {
                                                 post.mediaRef?.contains(where: { $0.id == mediaID }) ?? false
                                             }) {
                                                 enrichedData[index].postID = post.id
-                                                print("✅ [Profile] Media \(mediaID) matched to post \(post.id ?? "nil")")
+                                                enrichedData[index].likes = post.likes
+                                                enrichedData[index].comments = post.comments
+                                                enrichedData[index].likedByMe = post.likedByMe
+                                                enrichedData[index].savedByMe = post.savedByMe
+                                                print("✅ [Profile] Media \(mediaID) matched to post \(post.id ?? "nil") | Likes: \(post.likes ?? 0)")
                                             } else {
                                                 print("⚠️ [Profile] No post found for media \(mediaID)")
                                             }
@@ -1102,6 +1125,9 @@ extension UserProfileViewModel {
                     
                     let range = 200...204
                     if result.status && range.contains(result.statusCode) {
+                        self.totalVideoResources = result.totalResources ?? 0
+                        self.updateTotalPostCount()
+                        
                         if let data = result.data {
                             if let firstMedia = result.data?.first {
                                 if videosArray.contains([firstMedia]) {
@@ -1150,6 +1176,9 @@ extension UserProfileViewModel {
                     
                     let range = 200...204
                     if result.status && range.contains(result.statusCode) {
+                        self.totalReviewResources = result.totalResources ?? 0
+                        self.updateTotalPostCount()
+                        
                         if let data = result.data {
                             totalReviewData += data
                             loadReviewData = false
@@ -1433,6 +1462,34 @@ extension UserProfileViewModel {
         // Remove from reviews if applicable
         if let index = totalReviewData.firstIndex(where: { $0.id == id }) {
             totalReviewData.remove(at: index)
+        }
+    }
+    
+    func updateLocalPostState(updatedPost: PostData) {
+        // 1. Update totalPostData (Feed)
+        if let index = totalPostData.firstIndex(where: { $0.id == updatedPost.id }) {
+            totalPostData[index] = updatedPost
+        }
+        
+        // 2. Update photosArray (Media Grid)
+        // We need to update ALL photos that belong to this post
+        for index in photosArray.indices {
+            if photosArray[index].postID == updatedPost.id {
+                photosArray[index].likes = updatedPost.likes
+                photosArray[index].comments = updatedPost.comments
+                photosArray[index].likedByMe = updatedPost.likedByMe
+                photosArray[index].savedByMe = updatedPost.savedByMe
+            }
+        }
+        
+        // 3. Update videosArray (Video Grid)
+        for index in videosArray.indices {
+            if videosArray[index].postID == updatedPost.id {
+                videosArray[index].likes = updatedPost.likes
+                videosArray[index].comments = updatedPost.comments
+                videosArray[index].likedByMe = updatedPost.likedByMe
+                videosArray[index].savedByMe = updatedPost.savedByMe
+            }
         }
     }
 }

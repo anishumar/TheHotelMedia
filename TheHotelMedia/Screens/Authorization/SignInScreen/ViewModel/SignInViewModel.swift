@@ -366,8 +366,10 @@ extension SignInViewModel {
                                     handleLoginResponse(response: result)
                                 } else if let isApproved = data.isApproved,
                                           !isApproved {
-                                    errorText = result.message ?? ""
-                                    showNotApprovedModal = true
+                                    // Modified to allow login even if account is under review
+                                    handleLoginResponse(response: result)
+                                    // errorText = result.message ?? ""
+                                    // showNotApprovedModal = true
                                     
                                 } else if let message = result.message {
                                     if message.contains("deleted") || message.contains("inactive") {
@@ -429,8 +431,13 @@ extension SignInViewModel {
                         if status && range.contains(statusCode) {
                             handleLoginResponse(response: result)
                         } else {
-                            let errorMessage = result.message ?? "Login failed. Please try again."
-                            ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                            if statusCode == 403 {
+                                // Allow login for accounts under review
+                                handleLoginResponse(response: result)
+                            } else {
+                                let errorMessage = result.message ?? "Login failed. Please try again."
+                                ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                            }
                         }
                     } else {
                         ErrorModalManager.showErrorModal(router: router, errorText: "Invalid response from server")
@@ -541,8 +548,13 @@ extension SignInViewModel {
                         if status && range.contains(statusCode) {
                             handleLoginResponse(response: result)
                         } else {
-                            let errorMessage = result.message ?? "Login failed. Please try again."
-                            ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                            if statusCode == 403 {
+                                // Allow login for accounts under review
+                                handleLoginResponse(response: result)
+                            } else {
+                                let errorMessage = result.message ?? "Login failed. Please try again."
+                                ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                            }
                         }
                     } else {
                         ErrorModalManager.showErrorModal(router: router, errorText: "Invalid response from server")
@@ -679,12 +691,12 @@ extension SignInViewModel {
                 return
             }
             
-            guard let isDocumentUploaded = data.isDocumentUploaded else { return }
-            
-            guard isDocumentUploaded else {
-                showBusinessDocumentsScreen()
-                return
-            }
+            // Removed Supporting Documents check as per new requirement
+            // guard let isDocumentUploaded = data.isDocumentUploaded else { return }
+            // guard isDocumentUploaded else {
+            //     showBusinessDocumentsScreen()
+            //     return
+            // }
             
             guard acceptedTerms else {
                 showTermsAndConditionScreen()
@@ -700,11 +712,12 @@ extension SignInViewModel {
                 return
             }
             
-            guard let isApproved = data.isApproved else {
-                return
-            }
+            // Removed isApproved check to allow login for unapproved accounts
+            // guard let isApproved = data.isApproved else {
+            //     return
+            // }
             
-            if isApproved {
+            // if isApproved {
                 
                 if let refreshToken = data.refreshToken {
                     self.refreshToken = refreshToken
@@ -712,7 +725,7 @@ extension SignInViewModel {
                 
                 hasLoggedIn = true
                 firstTimeAfterLogin = true
-            }
+            // }
         }
     }
     

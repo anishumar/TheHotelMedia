@@ -95,9 +95,11 @@ struct UserProfileView: View {
                             photosTab
                                 .fullScreenCover(isPresented: $viewModel.showPhotoDetailScreen, content: {
                                     RouterView { _ in
-                                        ProfilePhotoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedPhotoMediaID, profileData: viewModel.profileData, onPostDeleted: {
+                                        ProfilePhotoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedPhotoMediaID, profileData: viewModel.profileData, preloadedPhotos: viewModel.photosArray, onPostDeleted: {
                                             postID in
                                             viewModel.removePost(id: postID)
+                                        }, onPostUpdated: { updatedPost in
+                                            viewModel.updateLocalPostState(updatedPost: updatedPost)
                                         })
                                             .environmentObject(themeManager)
                                             .environmentObject(localizationManager)
@@ -111,7 +113,9 @@ struct UserProfileView: View {
                         } else if viewModel.currentTab == .videos {
                             videosTab
                                 .fullScreenCover(isPresented: $viewModel.showVideoDetailScreen, content: {
-                                    ProfileVideoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedVideoMediaID, profileData: viewModel.profileData)
+                                    ProfileVideoDetailView(userProfileID: viewModel.userProfileID, initialMediaID: viewModel.selectedVideoMediaID, profileData: viewModel.profileData, onPostUpdated: { updatedPost in
+                                        viewModel.updateLocalPostState(updatedPost: updatedPost)
+                                    })
                                         .environmentObject(themeManager)
                                         .environmentObject(localizationManager)
                                         .background(BackgroundClearView())

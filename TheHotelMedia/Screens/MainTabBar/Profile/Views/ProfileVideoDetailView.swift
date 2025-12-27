@@ -18,8 +18,8 @@ struct ProfileVideoDetailView: View {
     @StateObject private var viewModel: ProfileVideoDetailViewModel
     @AppStorage("isMute") var isMute: Bool = false
     
-    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil) {
-        _viewModel = StateObject(wrappedValue: ProfileVideoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData))
+    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, onPostUpdated: ((PostData) -> Void)? = nil) {
+        _viewModel = StateObject(wrappedValue: ProfileVideoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData, onPostUpdated: onPostUpdated))
     }
     
     var body: some View {

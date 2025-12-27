@@ -20,8 +20,8 @@ struct ProfilePhotoDetailView: View {
     @State private var hasScrolledToInitial = false
     @State private var commentShowScreen = true
     
-    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, onPostDeleted: ((String) -> Void)? = nil) {
-        _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData, onPostDeleted: onPostDeleted))
+    init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, preloadedPhotos: [MediaRef]? = nil, onPostDeleted: ((String) -> Void)? = nil, onPostUpdated: ((PostData) -> Void)? = nil) {
+        _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData, preloadedPhotos: preloadedPhotos, onPostDeleted: onPostDeleted, onPostUpdated: onPostUpdated))
     }
     
     var body: some View {
