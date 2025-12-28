@@ -559,7 +559,6 @@
 		04DF66362D3E231200CBA305 /* PostViewsReponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DF66352D3E231200CBA305 /* PostViewsReponse.swift */; };
 		04DF6ADD2C7D919A00323534 /* PostCardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DF6ADC2C7D919A00323534 /* PostCardViewModel.swift */; };
 		04DF7F212DA7A59000513E77 /* Array + Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DF7F202DA7A59000513E77 /* Array + Ext.swift */; };
-		94DF7F9A2DA7A59000513E88 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94DF7F992DA7A59000513E88 /* Date+Extensions.swift */; };
 		04E03D692D000D19007A510B /* ReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E03D682D000D19007A510B /* ReportView.swift */; };
 		04E03D6B2D000D71007A510B /* ReportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E03D6A2D000D71007A510B /* ReportViewModel.swift */; };
 		04E03D6E2D00136D007A510B /* ReportDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E03D6D2D00136D007A510B /* ReportDataManager.swift */; };
@@ -631,6 +630,7 @@
 		88B000022D159999003208B3 /* UserSelectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A000022D159999003208B3 /* UserSelectionViewModel.swift */; };
 		88B000032D159999003208B3 /* StoryTaggedUsersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A000032D159999003208B3 /* StoryTaggedUsersView.swift */; };
 		88B000042D159999003208B3 /* StoryTaggedUsersViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A000042D159999003208B3 /* StoryTaggedUsersViewModel.swift */; };
+		94DF7F9A2DA7A59000513E88 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94DF7F992DA7A59000513E88 /* Date+Extensions.swift */; };
 		C245ED462EF925F2001ACA00 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C245ED452EF925F2001ACA00 /* FirebaseAuth */; };
 		C59B6BD6663D728303A555F0 /* RestaurantMenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 126F75C5155E7B227A7A09EA /* RestaurantMenuViewModel.swift */; };
 		C878DC216BBE116A4FE9B584 /* UploadMenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3A15CDC6A71CFF436F90BD /* UploadMenuViewModel.swift */; };
@@ -1196,7 +1196,6 @@
 		04DF66352D3E231200CBA305 /* PostViewsReponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostViewsReponse.swift; sourceTree = "<group>"; };
 		04DF6ADC2C7D919A00323534 /* PostCardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostCardViewModel.swift; sourceTree = "<group>"; };
 		04DF7F202DA7A59000513E77 /* Array + Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array + Ext.swift"; sourceTree = "<group>"; };
-		94DF7F992DA7A59000513E88 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
 		04E03D682D000D19007A510B /* ReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportView.swift; sourceTree = "<group>"; };
 		04E03D6A2D000D71007A510B /* ReportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportViewModel.swift; sourceTree = "<group>"; };
 		04E03D6D2D00136D007A510B /* ReportDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportDataManager.swift; sourceTree = "<group>"; };
@@ -1262,17 +1261,18 @@
 		04FFF10B2E00000500AA1234 /* ReelsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewController.swift; sourceTree = "<group>"; };
 		04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewRepresentable.swift; sourceTree = "<group>"; };
 		126F75C5155E7B227A7A09EA /* RestaurantMenuViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RestaurantMenuViewModel.swift; sourceTree = "<group>"; };
-		4B0FDD8F9D92F17B36141FDE /* PhoneLoginViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhoneLoginViewModel.swift; path = PhoneLoginViewModel.swift; sourceTree = "<group>"; };
+		4B0FDD8F9D92F17B36141FDE /* PhoneLoginViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhoneLoginViewModel.swift; sourceTree = "<group>"; };
 		56669AEE0360A1D92EA9A2E5 /* UploadMenuView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadMenuView.swift; sourceTree = "<group>"; };
 		5AA8C80B19A741653282DBB6 /* RestaurantMenuView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RestaurantMenuView.swift; sourceTree = "<group>"; };
 		88A000012D159999003208B3 /* UserSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectionView.swift; sourceTree = "<group>"; };
 		88A000022D159999003208B3 /* UserSelectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSelectionViewModel.swift; sourceTree = "<group>"; };
 		88A000032D159999003208B3 /* StoryTaggedUsersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTaggedUsersView.swift; sourceTree = "<group>"; };
 		88A000042D159999003208B3 /* StoryTaggedUsersViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryTaggedUsersViewModel.swift; sourceTree = "<group>"; };
+		94DF7F992DA7A59000513E88 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
 		C5A692855A04A99A1E5E57B3 /* RestaurantMenuResponse.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RestaurantMenuResponse.swift; sourceTree = "<group>"; };
 		DF3A15CDC6A71CFF436F90BD /* UploadMenuViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadMenuViewModel.swift; sourceTree = "<group>"; };
 		E3673DB98A7CC476FC00AEA4 /* RestaurantMenuDataManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RestaurantMenuDataManager.swift; sourceTree = "<group>"; };
-		ED9883BF2F0DEDBC20B344DA /* PhoneLoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhoneLoginView.swift; path = PhoneLoginView.swift; sourceTree = "<group>"; };
+		ED9883BF2F0DEDBC20B344DA /* PhoneLoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhoneLoginView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -5735,7 +5735,7 @@
 				CODE_SIGN_ENTITLEMENTS = TheHotelMedia/TheHotelMedia.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"TheHotelMedia/Preview Content\"";
 				DEVELOPMENT_TEAM = GDT6V8X9B7;
@@ -5756,7 +5756,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thehotelmedia.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -5778,7 +5778,7 @@
 				CODE_SIGN_ENTITLEMENTS = TheHotelMedia/TheHotelMediaRelease.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TheHotelMedia/Preview Content\"";
 				DEVELOPMENT_TEAM = GDT6V8X9B7;
 				ENABLE_PREVIEWS = YES;
@@ -5798,7 +5798,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thehotelmedia.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
