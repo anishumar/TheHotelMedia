@@ -71,11 +71,6 @@ struct ManagerDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard ) {
-                            keyboardButtons
-                        }
-                    }
                 }
             }
             .clipped()

@@ -141,11 +141,6 @@ extension OtpView {
         .foregroundColor(themeManager.currentTheme.label)
         .padding(.leading, 16)
         .frame(maxWidth: .infinity)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard ) {
-                keyboardButtons
-            }
-        }
     }
     
     

@@ -72,11 +72,6 @@ struct IndividualSignupView: View {
                     
                     bottomButtonSection
                 }
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard ) {
-                        keyboardButtons
-                    }
-                }
             }
             .clipped()
         }

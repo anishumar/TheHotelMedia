@@ -200,11 +200,6 @@ extension EditContactView {
                             )
                     }
                     .padding(.bottom, 16)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            keyboardButton
-                        }
-                    }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -244,11 +239,6 @@ extension EditContactView {
                             )
                     }
                     .padding(.bottom, 16)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            keyboardButton
-                        }
-                    }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)

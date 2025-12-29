@@ -453,11 +453,6 @@ extension CreateReviewView {
                                 .offset(x: 16, y: 16)
                         }
                     })
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            doneButton
-                        }
-                    }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

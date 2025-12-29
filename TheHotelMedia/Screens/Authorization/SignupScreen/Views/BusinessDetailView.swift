@@ -85,11 +85,6 @@ struct BusinessDetailView: View {
                         bottomButtonSection
                         
                     }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            keyboardButtons
-                        }
-                    }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 16)
                 }

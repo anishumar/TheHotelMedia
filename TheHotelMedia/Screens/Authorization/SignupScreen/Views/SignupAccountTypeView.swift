@@ -29,6 +29,7 @@ struct SignupAccountTypeView: View {
             }
             
             nextButton
+            backButton
         }
         .onAppear {
             viewModel.addSubscribers()
@@ -133,5 +134,25 @@ extension SignupAccountTypeView {
                 .padding(.top, UIScreen.main.bounds.height < 670 ? 20 : 100)
         }
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+    
+    private var backButton: some View {
+        VStack {
+            Button(action: {
+                viewModel.dismissScreen()
+            }, label: {
+                ZStack {
+                    Circle()
+                        .fill(.hmIndigo.opacity(0.4))
+                        .frame(width: 48)
+                    Image(systemName: "chevron.left")
+                        .fontWeight(.bold)
+                        .tint(.white)
+                }
+            })
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.leading, 16)
+        .padding(.top, UIScreen.main.bounds.height < 670 ? 20 : 50)
     }
 }

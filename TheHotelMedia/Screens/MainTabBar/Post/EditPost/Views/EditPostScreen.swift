@@ -36,11 +36,6 @@ struct EditPostScreen: View {
                         descriptionField
                             .frame(minHeight: Constants.screenHeight * 0.22)
                             .padding(.horizontal, 8)
-                            .toolbar {
-                                ToolbarItemGroup(placement: .keyboard) {
-                                    doneButton
-                                }
-                            }
                         
                         imagesGrid
                         tagsSection

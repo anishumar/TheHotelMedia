@@ -73,4 +73,8 @@ final class SignupAccountTypeViewModel: ObservableObject {
         }
     }
     
+    func dismissScreen() {
+        router.dismissScreen()
+    }
+    
 }

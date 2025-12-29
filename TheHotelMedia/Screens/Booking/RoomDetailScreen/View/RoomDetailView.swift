@@ -535,11 +535,6 @@ extension RoomDetailView {
                             )
                     }
                     .padding(.bottom, 16)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            keyboardButton
-                        }
-                    }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -578,17 +573,12 @@ extension RoomDetailView {
                             )
                     }
                     .padding(.bottom, 16)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            keyboardButton
-                        }
-                    }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(themeManager.currentTheme.darkGray_white)
+                            .fill(themeManager.currentTheme.darkGray_white)
 //                        .fill(.ultraThinMaterial)
                 )
                 .padding()

@@ -31,11 +31,6 @@ struct BookingCheckoutView: View {
                 VStack(spacing: 16) {
                     businessHeaderView
                     guestDetailSection
-                        .toolbar {
-                            ToolbarItemGroup(placement: .keyboard) {
-                                keyboardButton
-                            }
-                        }
                         .zIndex(1.0)
                     roomDetailSection
                     promoSection

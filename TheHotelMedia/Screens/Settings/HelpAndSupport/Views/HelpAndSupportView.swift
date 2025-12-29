@@ -433,11 +433,6 @@ extension HelpAndSupportView {
                         }
                         
                     })
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard ) {
-                            keyboardButtons
-                        }
-                    }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
