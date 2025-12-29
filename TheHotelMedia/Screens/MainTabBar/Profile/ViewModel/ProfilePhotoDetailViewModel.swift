@@ -160,14 +160,49 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     }
 
     private func createDummyPost(from media: MediaRef) -> PostData {
+        var name = profileData?.name
+        var profilePic = profileData?.profilePic
+        var businessRef: Ref? = nil
+        
+        if profileData?.accountType == "business", let bizProfile = profileData?.businessProfileRef {
+            name = bizProfile.name ?? profileData?.name
+            profilePic = bizProfile.profilePic ?? profileData?.profilePic
+            
+            // Map BusinessProfileRef to Ref as expected by PostedBy
+            // Note: Ref struct has many optional fields, we map what we have
+            businessRef = Ref(
+                id: bizProfile.id,
+                icon: nil, // BusinessProfileRef doesn't have icon usually
+                name: bizProfile.name,
+                order: nil,
+                profilePic: bizProfile.profilePic,
+                businessTypeRef: bizProfile.businessTypeRef.map { ref in
+                    BusinessTypeRef(id: ref.id, icon: ref.icon, name: ref.name)
+                },
+                businessSubtypeRef: bizProfile.businessSubtypeRef,
+                rating: bizProfile.rating,
+                address: bizProfile.address.map { addr in
+                    Address(
+                        street: addr.street,
+                        city: addr.city,
+                        state: addr.state,
+                        zipCode: addr.zipCode,
+                        country: addr.country,
+                        lat: addr.lat ?? 0.0,
+                        lng: addr.lng ?? 0.0
+                    )
+                }
+            )
+        }
+        
         let postedBy = PostedBy(
             id: profileData?.id,
             accountType: profileData?.accountType,
             businessProfileID: profileData?.businessProfileID,
-            name: profileData?.name,
+            name: name,
             username: profileData?.username,
-            businessProfileRef: nil, // We don't have Ref easily available, but name/id is most important
-            profilePic: profileData?.profilePic
+            businessProfileRef: businessRef,
+            profilePic: profilePic
         )
         
         return PostData(

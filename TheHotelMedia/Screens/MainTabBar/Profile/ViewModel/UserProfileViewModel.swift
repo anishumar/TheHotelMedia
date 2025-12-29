@@ -817,11 +817,16 @@ extension UserProfileViewModel {
             showLoadingIndicator = true
         }
         
+        // Capture these on the main thread/caller thread to avoid accessing self (and @AppStorage) from background task context
+        let targetProfileID = self.publicProfileID
+        let myUserID = self.ownUserID
+        
         Task { [weak self] in
             guard let self = self else { return }
             
             do {
-                if self.publicProfileID.isEmpty {
+                // If publicProfileID is empty OR matches ownUserID, fetch as "my profile" to ensure full access
+                if targetProfileID.isEmpty || targetProfileID == myUserID {
                     let result = try await self.dataManager.getProfile()
                     
                     await MainActor.run { [weak self] in
@@ -842,7 +847,7 @@ extension UserProfileViewModel {
                         }
                     }
                 } else {
-                    let result = try await self.dataManager.getPublicProfile(id: self.publicProfileID)
+                    let result = try await self.dataManager.getPublicProfile(id: targetProfileID)
                     
                     await MainActor.run { [weak self] in
                         guard let self = self else { return }
@@ -852,7 +857,8 @@ extension UserProfileViewModel {
                             if let data = result.data {
                                 self.isPrivateAccount = data.privateAccount ?? true
                                 self.profileData = data
-                                self.userProfileID = self.publicProfileID
+                                // Use captured ID or the one from data if inconsistent, but captured is safer for logic
+                                self.userProfileID = targetProfileID
                                 
                                 if !self.isPrivateAccount || data.isConnected ?? false {
                                     self.updateTotalPostCount()
@@ -1079,7 +1085,8 @@ extension UserProfileViewModel {
                                                 enrichedData[index].comments = post.comments
                                                 enrichedData[index].likedByMe = post.likedByMe
                                                 enrichedData[index].savedByMe = post.savedByMe
-                                                print("✅ [Profile] Media \(mediaID) matched to post \(post.id ?? "nil") | Likes: \(post.likes ?? 0)")
+                                                enrichedData[index].views = post.views
+                                                print("✅ [Profile] Media \(mediaID) matched to post \(post.id ?? "nil") | Likes: \(post.likes ?? 0) | Views: \(post.views ?? 0)")
                                             } else {
                                                 print("⚠️ [Profile] No post found for media \(mediaID)")
                                             }

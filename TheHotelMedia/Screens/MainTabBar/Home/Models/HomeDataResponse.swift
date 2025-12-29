@@ -141,7 +141,7 @@ struct MediaRef: Codable, Equatable, Identifiable, Hashable {
     let mimeType: String?
     let sourceURL: String?
     let thumbnailURL: String?
-    let views: Int?
+    var views: Int?
     var videoThumbnail: UIImage? = nil
     var postID: String? = ""  // Setting this value on our own.
     var postType: String? = ""  // Setting this value on our own.
