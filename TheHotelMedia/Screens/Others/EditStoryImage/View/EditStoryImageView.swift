@@ -507,6 +507,11 @@ extension EditStoryVideoView {
                     .scaledToFit()
                     .frame(width: 26, height: 26)
                     .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
+            } else if type == .location {
+                Image(systemName: "mappin.and.ellipse")
+                    .renderingMode(.template)
+                    .font(.system(size: 26, weight: .light))
+                    .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
             } else {
                 Image(type.rawValue.capitalized)
                     .renderingMode(.template)
@@ -1147,6 +1152,11 @@ extension EditStoryImageView {
                     .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 26, height: 26)
+                    .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
+            } else if type == .location {
+                Image(systemName: "mappin.and.ellipse")
+                    .renderingMode(.template)
+                    .font(.system(size: 26, weight: .light))
                     .foregroundColor(viewModel.selectedType == nil ? themeManager.currentTheme.white08_darkGray08 : viewModel.selectedType == type ? .hmIndigo : themeManager.currentTheme.white08_darkGray08)
             } else {
                 Image(type.rawValue.capitalized)

@@ -125,7 +125,6 @@ struct UserProfileView2: View {
                                             })
                                                 .environmentObject(themeManager)
                                                 .environmentObject(localizationManager)
-                                                .background(BackgroundClearView())
                                         })
                                         .transaction { transaction in
                                             transaction.disablesAnimations = true
