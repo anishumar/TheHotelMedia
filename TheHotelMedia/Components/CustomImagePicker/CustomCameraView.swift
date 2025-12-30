@@ -63,6 +63,7 @@ class CameraViewController: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var isRecording = false
     private var recordingStartTime: Date?
+    private var isLongPressActive = false // Track if long press gesture is active
     
     private var shutterButton: UIButton!
     private var flipButton: UIButton!
@@ -183,14 +184,16 @@ class CameraViewController: UIViewController {
         shutterButton.layer.borderColor = UIColor.white.cgColor
         shutterButton.frame = CGRect(x: view.bounds.width / 2 - 40, y: view.bounds.height - 120, width: 80, height: 80)
         
-        // Add tap gesture for photo
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(takePhoto))
-        shutterButton.addGestureRecognizer(tapGesture)
-        
-        // Add long press gesture for video
+        // Add long press gesture for video (must be added first)
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-        longPressGesture.minimumPressDuration = 0.1
+        longPressGesture.minimumPressDuration = 0.3 // Increased to 0.3 seconds to distinguish from tap
+        longPressGesture.allowableMovement = 10 // Allow small movement
         shutterButton.addGestureRecognizer(longPressGesture)
+        
+        // Add tap gesture for photo (must recognize simultaneously with long press)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(takePhoto))
+        tapGesture.require(toFail: longPressGesture) // Tap only works if long press fails
+        shutterButton.addGestureRecognizer(tapGesture)
         
         view.addSubview(shutterButton)
         
@@ -247,7 +250,8 @@ class CameraViewController: UIViewController {
     }
     
     @objc private func takePhoto() {
-        guard let photoOutput = photoOutput, !isRecording else { return }
+        // Prevent photo capture if we're recording, about to record, or long press is active
+        guard let photoOutput = photoOutput, !isRecording, !isLongPressActive else { return }
         
         let settings: AVCapturePhotoSettings
         if photoOutput.availablePhotoCodecTypes.contains(.hevc) {
@@ -264,9 +268,17 @@ class CameraViewController: UIViewController {
         
         switch gesture.state {
         case .began:
-            startVideoRecording()
-        case .ended, .cancelled:
-            stopVideoRecording()
+            isLongPressActive = true
+            // Only start recording if we're not already recording
+            if !isRecording {
+                startVideoRecording()
+            }
+        case .ended, .cancelled, .failed:
+            isLongPressActive = false
+            // Only stop if we're actually recording
+            if isRecording {
+                stopVideoRecording()
+            }
         default:
             break
         }
