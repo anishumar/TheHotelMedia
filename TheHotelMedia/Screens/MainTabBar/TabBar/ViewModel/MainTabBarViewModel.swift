@@ -40,6 +40,8 @@ final class MainTabBarViewModel: ObservableObject {
     @Published var selectedStoryImage: Image? = nil
     @Published var selectedStoryImage2: UIImage = UIImage()
     @Published var selectedStoryVideo: URL? = nil
+    @Published var capturedPhoto: UIImage? = nil
+    @Published var capturedVideo: URL? = nil
     @Published var trimmedStoryVideo: URL? = nil
     @Published var openCommentSection: Bool = false
     @Published var showCommentSectionSheet: Bool = false
@@ -125,6 +127,29 @@ final class MainTabBarViewModel: ObservableObject {
                             }
                         }
                     }
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Handle captured photo from custom camera
+        $capturedPhoto
+            .sink { [weak self] image in
+                guard let self = self, let image = image else { return }
+                self.selectedStoryImage2 = image
+                self.hasSelectedSomeMedia = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    self.showCropView.toggle()
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Handle captured video from custom camera
+        $capturedVideo
+            .sink { [weak self] url in
+                guard let self = self, let url = url else { return }
+                // Video goes directly to edit view (no trimming step)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    self.showCreateStoryVideoScreen(videoURL: url)
                 }
             }
             .store(in: &cancellables)

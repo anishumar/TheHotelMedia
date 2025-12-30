@@ -125,5 +125,9 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take photos and record videos for your stories.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to record videos with audio for your stories.</string>
 </dict>
 </plist>

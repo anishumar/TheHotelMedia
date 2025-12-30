@@ -129,7 +129,23 @@ struct MainTabBarView: View {
                         maxSelectionCount: 1
                     )
                     .fullScreenCover(isPresented: $viewModel.shouldPresentCamera) {
-                        SUImagePickerView(sourceType: .camera, image: $viewModel.selectedStoryImage, isPresented: $viewModel.shouldPresentCamera)
+                        #if targetEnvironment(simulator)
+                        // Simulator fallback - use photo picker
+                        SUImagePickerView(sourceType: .photoLibrary, image: $viewModel.selectedStoryImage, isPresented: $viewModel.shouldPresentCamera)
+                        #else
+                        // Real device - use custom camera
+                        CustomCameraView(
+                            isPresented: $viewModel.shouldPresentCamera,
+                            onPhotoCaptured: { image in
+                                viewModel.capturedPhoto = image
+                            },
+                            onVideoCaptured: { url in
+                                viewModel.capturedVideo = url
+                            },
+                            maxVideoDuration: 180 // 3 minutes
+                        )
+                        .ignoresSafeArea()
+                        #endif
                     }
             }
         }

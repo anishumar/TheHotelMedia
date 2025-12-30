@@ -57,6 +57,15 @@ struct EditStoryVideoView: View {
                 HStack {
                     if viewModel.selectedType == .emoji {
                         editStoryVideoEmojiSection
+                    } else if viewModel.selectedType == .filter {
+                        Text("video_filter_coming_soon".localized(localizationManager.language))
+                            .font(.custom(Constants.comicFont, size: 14))
+                            .foregroundColor(themeManager.currentTheme.label)
+                            .padding()
+                            .background(
+                                Capsule()
+                                    .fill(themeManager.currentTheme.darkGray08_hmIndigo08)
+                            )
                     }
                 }
                 , alignment: .bottom
@@ -482,6 +491,8 @@ extension EditStoryVideoView {
 
     private var editStoryVideoBottomButtonSection: some View {
         HStack {
+            editStoryVideoButton(type: .filter)
+            Spacer()
             editStoryVideoButton(type: .emoji)
             Spacer()
             editStoryVideoButton(type: .text) {
