@@ -72,6 +72,9 @@ class CameraViewController: UIViewController {
     private var recordingIndicator: UIView!
     
     private var currentCameraPosition: AVCaptureDevice.Position = .back
+    private var currentVideoDevice: AVCaptureDevice?
+    private var initialZoomFactor: CGFloat = 1.0
+    private var initialPanY: CGFloat = 0.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -100,6 +103,8 @@ class CameraViewController: UIViewController {
               let videoInput = try? AVCaptureDeviceInput(device: videoDevice) else {
             return
         }
+        
+        currentVideoDevice = videoDevice
         
         if captureSession.canAddInput(videoInput) {
             captureSession.addInput(videoInput)
@@ -197,6 +202,11 @@ class CameraViewController: UIViewController {
         
         view.addSubview(shutterButton)
         
+        // Add pan gesture for zoom during video recording
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+        panGesture.delegate = self
+        view.addGestureRecognizer(panGesture)
+        
         // Update layout when view appears
         DispatchQueue.main.async {
             self.updateLayout()
@@ -242,11 +252,16 @@ class CameraViewController: UIViewController {
             return
         }
         
+        currentVideoDevice = videoDevice
+        
         if captureSession.canAddInput(videoInput) {
             captureSession.addInput(videoInput)
         }
         
         captureSession.commitConfiguration()
+        
+        // Reset zoom when flipping camera
+        initialZoomFactor = 1.0
     }
     
     @objc private func takePhoto() {
@@ -279,8 +294,69 @@ class CameraViewController: UIViewController {
             if isRecording {
                 stopVideoRecording()
             }
+            // Reset zoom when recording stops
+            resetZoom()
         default:
             break
+        }
+    }
+    
+    @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+        // Only allow zoom during video recording
+        guard isRecording, let device = currentVideoDevice else { return }
+        
+        let translation = gesture.translation(in: view)
+        let velocity = gesture.velocity(in: view)
+        
+        // Only process vertical pan gestures (ignore horizontal)
+        guard abs(velocity.y) > abs(velocity.x) else { return }
+        
+        switch gesture.state {
+        case .began:
+            initialPanY = gesture.location(in: view).y
+            initialZoomFactor = device.videoZoomFactor
+        case .changed:
+            // Calculate zoom based on vertical translation
+            // Sliding up (negative translation.y) = zoom in
+            // Sliding down (positive translation.y) = zoom out
+            let maxZoom = min(device.activeFormat.videoMaxZoomFactor, 10.0) // Cap at 10x
+            let minZoom: CGFloat = 1.0
+            let zoomRange = maxZoom - minZoom
+            
+            // Use screen height as reference for zoom sensitivity
+            // Full screen height movement = full zoom range
+            let normalizedTranslation = -translation.y / view.bounds.height // Negative because up = zoom in
+            let zoomDelta = normalizedTranslation * zoomRange
+            
+            var newZoom = initialZoomFactor + zoomDelta
+            newZoom = max(minZoom, min(maxZoom, newZoom)) // Clamp between min and max
+            
+            // Apply zoom smoothly
+            do {
+                try device.lockForConfiguration()
+                device.videoZoomFactor = newZoom
+                device.unlockForConfiguration()
+            } catch {
+                print("Failed to set zoom: \(error)")
+            }
+        case .ended, .cancelled, .failed:
+            // Update initial zoom factor for next pan gesture
+            initialZoomFactor = device.videoZoomFactor
+            break
+        default:
+            break
+        }
+    }
+    
+    private func resetZoom() {
+        guard let device = currentVideoDevice else { return }
+        do {
+            try device.lockForConfiguration()
+            device.videoZoomFactor = 1.0
+            device.unlockForConfiguration()
+            initialZoomFactor = 1.0
+        } catch {
+            print("Failed to reset zoom: \(error)")
         }
     }
     
@@ -377,6 +453,22 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         
         coordinator?.videoCaptured(outputFileURL)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+extension CameraViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Allow pan gesture to work simultaneously with long press
+        return true
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // Only allow pan gesture when recording
+        if gestureRecognizer is UIPanGestureRecognizer {
+            return isRecording
+        }
+        return true
     }
 }
 
