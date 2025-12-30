@@ -97,6 +97,7 @@
 		045F8A102DAFB29300F70AC2 /* alarm-sound.caf in Resources */ = {isa = PBXBuildFile; fileRef = 045F8A0F2DAFB29300F70AC2 /* alarm-sound.caf */; };
 		0461D0522C8705D100D061A8 /* Crop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0461D0512C8705D100D061A8 /* Crop.swift */; };
 		0461D0552C87093400D061A8 /* CustomImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0461D0542C87093400D061A8 /* CustomImagePicker.swift */; };
+		0461D0622C87093500D061A9 /* CustomCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0461D0612C87093500D061A9 /* CustomCameraView.swift */; };
 		0461D05A2C87271800D061A8 /* TagPeopleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0461D0592C87271800D061A8 /* TagPeopleView.swift */; };
 		0461D05C2C8727FE00D061A8 /* TagPeopleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0461D05B2C8727FE00D061A8 /* TagPeopleViewModel.swift */; };
 		0461D05F2C87357D00D061A8 /* SearchProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0461D05E2C87357D00D061A8 /* SearchProfile.swift */; };
@@ -755,6 +756,7 @@
 		045F8A0F2DAFB29300F70AC2 /* alarm-sound.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "alarm-sound.caf"; sourceTree = "<group>"; };
 		0461D0512C8705D100D061A8 /* Crop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crop.swift; sourceTree = "<group>"; };
 		0461D0542C87093400D061A8 /* CustomImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomImagePicker.swift; sourceTree = "<group>"; };
+		0461D0612C87093500D061A9 /* CustomCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCameraView.swift; sourceTree = "<group>"; };
 		0461D0592C87271800D061A8 /* TagPeopleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagPeopleView.swift; sourceTree = "<group>"; };
 		0461D05B2C8727FE00D061A8 /* TagPeopleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagPeopleViewModel.swift; sourceTree = "<group>"; };
 		0461D05E2C87357D00D061A8 /* SearchProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchProfile.swift; sourceTree = "<group>"; };
@@ -1854,6 +1856,7 @@
 			isa = PBXGroup;
 			children = (
 				0461D0542C87093400D061A8 /* CustomImagePicker.swift */,
+				0461D0612C87093500D061A9 /* CustomCameraView.swift */,
 			);
 			path = CustomImagePicker;
 			sourceTree = "<group>";
@@ -5441,6 +5444,7 @@
 				04ABA2762CB4F05B00016228 /* HomeDataManager.swift in Sources */,
 				04D570412CBE21910048E689 /* GetBusinessReviewsResponse.swift in Sources */,
 				0461D0552C87093400D061A8 /* CustomImagePicker.swift in Sources */,
+				0461D0622C87093500D061A9 /* CustomCameraView.swift in Sources */,
 				04D26B7B2C7880CB0015D1AA /* BusinessQuestionsView.swift in Sources */,
 				04ABFE3F2C5A58AC003BB9F8 /* HMCustomButton.swift in Sources */,
 				04AD2C642CAFFABC00276F2B /* ReviewDataManager.swift in Sources */,
