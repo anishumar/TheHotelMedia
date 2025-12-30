@@ -41,12 +41,14 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     private let viewsLabel = UILabel()
     private let eyeImageView = UIImageView()
     
+    // Mute/unmute feedback icon
+    private let muteFeedbackImageView = UIImageView()
+    
     // Post details UI
     private let rightActionsStack = UIStackView() // Like, comment, share, bookmark buttons
     private let bottomInfoView = UIView()
     private let profileImageView = UIImageView()
     private let usernameLabel = UILabel()
-    private let followButton = UIButton(type: .system)
     private let locationTimeLabel = UILabel()
     private let captionLabel = UILabel()
     private let viewCommentsButton = UIButton(type: .system)
@@ -74,6 +76,8 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    private var isManuallyPaused: Bool = false
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .black
@@ -88,6 +92,13 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         thumbnailImageView.clipsToBounds = true
         contentView.addSubview(thumbnailImageView)
         thumbnailImageView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Mute/unmute feedback icon
+        muteFeedbackImageView.contentMode = .scaleAspectFit
+        muteFeedbackImageView.alpha = 0.0
+        muteFeedbackImageView.tintColor = .white
+        contentView.addSubview(muteFeedbackImageView)
+        muteFeedbackImageView.translatesAutoresizingMaskIntoConstraints = false
         
         // Views container
         viewsContainer.axis = .horizontal
@@ -125,6 +136,9 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         // Bottom info view
         setupBottomInfo()
         
+        // Add gesture recognizers for tap (mute/unmute) and long press (pause/play)
+        setupGestures()
+        
         NSLayoutConstraint.activate([
             thumbnailImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             thumbnailImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -139,7 +153,12 @@ final class ReelCollectionViewCell: UICollectionViewCell {
             
             bottomInfoView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             bottomInfoView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            bottomInfoView.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor)
+            bottomInfoView.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor),
+            
+            muteFeedbackImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            muteFeedbackImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            muteFeedbackImageView.widthAnchor.constraint(equalToConstant: 80),
+            muteFeedbackImageView.heightAnchor.constraint(equalToConstant: 80)
         ])
     }
     
@@ -230,6 +249,83 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         delegate?.didTapProfile(postID: postID, userID: userID)
     }
     
+    private func setupGestures() {
+        // Tap gesture for mute/unmute
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tapGesture.numberOfTapsRequired = 1
+        tapGesture.delegate = self
+        contentView.addGestureRecognizer(tapGesture)
+        
+        // Long press gesture for pause/play
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPressGesture.minimumPressDuration = 0.1
+        longPressGesture.delegate = self
+        contentView.addGestureRecognizer(longPressGesture)
+        
+        // Make tap gesture require long press to fail so they don't conflict
+        tapGesture.require(toFail: longPressGesture)
+    }
+    
+    @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
+        guard gesture.state == .ended else { return }
+        
+        // Toggle mute/unmute
+        isMuted.toggle()
+        
+        // Show feedback icon
+        showMuteFeedbackIcon(muted: isMuted)
+        
+        // Update audio session based on mute state
+        do {
+            if isMuted {
+                try AVAudioSession.sharedInstance().setCategory(.soloAmbient)
+            } else {
+                try AVAudioSession.sharedInstance().setCategory(.playback)
+            }
+        } catch {
+            print("Failed to set audio session category: \(error)")
+        }
+    }
+    
+    private func showMuteFeedbackIcon(muted: Bool) {
+        // Set the appropriate icon
+        let iconName = muted ? "Mute" : "Unmute"
+        muteFeedbackImageView.image = UIImage(named: iconName)?.withRenderingMode(.alwaysTemplate)
+        
+        // Animate in
+        UIView.animate(withDuration: 0.2, animations: {
+            self.muteFeedbackImageView.alpha = 1.0
+            self.muteFeedbackImageView.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        }) { _ in
+            // Animate out
+            UIView.animate(withDuration: 0.3, delay: 0.5, options: [], animations: {
+                self.muteFeedbackImageView.alpha = 0.0
+                self.muteFeedbackImageView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            }, completion: { _ in
+                self.muteFeedbackImageView.transform = .identity
+            })
+        }
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            // Pause video when long press starts
+            if player?.rate != 0 {
+                player?.pause()
+                isManuallyPaused = true
+            }
+        case .ended, .cancelled:
+            // Resume video when long press ends
+            if isManuallyPaused {
+                player?.play()
+                isManuallyPaused = false
+            }
+        default:
+            break
+        }
+    }
+    
     private func setupBottomInfo() {
         bottomInfoView.backgroundColor = UIColor.black.withAlphaComponent(0.6)
         contentView.addSubview(bottomInfoView)
@@ -255,13 +351,6 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         let usernameTapGesture = UITapGestureRecognizer(target: self, action: #selector(profileTapped))
         usernameLabel.addGestureRecognizer(usernameTapGesture)
-        
-        // Follow button
-        followButton.setTitle("Follow", for: .normal)
-        followButton.setTitleColor(.white, for: .normal)
-        followButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
-        bottomInfoView.addSubview(followButton)
-        followButton.translatesAutoresizingMaskIntoConstraints = false
         
         // Location and time
         locationTimeLabel.textColor = .white.withAlphaComponent(0.8)
@@ -297,9 +386,7 @@ final class ReelCollectionViewCell: UICollectionViewCell {
             
             usernameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 12),
             usernameLabel.topAnchor.constraint(equalTo: bottomInfoView.topAnchor, constant: 12),
-            
-            followButton.leadingAnchor.constraint(equalTo: usernameLabel.trailingAnchor, constant: 8),
-            followButton.centerYAnchor.constraint(equalTo: usernameLabel.centerYAnchor),
+            usernameLabel.trailingAnchor.constraint(lessThanOrEqualTo: bottomInfoView.trailingAnchor, constant: -16),
             
             locationTimeLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 12),
             locationTimeLabel.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 4),
@@ -339,6 +426,13 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         likesLabel.text = nil
         commentsLabel.text = nil
         sharesLabel.text = nil
+        
+        // Reset gesture states
+        isManuallyPaused = false
+        
+        // Reset feedback icon
+        muteFeedbackImageView.alpha = 0.0
+        muteFeedbackImageView.transform = .identity
     }
     
     func configure(with reel: Reel, shouldAutoplay: Bool = false, isMuted: Bool = false, delegate: ReelCellDelegate?) {
@@ -534,16 +628,19 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     }
     
     func play() {
+        guard !isManuallyPaused else { return }
         player?.play()
         player?.isMuted = isMuted
     }
     
     func pause() {
         player?.pause()
+        isManuallyPaused = false // Reset manual pause flag when externally paused
     }
     
     func stop() {
         pause()
+        isManuallyPaused = false
         if let item = playerItem {
             item.removeObserver(self, forKeyPath: "status", context: nil)
         }
@@ -822,6 +919,46 @@ extension ReelsViewController: ReelCellDelegate {
                 cell.updatePostData(updatedPostData)
             }
         }
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+extension ReelCollectionViewCell: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // Don't handle gestures if touching buttons or interactive elements
+        let touchPoint = touch.location(in: contentView)
+        
+        // Check if touch is in the right actions stack area (buttons)
+        let rightActionsFrame = rightActionsStack.frame
+        if rightActionsFrame.contains(touchPoint) {
+            return false
+        }
+        
+        // Check if touch is in the bottom info view area (profile, username, etc.)
+        let bottomInfoFrame = bottomInfoView.frame
+        if bottomInfoFrame.contains(touchPoint) {
+            // Allow tap on profile image and username, but not on the whole bottom area
+            let profileFrame = profileImageView.frame
+            let usernameFrame = usernameLabel.frame
+            let viewCommentsFrame = viewCommentsButton.frame
+            
+            if profileFrame.contains(touchPoint) || usernameFrame.contains(touchPoint) {
+                return false // Let the profile tap gesture handle it
+            }
+            
+            // Allow gestures in bottom area but not on interactive elements
+            if viewCommentsFrame.contains(touchPoint) {
+                return false
+            }
+        }
+        
+        // Check if touch is in the views container area
+        let viewsFrame = viewsContainer.frame
+        if viewsFrame.contains(touchPoint) {
+            return false
+        }
+        
+        return true
     }
 }
 

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftfulRouting
+import AVFoundation
 
 struct ProfileVideoDetailView: View {
     
@@ -47,7 +48,7 @@ struct ProfileVideoDetailView: View {
                 ReelsViewRepresentable(
                     reels: convertToReels(viewModel.videos),
                     initialReelID: viewModel.targetVideoID,
-                    isMuted: isMute,
+                    isMuted: false,
                     onLoadMore: {
                         viewModel.loadVideos()
                     },
@@ -79,6 +80,12 @@ struct ProfileVideoDetailView: View {
         .onAppear {
             if viewModel.videoPosts.isEmpty {
                 viewModel.loadVideos()
+            }
+            // Set up audio session for video playback with sound
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback)
+            } catch {
+                print("Failed to set audio session category: \(error)")
             }
         }
         .sheet(isPresented: $viewModel.showCommentSection) {
