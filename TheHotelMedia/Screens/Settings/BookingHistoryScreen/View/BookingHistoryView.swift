@@ -201,15 +201,44 @@ extension BookingHistoryView {
                     .withComicFont(11, color: themeManager.currentTheme.white04_darkGray04)
                 
                 Spacer()
+                
                 let status = booking.status ?? ""
-                Text(status.capitalized)
-                    .withComicFont(11, color: .white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(updateBookingStatusColor(status: status.lowercased()))
-                    )
+                let canCancel: Bool = {
+                    let lower = status.lowercased()
+                    let type = (booking.type ?? "").lowercased()
+                    guard type != "book-table", type != "book-banquet" else { return false }
+                    // Allow cancel only for cancellable states; server enforces 24h rule anyway.
+                    guard lower.contains("pending") || lower.contains("confirmed") else { return false }
+                    guard !lower.contains("cancel") else { return false }
+                    return true
+                }()
+                
+                HStack(spacing: 8) {
+                    if canCancel, let bookingID = booking.id {
+                        Button {
+                            viewModel.showCancelBookingModal(id: bookingID)
+                        } label: {
+                            Text("Cancel")
+                                .withComicFont(11, color: .white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(.hmRed)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
+                    Text(status.capitalized)
+                        .withComicFont(11, color: .white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(updateBookingStatusColor(status: status.lowercased()))
+                        )
+                }
             }
             
         }

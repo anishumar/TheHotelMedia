@@ -468,6 +468,12 @@ extension URL {
     static var cancelBooking: URL {
         URL(string: "\(URL.default)/bookings/")!
     }
+
+    // User-cancel booking (dedicated endpoint)
+    // DELETE /api/v1/bookings/user/cancel/:id
+    static var cancelBookingUser: URL {
+        URL(string: "\(URL.default)/bookings/user/cancel/")!
+    }
     
     static var bookingAction: URL {
         URL(string: "\(URL.default)/bookings/")!

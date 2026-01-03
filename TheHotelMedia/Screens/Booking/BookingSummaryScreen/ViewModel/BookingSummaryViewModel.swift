@@ -188,7 +188,12 @@ extension BookingSummaryViewModel {
             } catch {
                 await MainActor.run {
                     showLoadingIndicator = false
-                    ErrorModalManager.showErrorModal(router: router, errorText: "internal_server_error_please_try_again".localized(localizationManager.language))
+                    // Surface backend message (e.g. 400: "please contact the property regarding this issue")
+                    if let networkError = error as? NetworkError {
+                        ErrorModalManager.showErrorModal(router: router, errorText: networkError.localizedDescription)
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: "internal_server_error_please_try_again".localized(localizationManager.language))
+                    }
                 }
             }
         }

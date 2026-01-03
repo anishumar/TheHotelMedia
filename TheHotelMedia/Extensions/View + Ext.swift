@@ -48,7 +48,7 @@ extension View {
             color = .blue
         case "completed":
             color = .green
-        case "canceled", "canceled by business":
+        case "canceled", "canceled by business", "canceled by user":
             color = .hmRed
         case "no show":
             color = .gray
