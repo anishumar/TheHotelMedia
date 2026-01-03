@@ -125,7 +125,7 @@ struct RoomDetailView: View {
                         HFlow {
                             ForEach(viewModel.roomData?.languageSpoken ?? []) { language in
                                 HStack {
-                                    ImageLoaderView(urlString: (language.flag ?? "").replacingOccurrences(of: "http://ec2-43-205-43-21.ap-south-1.compute.amazonaws.com", with: "https://staging.thehotelmedia.com"))
+                                    ImageLoaderView(urlString: (language.flag ?? "").replacingOccurrences(of: "http://ec2-43-205-43-21.ap-south-1.compute.amazonaws.com", with: "https://api.thehotelmedia.com"))
                                         .frame(width: 24, height: 24)
                                         .clipShape(Circle())
                                     

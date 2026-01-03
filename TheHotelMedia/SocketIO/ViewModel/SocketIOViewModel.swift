@@ -15,6 +15,8 @@ class SocketIOViewModel: ObservableObject {
     static var shared = SocketIOViewModel()
     
     private var socketManager: SocketManager?
+    private var handlersRegistered: Bool = false
+    private var configuredUsername: String? = nil
     
     @Published var isConnected: Bool = false
     
@@ -33,6 +35,10 @@ class SocketIOViewModel: ObservableObject {
     @Published var newMessage: PrivateMessage? = nil
     @Published var userConnectedOrDisconnected: Bool = false
     
+    // Message mutations (edit/delete) – emitted by backend, consumed by chat UI.
+    @Published var editedMessageUpdate: SocketMessageEditUpdate? = nil
+    @Published var deletedMessageUpdate: SocketMessageDeleteUpdate? = nil
+    
     @AppStorage("username") var username: String = ""
     @AppStorage("lastConnectedUser") var lastConnectedUser: String = ""
     @AppStorage("appIsActive") var appIsActive: Bool = true
@@ -41,42 +47,67 @@ class SocketIOViewModel: ObservableObject {
         
         guard appIsActive else { return }
         
-        let config = SocketIOClientConfiguration(
-            arrayLiteral: .log(false), .compress
-        )
-        
-        let parameters: [String: Any] = [
-            "username" : username
-        ]
-        
-        socketManager = SocketManager(socketURL: URL.baseURL, config: config)
         let currentConnectUser = username
-        socketManager?.defaultSocket.on(clientEvent: .connect) { [weak self] data, ack in
-            guard let self else { return }
-            print("Socket Connected!!!")
-            DispatchQueue.main.async {
-                self.isConnected = true
-                onConnected?()
-                self.lastConnectedUser = currentConnectUser
-            }
+        let payload: [String: Any] = ["username": currentConnectUser]
+        
+        // If the logged-in username changed, tear down the previous socket completely.
+        if configuredUsername != currentConnectUser, let existing = socketManager?.defaultSocket {
+            existing.removeAllHandlers()
+            existing.disconnect()
+            socketManager = nil
+            handlersRegistered = false
+        }
+        configuredUsername = currentConnectUser
+        
+        if socketManager == nil {
+            let config = SocketIOClientConfiguration(
+                arrayLiteral:
+                    .log(false),
+                    .compress,
+                    .reconnects(true),
+                    .reconnectAttempts(-1),
+                    .reconnectWait(1),
+                    .reconnectWaitMax(5),
+                    .forceWebsockets(true)
+            )
+            socketManager = SocketManager(socketURL: URL.baseURL, config: config)
         }
         
+        guard let socket = socketManager?.defaultSocket else { return }
         
-        socketManager?.defaultSocket.on(clientEvent: .disconnect) { [weak self] data, ack in
+        // Register handlers only once per socket lifecycle.
+        if !handlersRegistered {
+            handlersRegistered = true
+            
+            socket.on(clientEvent: .connect) { [weak self] data, ack in
+                guard let self else { return }
+                print("Socket Connected!!!")
+                DispatchQueue.main.async {
+                    self.isConnected = true
+                    onConnected?()
+                    self.lastConnectedUser = currentConnectUser
+                }
+            }
+        
+        
+            socket.on(clientEvent: .disconnect) { [weak self] data, ack in
             guard let self else { return }
             print("Socket Disconnected!!!")
             DispatchQueue.main.async {
                 self.isConnected = false
             }
-        }
+            }
         
         
-        socketManager?.defaultSocket.on(clientEvent: .error) { data, ack in
-            print("Error Connecting to Socket!!!")
-        }
+            socket.on(clientEvent: .error) { [weak self] data, ack in
+                print("Socket Error:", data)
+                DispatchQueue.main.async {
+                    self?.isConnected = false
+                }
+            }
         
         
-        socketManager?.defaultSocket.on("private message") { [weak self] data, ack in
+            socket.on("private message") { [weak self] data, ack in
             guard let self else { return }
             if let message = JSONSerializationManager.getSingleMessage(data: data) {
                 DispatchQueue.main.async {
@@ -84,19 +115,39 @@ class SocketIOViewModel: ObservableObject {
                 }
             }
             self.chatScreenEmit(query: "", pageNo: 1)
-        }
+            }
+
+            socket.on("edit message") { [weak self] data, ack in
+            guard let self else { return }
+            if let update = JSONSerializationManager.getEditMessageUpdate(data: data) {
+                DispatchQueue.main.async {
+                    self.editedMessageUpdate = update
+                    self.applyEditUpdateToCachedMessages(update)
+                }
+            }
+            }
+        
+            socket.on("delete message") { [weak self] data, ack in
+            guard let self else { return }
+            if let update = JSONSerializationManager.getDeleteMessageUpdate(data: data) {
+                DispatchQueue.main.async {
+                    self.deletedMessageUpdate = update
+                    self.applyDeleteUpdateToCachedMessages(update)
+                }
+            }
+            }
         
         
-        socketManager?.defaultSocket.on("users") { [weak self] data, ack in
+            socket.on("users") { [weak self] data, ack in
             guard let self else { return }
             if let array = JSONSerializationManager.getUserList(data: data) {
                 DispatchQueue.main.async {
                     self.userList = array
                 }
             }
-        }
+            }
         
-        socketManager?.defaultSocket.on("chat screen") { [weak self] data, ack in
+            socket.on("chat screen") { [weak self] data, ack in
             guard let self else { return }
             let (array, pageNumber, totalPages) = JSONSerializationManager.getRecentChatList(data: data)
             
@@ -111,9 +162,9 @@ class SocketIOViewModel: ObservableObject {
                     self.recentChat = array
                 }
             }
-        }
+            }
         
-        socketManager?.defaultSocket.on("fetch conversations") { [weak self] data, ack in
+            socket.on("fetch conversations") { [weak self] data, ack in
             guard let self else { return }
             let (array, pageNumber, totalPages) = JSONSerializationManager.getPrivateMessagesList(data: data)
             
@@ -128,24 +179,32 @@ class SocketIOViewModel: ObservableObject {
                     self.privateMessagesList = array
                 }
             }
-        }
+            }
         
-        socketManager?.defaultSocket.on("user connected") { [weak self] data, ack in
+            socket.on("user connected") { [weak self] data, ack in
             guard let self else { return }
             DispatchQueue.main.async {
                 self.userConnectedOrDisconnected = true
             }
-        }
+            }
         
-        socketManager?.defaultSocket.on("user disconnected") { [weak self] data, ack in
+            socket.on("user disconnected") { [weak self] data, ack in
             guard let self else { return }
             DispatchQueue.main.async {
                 self.userConnectedOrDisconnected = false
             }
+            }
         }
         
-        print(username)
-        socketManager?.defaultSocket.connect(withPayload: parameters)
+        // Avoid spawning multiple concurrent connection attempts.
+        if socket.status != .connected && socket.status != .connecting {
+            socket.connect(withPayload: payload)
+        } else if socket.status == .connected {
+            DispatchQueue.main.async {
+                self.isConnected = true
+                onConnected?()
+            }
+        }
     }
     
     
@@ -177,6 +236,92 @@ class SocketIOViewModel: ObservableObject {
     
     func sendMessage(parameters: [String: Any]) {
         socketManager?.defaultSocket.emit("private message", parameters)
+    }
+    
+    func editMessage(messageID: String, message: String) {
+        socketManager?.defaultSocket.emit("edit message", ["messageID": messageID, "message": message])
+    }
+    
+    func deleteMessage(messageID: String) {
+        socketManager?.defaultSocket.emit("delete message", ["messageID": messageID])
+    }
+    
+    // Keep local cache (`privateMessagesList`) in sync so navigating away/back doesn't "revert"
+    // even if the next fetch races or returns slightly stale data.
+    private func applyEditUpdateToCachedMessages(_ update: SocketMessageEditUpdate) {
+        guard let index = findIndexInCachedMessages(messageID: update.messageID, clientMessageID: update.clientMessageID) else { return }
+        
+        let old = privateMessagesList[index]
+        privateMessagesList[index] = PrivateMessage(
+            id: old.id,
+            createdAt: old.createdAt,
+            isSeen: old.isSeen,
+            content: update.message ?? old.content,
+            sentByMe: old.sentByMe,
+            type: old.type,
+            messageID: update.messageID ?? old.messageID,
+            clientMessageID: update.clientMessageID ?? old.clientMessageID,
+            isEdited: update.isEdited ?? true,
+            editedAt: update.editedAt ?? old.editedAt,
+            isDeleted: old.isDeleted,
+            deletedAt: old.deletedAt,
+            mediaUrl: old.mediaUrl,
+            thumbnailUrl: old.thumbnailUrl,
+            from: update.from ?? old.from,
+            to: update.to ?? old.to,
+            thumbnail: old.thumbnail,
+            hasUploaded: old.hasUploaded,
+            isUploading: old.isUploading,
+            isRemotePDF: old.isRemotePDF,
+            isURL: old.isURL,
+            showDate: old.showDate,
+            pdfData: old.pdfData
+        )
+    }
+    
+    private func applyDeleteUpdateToCachedMessages(_ update: SocketMessageDeleteUpdate) {
+        guard let index = findIndexInCachedMessages(messageID: update.messageID, clientMessageID: update.clientMessageID) else { return }
+        
+        let old = privateMessagesList[index]
+        privateMessagesList[index] = PrivateMessage(
+            id: old.id,
+            createdAt: old.createdAt,
+            isSeen: old.isSeen,
+            content: "The message was deleted",
+            sentByMe: old.sentByMe,
+            type: old.type,
+            messageID: update.messageID ?? old.messageID,
+            clientMessageID: update.clientMessageID ?? old.clientMessageID,
+            isEdited: old.isEdited,
+            editedAt: old.editedAt,
+            isDeleted: update.isDeleted ?? true,
+            deletedAt: old.deletedAt ?? DateManager.dateIntoIsoFormat(date: Date()),
+            mediaUrl: old.mediaUrl,
+            thumbnailUrl: old.thumbnailUrl,
+            from: update.from ?? old.from,
+            to: update.to ?? old.to,
+            thumbnail: old.thumbnail,
+            hasUploaded: old.hasUploaded,
+            isUploading: old.isUploading,
+            isRemotePDF: old.isRemotePDF,
+            isURL: old.isURL,
+            showDate: old.showDate,
+            pdfData: old.pdfData
+        )
+    }
+    
+    private func findIndexInCachedMessages(messageID: String?, clientMessageID: String?) -> Int? {
+        if let messageID, !messageID.isEmpty {
+            if let index = privateMessagesList.firstIndex(where: { $0.messageID == messageID || $0.id == messageID }) {
+                return index
+            }
+        }
+        if let clientMessageID, !clientMessageID.isEmpty {
+            if let index = privateMessagesList.firstIndex(where: { $0.clientMessageID == clientMessageID || $0.id == clientMessageID }) {
+                return index
+            }
+        }
+        return nil
     }
     
     

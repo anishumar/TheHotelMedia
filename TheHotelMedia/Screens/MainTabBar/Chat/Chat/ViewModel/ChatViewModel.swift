@@ -62,6 +62,10 @@ class ChatViewModel: ObservableObject {
     var lastSharedPostID: String? = nil // Track last shared post ID to prevent duplicates
     @Published var messages: [PrivateMessage] = []
     @Published var messageFieldText: String = ""
+    @Published var editingMessage: PrivateMessage? = nil
+    
+    // Retry logic for operations attempted before server `_id` is available.
+    private var mutationRetryCount: [String: Int] = [:]
     @Published var showFileImporter: Bool = false
     @Published var showPhotoPicker: Bool = false
     @Published var showOptionDialog: Bool = false
@@ -212,6 +216,22 @@ class ChatViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        socketViewModel.$editedMessageUpdate
+            .sink { [weak self] update in
+                guard let self else { return }
+                guard let update else { return }
+                self.applyEditUpdate(update)
+            }
+            .store(in: &cancellables)
+        
+        socketViewModel.$deletedMessageUpdate
+            .sink { [weak self] update in
+                guard let self else { return }
+                guard let update else { return }
+                self.applyDeleteUpdate(update)
+            }
+            .store(in: &cancellables)
+        
         $photoPickerItems
             .sink { [weak self] pickerItems in
                 guard let self else { return }
@@ -232,7 +252,18 @@ class ChatViewModel: ObservableObject {
                 guard let self else { return }
                 if let image {
                     let randomID = UUID().uuidString
-                    var message = PrivateMessage(id: randomID, createdAt: DateManager.dateIntoIsoFormat(date: Date()), isSeen: 1, content: "Image", sentByMe: 1, type: "image", thumbnail: image, isUploading: true)
+                    var message = PrivateMessage(
+                        id: randomID,
+                        createdAt: DateManager.dateIntoIsoFormat(date: Date()),
+                        isSeen: 1,
+                        content: "Image",
+                        sentByMe: 1,
+                        type: "image",
+                        messageID: nil,
+                        clientMessageID: randomID,
+                        thumbnail: image,
+                        isUploading: true
+                    )
                     
                     if let first = messages.first {
                         let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
@@ -259,7 +290,18 @@ class ChatViewModel: ObservableObject {
                 guard let self else { return }
                 if let videoURL {
                     let randomID = UUID().uuidString
-                    var message = PrivateMessage(id: randomID, createdAt: DateManager.dateIntoIsoFormat(date: Date()), isSeen: 1, content: "Video", sentByMe: 1, type: "video", mediaUrl: videoURL.absoluteString, isUploading: true)
+                    var message = PrivateMessage(
+                        id: randomID,
+                        createdAt: DateManager.dateIntoIsoFormat(date: Date()),
+                        isSeen: 1,
+                        content: "Video",
+                        sentByMe: 1,
+                        type: "video",
+                        messageID: nil,
+                        clientMessageID: randomID,
+                        mediaUrl: videoURL.absoluteString,
+                        isUploading: true
+                    )
                     
                     if let first = messages.first {
                         let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
@@ -301,7 +343,19 @@ class ChatViewModel: ObservableObject {
                     if let data,
                        let url {
                         let randomID = UUID().uuidString
-                        var message = PrivateMessage(id: randomID, createdAt: DateManager.dateIntoIsoFormat(date: Date()), isSeen: 1, content: url.lastPathComponent, sentByMe: 1, type: "pdf", isUploading: true, isRemotePDF: false, pdfData: data)
+                        var message = PrivateMessage(
+                            id: randomID,
+                            createdAt: DateManager.dateIntoIsoFormat(date: Date()),
+                            isSeen: 1,
+                            content: url.lastPathComponent,
+                            sentByMe: 1,
+                            type: "pdf",
+                            messageID: nil,
+                            clientMessageID: randomID,
+                            isUploading: true,
+                            isRemotePDF: false,
+                            pdfData: data
+                        )
                         
                         if let first = messages.first {
                             let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
@@ -651,13 +705,15 @@ class ChatViewModel: ObservableObject {
     
     
     
-    func sendMessage(message: String, type: String = "text", mediaID: String? = nil, mediaUrl: String? = nil, thumbnailUrl: String? = nil) {
+    func sendMessage(message: String, type: String = "text", mediaID: String? = nil, mediaUrl: String? = nil, thumbnailUrl: String? = nil, clientMessageID: String? = nil) {
         
         let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedClientMessageID = clientMessageID ?? UUID().uuidString
         
         var messageModel: [String: Any] = [
             "type" : type,
-            "message": trimmedMessage
+            "message": trimmedMessage,
+            "clientMessageID": resolvedClientMessageID
         ]
         
         if let mediaID {
@@ -672,15 +728,27 @@ class ChatViewModel: ObservableObject {
             messageModel.updateValue(thumbnailUrl, forKey: "thumbnailUrl")
         }
         
+        // NOTE: Backend may store `clientMessageID` as a top-level field (recommended),
+        // so we include it BOTH at top-level and inside the nested message model.
         let parameters: [String: Any] = [
             "message": messageModel,
-            "to": username
+            "to": username,
+            "clientMessageID": resolvedClientMessageID
         ]
         socketViewModel.sendMessage(parameters: parameters)
         
         if mediaID == nil {
             
-            var message = PrivateMessage(id: UUID().uuidString, createdAt: DateManager.dateIntoIsoFormat(date: Date()), isSeen: 1, content: trimmedMessage, sentByMe: 1, type: type)
+            var message = PrivateMessage(
+                id: resolvedClientMessageID,
+                createdAt: DateManager.dateIntoIsoFormat(date: Date()),
+                isSeen: 1,
+                content: trimmedMessage,
+                sentByMe: 1,
+                type: type,
+                messageID: nil,
+                clientMessageID: resolvedClientMessageID
+            )
             
             if let first = messages.first {
                 let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
@@ -689,6 +757,332 @@ class ChatViewModel: ObservableObject {
             
             messages.insert(message, at: 0)
         }
+    }
+    
+    func sendOrEditCurrentText() {
+        let trimmed = messageFieldText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        if let editingMessage {
+            submitEdit(for: editingMessage, newText: trimmed)
+            messageFieldText = ""
+            self.editingMessage = nil
+        } else {
+            sendMessage(message: trimmed)
+            messageFieldText = ""
+        }
+    }
+    
+    func beginEditing(_ message: PrivateMessage) {
+        guard message.sentByMe == 1 else { return }
+        guard message.type == "text" else { return }
+        guard message.isDeleted != true else { return }
+        editingMessage = message
+        messageFieldText = message.content ?? ""
+        isTextFieldFocused = true
+    }
+    
+    func cancelEditing() {
+        editingMessage = nil
+        messageFieldText = ""
+    }
+    
+    func showDeleteMessageModal(_ message: PrivateMessage) {
+        guard message.sentByMe == 1 else { return }
+        guard message.isDeleted != true else { return }
+        
+        BottomModalManager.horizontalStyleModal(
+            router: router,
+            title: "Do you really want to delete this message?",
+            rightButtonTitle: "No",
+            leftButtonTitle: "Yes"
+        ) { [weak self] in
+            self?.deleteMessage(message)
+        } onRightButtonPressed: { } onDismiss: { }
+    }
+    
+    // MARK: - Applying socket updates
+    
+    private func submitEdit(for message: PrivateMessage, newText: String) {
+        guard socketViewModel.isConnected else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
+            return
+        }
+        // IMPORTANT:
+        // If the server doesn't reliably support lookup by `clientMessageID`,
+        // emitting edit/delete before we have the Mongo `_id` will produce "Message not found".
+        // So we only emit immediately when we have a real server id.
+        let serverMessageID = message.messageID
+        
+        // Optimistic update
+        if let index = findMessageIndex(messageID: message.messageID, clientMessageID: message.clientMessageID ?? message.id) {
+            messages[index].isEdited = true
+            messages[index].editedAt = DateManager.dateIntoIsoFormat(date: Date())
+            messages[index] = PrivateMessage(
+                id: messages[index].id,
+                createdAt: messages[index].createdAt,
+                isSeen: messages[index].isSeen,
+                content: newText,
+                sentByMe: messages[index].sentByMe,
+                type: messages[index].type,
+                messageID: messages[index].messageID,
+                clientMessageID: messages[index].clientMessageID,
+                isEdited: true,
+                editedAt: messages[index].editedAt,
+                isDeleted: messages[index].isDeleted,
+                deletedAt: messages[index].deletedAt,
+                mediaUrl: messages[index].mediaUrl,
+                thumbnailUrl: messages[index].thumbnailUrl,
+                from: messages[index].from,
+                to: messages[index].to,
+                thumbnail: messages[index].thumbnail,
+                hasUploaded: messages[index].hasUploaded,
+                isUploading: messages[index].isUploading,
+                isRemotePDF: messages[index].isRemotePDF,
+                isURL: messages[index].isURL,
+                showDate: messages[index].showDate,
+                pdfData: messages[index].pdfData
+            )
+        }
+        
+        if let serverMessageID, !serverMessageID.isEmpty {
+            socketViewModel.editMessage(messageID: serverMessageID, message: newText)
+        }
+        
+        // Force a refresh so we don't "revert" on navigation if the server is the source of truth.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            guard let self else { return }
+            self.socketViewModel.fetchPrivateConversation(username: self.username, pageNumber: 1)
+        }
+        
+        // If this message doesn't have server `_id` yet, retry edit after server has a chance to persist it.
+        if serverMessageID == nil || serverMessageID?.isEmpty == true {
+            retryEditIfNeeded(original: message, newText: newText)
+        }
+    }
+    
+    private func deleteMessage(_ message: PrivateMessage) {
+        guard socketViewModel.isConnected else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
+            return
+        }
+        // See note in submitEdit: avoid emitting delete before server `_id` exists.
+        let serverMessageID = message.messageID
+        
+        // Optimistic update
+        if let index = findMessageIndex(messageID: message.messageID, clientMessageID: message.clientMessageID ?? message.id) {
+            messages[index].isDeleted = true
+            messages[index] = PrivateMessage(
+                id: messages[index].id,
+                createdAt: messages[index].createdAt,
+                isSeen: messages[index].isSeen,
+                content: "The message was deleted",
+                sentByMe: messages[index].sentByMe,
+                type: messages[index].type,
+                messageID: messages[index].messageID,
+                clientMessageID: messages[index].clientMessageID,
+                isEdited: messages[index].isEdited,
+                editedAt: messages[index].editedAt,
+                isDeleted: true,
+                deletedAt: DateManager.dateIntoIsoFormat(date: Date()),
+                mediaUrl: messages[index].mediaUrl,
+                thumbnailUrl: messages[index].thumbnailUrl,
+                from: messages[index].from,
+                to: messages[index].to,
+                thumbnail: messages[index].thumbnail,
+                hasUploaded: messages[index].hasUploaded,
+                isUploading: messages[index].isUploading,
+                isRemotePDF: messages[index].isRemotePDF,
+                isURL: messages[index].isURL,
+                showDate: messages[index].showDate,
+                pdfData: messages[index].pdfData
+            )
+        }
+        
+        if let serverMessageID, !serverMessageID.isEmpty {
+            socketViewModel.deleteMessage(messageID: serverMessageID)
+        }
+        
+        // Force a refresh so we don't "revert" on navigation if the server is the source of truth.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            guard let self else { return }
+            self.socketViewModel.fetchPrivateConversation(username: self.username, pageNumber: 1)
+        }
+        
+        // If this message doesn't have server `_id` yet, retry delete after server has a chance to persist it.
+        if serverMessageID == nil || serverMessageID?.isEmpty == true {
+            retryDeleteIfNeeded(original: message)
+        }
+    }
+    
+    // MARK: - Delayed retries (server may not have indexed/stored the message yet)
+    
+    private func retryDeleteIfNeeded(original: PrivateMessage) {
+        guard original.messageID == nil else { return } // already has server id
+        guard let clientID = original.clientMessageID ?? original.id else { return }
+        
+        let key = "delete:\(clientID)"
+        let count = mutationRetryCount[key, default: 0]
+        guard count < 2 else { return } // retry up to 2 times
+        mutationRetryCount[key] = count + 1
+        
+        // Re-fetch to get the server `_id`, then retry using it.
+        socketViewModel.fetchPrivateConversation(username: username, pageNumber: 1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            guard let self else { return }
+            if let serverID = self.resolveServerMessageID(for: original, clientID: clientID) {
+                self.socketViewModel.deleteMessage(messageID: serverID)
+            } else {
+                self.retryDeleteIfNeeded(original: original)
+            }
+        }
+    }
+    
+    private func retryEditIfNeeded(original: PrivateMessage, newText: String) {
+        guard original.messageID == nil else { return } // already has server id
+        guard let clientID = original.clientMessageID ?? original.id else { return }
+        
+        let key = "edit:\(clientID)"
+        let count = mutationRetryCount[key, default: 0]
+        guard count < 2 else { return } // retry up to 2 times
+        mutationRetryCount[key] = count + 1
+        
+        socketViewModel.fetchPrivateConversation(username: username, pageNumber: 1)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            guard let self else { return }
+            if let serverID = self.resolveServerMessageID(for: original, clientID: clientID) {
+                self.socketViewModel.editMessage(messageID: serverID, message: newText)
+            } else {
+                self.retryEditIfNeeded(original: original, newText: newText)
+            }
+        }
+    }
+    
+    private func resolveServerMessageID(for original: PrivateMessage, clientID: String) -> String? {
+        // Preferred: match by `clientMessageID` from server response.
+        if let byClient = socketViewModel.privateMessagesList.first(where: { ($0.clientMessageID == clientID) || ($0.id == clientID) }),
+           let serverID = byClient.messageID,
+           !serverID.isEmpty {
+            return serverID
+        }
+        
+        // Fallback: some backend responses may omit `clientMessageID` in fetch conversations.
+        // Try matching by (sentByMe, type, content, createdAt proximity).
+        let originalContent = original.content ?? ""
+        let originalType = original.type ?? ""
+        let originalDate = isoDate(original.createdAt)
+        
+        let candidates = socketViewModel.privateMessagesList.filter { msg in
+            guard msg.sentByMe == 1 else { return false }
+            guard (msg.type ?? "") == originalType else { return false }
+            // Avoid matching already-deleted placeholders
+            if msg.isDeleted == true { return false }
+            return (msg.content ?? "") == originalContent
+        }
+        
+        if let originalDate {
+            // Pick the closest in time within ~20 seconds.
+            var best: (id: String, delta: TimeInterval)? = nil
+            for msg in candidates {
+                guard let serverID = msg.messageID, !serverID.isEmpty else { continue }
+                guard let msgDate = isoDate(msg.createdAt) else { continue }
+                let delta = abs(msgDate.timeIntervalSince(originalDate))
+                if delta <= 20 {
+                    if best == nil || delta < best!.delta {
+                        best = (serverID, delta)
+                    }
+                }
+            }
+            return best?.id
+        } else {
+            // If we can't parse dates, just take the newest matching content/type.
+            return candidates.first?.messageID
+        }
+    }
+    
+    private func isoDate(_ iso: String?) -> Date? {
+        guard let iso, !iso.isEmpty else { return nil }
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = f.date(from: iso) { return d }
+        // Some payloads may not have fractional seconds.
+        f.formatOptions = [.withInternetDateTime]
+        return f.date(from: iso)
+    }
+    
+    private func applyEditUpdate(_ update: SocketMessageEditUpdate) {
+        guard let index = findMessageIndex(messageID: update.messageID, clientMessageID: update.clientMessageID) else { return }
+        
+        let newText = update.message ?? messages[index].content ?? ""
+        messages[index] = PrivateMessage(
+            id: messages[index].id,
+            createdAt: messages[index].createdAt,
+            isSeen: messages[index].isSeen,
+            content: newText,
+            sentByMe: messages[index].sentByMe,
+            type: messages[index].type,
+            messageID: update.messageID ?? messages[index].messageID,
+            clientMessageID: update.clientMessageID ?? messages[index].clientMessageID,
+            isEdited: update.isEdited ?? true,
+            editedAt: update.editedAt ?? messages[index].editedAt,
+            isDeleted: messages[index].isDeleted,
+            deletedAt: messages[index].deletedAt,
+            mediaUrl: messages[index].mediaUrl,
+            thumbnailUrl: messages[index].thumbnailUrl,
+            from: update.from ?? messages[index].from,
+            to: update.to ?? messages[index].to,
+            thumbnail: messages[index].thumbnail,
+            hasUploaded: messages[index].hasUploaded,
+            isUploading: messages[index].isUploading,
+            isRemotePDF: messages[index].isRemotePDF,
+            isURL: messages[index].isURL,
+            showDate: messages[index].showDate,
+            pdfData: messages[index].pdfData
+        )
+    }
+    
+    private func applyDeleteUpdate(_ update: SocketMessageDeleteUpdate) {
+        guard let index = findMessageIndex(messageID: update.messageID, clientMessageID: update.clientMessageID) else { return }
+        
+        messages[index] = PrivateMessage(
+            id: messages[index].id,
+            createdAt: messages[index].createdAt,
+            isSeen: messages[index].isSeen,
+            content: "The message was deleted",
+            sentByMe: messages[index].sentByMe,
+            type: messages[index].type,
+            messageID: update.messageID ?? messages[index].messageID,
+            clientMessageID: update.clientMessageID ?? messages[index].clientMessageID,
+            isEdited: messages[index].isEdited,
+            editedAt: messages[index].editedAt,
+            isDeleted: update.isDeleted ?? true,
+            deletedAt: messages[index].deletedAt ?? DateManager.dateIntoIsoFormat(date: Date()),
+            mediaUrl: messages[index].mediaUrl,
+            thumbnailUrl: messages[index].thumbnailUrl,
+            from: update.from ?? messages[index].from,
+            to: update.to ?? messages[index].to,
+            thumbnail: messages[index].thumbnail,
+            hasUploaded: messages[index].hasUploaded,
+            isUploading: messages[index].isUploading,
+            isRemotePDF: messages[index].isRemotePDF,
+            isURL: messages[index].isURL,
+            showDate: messages[index].showDate,
+            pdfData: messages[index].pdfData
+        )
+    }
+    
+    private func findMessageIndex(messageID: String?, clientMessageID: String?) -> Int? {
+        if let messageID, !messageID.isEmpty {
+            if let index = messages.firstIndex(where: { $0.messageID == messageID || $0.id == messageID }) {
+                return index
+            }
+        }
+        if let clientMessageID, !clientMessageID.isEmpty {
+            if let index = messages.firstIndex(where: { $0.clientMessageID == clientMessageID || $0.id == clientMessageID }) {
+                return index
+            }
+        }
+        return nil
     }
     
     func sharePostViaDM(postData: PostData, caption: String? = nil) {
@@ -756,13 +1150,16 @@ class ChatViewModel: ObservableObject {
         recentlySentMediaURLs.insert(mediaUrl)
         recentlySharedPostMediaURLs.formUnion(allPostMediaURLs)
         
+        let clientMessageID = UUID().uuidString
         var localMessage = PrivateMessage(
-            id: UUID().uuidString,
+            id: clientMessageID,
             createdAt: DateManager.dateIntoIsoFormat(date: Date()),
             isSeen: 1,
             content: messageText,
             sentByMe: 1,
             type: messageType,
+            messageID: nil,
+            clientMessageID: clientMessageID,
             mediaUrl: mediaUrl,
             thumbnailUrl: thumbnailUrl
         )
@@ -777,6 +1174,7 @@ class ChatViewModel: ObservableObject {
         var messageModel: [String: Any] = [
             "type": messageType,
             "message": messageText,
+            "clientMessageID": clientMessageID,
             "mediaID": mediaID,
             "mediaUrl": mediaUrl
         ]
@@ -905,7 +1303,14 @@ extension ChatViewModel {
                            let mediaUrl = message.mediaUrl,
                            let thumbnailUrl = message.thumbnailUrl {
                             
-                            sendMessage(message: textMessage, type: type, mediaID: mediaID, mediaUrl: mediaUrl, thumbnailUrl: thumbnailUrl)
+                            sendMessage(
+                                message: textMessage,
+                                type: type,
+                                mediaID: mediaID,
+                                mediaUrl: mediaUrl,
+                                thumbnailUrl: thumbnailUrl,
+                                clientMessageID: media[0].id
+                            )
                         }
                         
                     } else {

@@ -335,11 +335,24 @@ extension ChatView {
             }
             
             if let sentByMe = content.sentByMe,
-               let messageContent = content.content,
                let createdAt = content.createdAt {
+                let isDeleted = content.isDeleted == true
+                let canShowActions = sentByMe == 1 && !isDeleted && content.isUploading != true
+                
                 VStack(alignment: sentByMe == 1 ? .trailing : .leading, spacing: 5) {
                     
                     VStack(alignment: sentByMe == 1 ? .trailing : .leading) {
+                        if isDeleted {
+                            let deletedText = sentByMe == 1 ? "You deleted this message" : "This message was deleted"
+                            Text(deletedText)
+                                .withComicFont(13, color: themeManager.currentTheme.white06_darkGray06)
+                                .italic()
+                                .padding(10)
+                                .background(
+                                    MessageBox(normalRadius: 12, smallRadius: 3, isMyMessage: sentByMe == 1)
+                                        .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05.opacity(0.65) : themeManager.currentTheme.mediumGray05_mediumGray.opacity(0.65))
+                                )
+                        } else if let messageContent = content.content {
                         
                         if let type = content.type {
                             if type == "text" {
@@ -594,10 +607,30 @@ extension ChatView {
                                     )
                             }
                         }
+                        }
                     }
                     .frame(maxWidth: Constants.screenWidth * 0.65, alignment: sentByMe == 1 ? .trailing : .leading)
-                    Text(DateManager.isoDateInto24HourFormat(isoDate: createdAt))
-                        .withComicFont(10, color: themeManager.currentTheme.label)
+                    HStack(spacing: 4) {
+                        Text(DateManager.isoDateInto24HourFormat(isoDate: createdAt))
+                        if content.isEdited == true && !isDeleted {
+                            Text("• edited")
+                        }
+                    }
+                    .withComicFont(10, color: themeManager.currentTheme.label)
+                }
+                .contextMenu {
+                    if canShowActions {
+                        if content.type == "text" {
+                            Button("Edit") {
+                                viewModel.beginEditing(content)
+                            }
+                        }
+                        Button(role: .destructive) {
+                            viewModel.showDeleteMessageModal(content)
+                        } label: {
+                            Text("Delete")
+                        }
+                    }
                 }
             }
         }
@@ -693,6 +726,21 @@ extension ChatView {
     private var bottomSection: some View {
         ZStack {
             VStack(spacing: 2) {
+                if viewModel.editingMessage != nil {
+                    HStack(spacing: 10) {
+                        Text("Editing message")
+                            .withComicFont(12, color: themeManager.currentTheme.label)
+                        Spacer()
+                        Text("Cancel")
+                            .withComicFont(12, color: themeManager.currentTheme.hmIndigo_hmIndigo05)
+                            .onTapGesture {
+                                viewModel.cancelEditing()
+                            }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 6)
+                    .background(themeManager.currentTheme.backgroundColor)
+                }
                 bottomMainPart(height: 44)
                     .padding(.horizontal, 16)
                     .background(themeManager.currentTheme.backgroundColor)
@@ -886,10 +934,7 @@ extension ChatView {
     
     private func sendButton(height: CGFloat) -> some View {
         Button(action: {
-            if !viewModel.messageFieldText.isEmpty {
-                viewModel.sendMessage(message: viewModel.messageFieldText)
-                viewModel.messageFieldText = ""
-            }
+            viewModel.sendOrEditCurrentText()
         }, label: {
             Image(themeManager.currentTheme.AddComment)
                 .resizable()
