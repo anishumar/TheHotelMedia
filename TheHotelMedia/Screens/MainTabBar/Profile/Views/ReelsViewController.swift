@@ -31,6 +31,7 @@ protocol ReelCellDelegate: AnyObject {
 final class ReelCollectionViewCell: UICollectionViewCell {
     static let reuseId = "ReelCollectionViewCell"
     
+    weak var parentController: UIViewController?
     private var player: AVQueuePlayer?
     private var playerLayer: AVPlayerLayer?
     private var looper: AVPlayerLooper?
@@ -51,6 +52,10 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     private let usernameLabel = UILabel()
     private let locationTimeLabel = UILabel()
     private let captionLabel = UILabel()
+    private let moreButton = UIButton(type: .system)
+    private var moreButtonHeightConstraint: NSLayoutConstraint?
+    private var isCaptionExpanded: Bool = false
+    private let backButton = UIButton(type: .system)
     private let viewCommentsButton = UIButton(type: .system)
     private let timeLabel = UILabel()
     
@@ -145,8 +150,8 @@ final class ReelCollectionViewCell: UICollectionViewCell {
             thumbnailImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             thumbnailImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             
-            viewsContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            viewsContainer.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 16),
+            viewsContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            viewsContainer.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 12),
             
             rightActionsStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             rightActionsStack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
@@ -331,6 +336,20 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(bottomInfoView)
         bottomInfoView.translatesAutoresizingMaskIntoConstraints = false
         
+        // Back button
+        backButton.setImage(UIImage(systemName: "chevron.backward"), for: .normal)
+        backButton.tintColor = .white
+        backButton.backgroundColor = UIColor.black.withAlphaComponent(0.35)
+        backButton.layer.cornerRadius = 18
+        backButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 10, bottom: 8, right: 8)
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        contentView.addSubview(backButton)
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        backButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+        backButton.setContentCompressionResistancePriority(.required, for: .vertical)
+        backButton.setContentHuggingPriority(.required, for: .horizontal)
+        backButton.setContentHuggingPriority(.required, for: .vertical)
+        
         // Profile image
         profileImageView.contentMode = .scaleAspectFill
         profileImageView.clipsToBounds = true
@@ -365,6 +384,15 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         bottomInfoView.addSubview(captionLabel)
         captionLabel.translatesAutoresizingMaskIntoConstraints = false
         
+        // More / Less button
+        moreButton.setTitle("More", for: .normal)
+        moreButton.setTitleColor(.white, for: .normal)
+        moreButton.titleLabel?.font = .boldSystemFont(ofSize: 12)
+        moreButton.contentHorizontalAlignment = .left
+        moreButton.addTarget(self, action: #selector(moreButtonTapped), for: .touchUpInside)
+        bottomInfoView.addSubview(moreButton)
+        moreButton.translatesAutoresizingMaskIntoConstraints = false
+        
         // View comments button
         viewCommentsButton.setTitleColor(.white.withAlphaComponent(0.8), for: .normal)
         viewCommentsButton.titleLabel?.font = .systemFont(ofSize: 12)
@@ -395,13 +423,30 @@ final class ReelCollectionViewCell: UICollectionViewCell {
             captionLabel.trailingAnchor.constraint(equalTo: bottomInfoView.trailingAnchor, constant: -16),
             captionLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 8),
             
+            moreButton.leadingAnchor.constraint(equalTo: bottomInfoView.leadingAnchor, constant: 16),
+            moreButton.trailingAnchor.constraint(lessThanOrEqualTo: bottomInfoView.trailingAnchor, constant: -16),
+            moreButton.topAnchor.constraint(equalTo: captionLabel.bottomAnchor, constant: 4),
+            
             viewCommentsButton.leadingAnchor.constraint(equalTo: bottomInfoView.leadingAnchor, constant: 16),
-            viewCommentsButton.topAnchor.constraint(equalTo: captionLabel.bottomAnchor, constant: 4),
+            viewCommentsButton.topAnchor.constraint(equalTo: moreButton.bottomAnchor, constant: 4),
             
             timeLabel.leadingAnchor.constraint(equalTo: bottomInfoView.leadingAnchor, constant: 16),
             timeLabel.topAnchor.constraint(equalTo: viewCommentsButton.bottomAnchor, constant: 4),
-            timeLabel.bottomAnchor.constraint(equalTo: bottomInfoView.bottomAnchor, constant: -12)
+            timeLabel.bottomAnchor.constraint(equalTo: bottomInfoView.bottomAnchor, constant: -16)
         ])
+        
+        // Keep back button pinned to safe area (doesn't scroll). Attach to the collectionView's superview when available.
+        if let rootView = contentView.superview {
+            rootView.addSubview(backButton)
+            NSLayoutConstraint.activate([
+                backButton.leadingAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                backButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 44)
+            ])
+            rootView.bringSubviewToFront(backButton)
+        }
+        
+        moreButtonHeightConstraint = moreButton.heightAnchor.constraint(equalToConstant: 0)
+        moreButtonHeightConstraint?.isActive = true
     }
     
     override func prepareForReuse() {
@@ -421,6 +466,11 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         usernameLabel.text = nil
         locationTimeLabel.text = nil
         captionLabel.text = nil
+        isCaptionExpanded = false
+        captionLabel.numberOfLines = 3
+        moreButton.isHidden = true
+        moreButtonHeightConstraint?.constant = 0
+        moreButton.setTitle("More", for: .normal)
         viewCommentsButton.setTitle(nil, for: .normal)
         timeLabel.text = nil
         likesLabel.text = nil
@@ -438,6 +488,7 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     func configure(with reel: Reel, shouldAutoplay: Bool = false, isMuted: Bool = false, delegate: ReelCellDelegate?) {
         self.isMuted = isMuted
         self.delegate = delegate
+        backButton.isHidden = false
         
         // Store current post data
         currentPost = reel.postData
@@ -539,7 +590,13 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         locationTimeLabel.text = locationTimeText
         
         // Caption
-        captionLabel.text = post.content ?? ""
+        let contentText = post.content ?? ""
+        captionLabel.text = contentText
+        let needsMore = contentText.count > 140
+        captionLabel.numberOfLines = needsMore && !isCaptionExpanded ? 3 : 0
+        moreButton.isHidden = !needsMore
+        moreButtonHeightConstraint?.constant = needsMore ? 18 : 0
+        moreButton.setTitle(isCaptionExpanded ? "Less" : "More", for: .normal)
         
         // View comments button
         let commentsCount = post.comments ?? 0
@@ -590,6 +647,16 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         } else {
             return "\(number)"
         }
+    }
+    
+    @objc private func moreButtonTapped() {
+        isCaptionExpanded.toggle()
+        captionLabel.numberOfLines = isCaptionExpanded ? 0 : 3
+        moreButton.setTitle(isCaptionExpanded ? "Less" : "More", for: .normal)
+    }
+    
+    @objc private func backButtonTapped() {
+        parentController?.dismiss(animated: true, completion: nil)
     }
     
     private func loadThumbnail(from url: URL) {
@@ -805,6 +872,7 @@ final class ReelsViewController: UIViewController {
             // Autoplay only for the initially visible cell
             let initiallyVisible = (indexPath.row == 0 && cv.indexPathsForVisibleItems.contains(indexPath))
             cell.configure(with: reel, shouldAutoplay: initiallyVisible, isMuted: self?.isMuted ?? false, delegate: self)
+            cell.parentController = self
             return cell
         }
     }

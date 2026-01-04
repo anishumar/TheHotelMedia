@@ -23,6 +23,47 @@ struct VisibleRectanglePreferenceKey: PreferenceKey {
     }
 }
 
+// MARK: - Reels Comment Sheet
+private struct ReelsCommentSheet: View {
+    @Binding var showSheet: Bool
+    @Binding var newComment: String
+    @Binding var replyComment: Comment?
+    let postID: String
+    let totalComments: Int
+    let onCommentDelta: (Int) -> Void
+    
+    @EnvironmentObject var localizationManager: LocalizationManager
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    var body: some View {
+        CommentSectionView(
+            showScreen: $showSheet,
+            newComment: $newComment,
+            replyComment: $replyComment,
+            viewModel: CommentSectionViewModel(
+                postID: postID,
+                totalComments: totalComments,
+                isEmbedded: false,
+                onAddingComment: { _ in
+                    onCommentDelta(1)
+                },
+                onDeletingComment: { _ in
+                    onCommentDelta(-1)
+                }
+            ),
+            isEmbedded: false,
+            onPressedProfile: nil,
+            onPressedReply: { reply in
+                replyComment = reply
+            },
+            onReportComment: nil,
+            onAddComment: nil
+        )
+        .environmentObject(localizationManager)
+        .environmentObject(themeManager)
+    }
+}
+
 
 struct VisibleRectangleProfilePreferenceKey: PreferenceKey {
     static var defaultValue: CGRect = .zero
@@ -59,6 +100,9 @@ struct HomeView: View {
     
     @StateObject var viewModel: HomeViewModel
     @State var posts: [PostData] = []
+    @State private var reelsCommentIsPaused: Bool = false
+    @State private var reelsNewComment: String = ""
+    @State private var reelsReplyComment: Comment? = nil
     var plusButtonPressed: (() -> Void)?
     var onStoryButtonPressed: (() -> Void)?
     var onOpenCamera: (() -> Void)?
@@ -108,6 +152,9 @@ struct HomeView: View {
             }
         }, onNavigate: {
             refreshHomeData = false
+        }, onVideoTapped: { post, mediaIndex in
+            let mediaID = post.mediaRef?[mediaIndex].id
+            viewModel.openReels(postID: post.id, mediaID: mediaID)
         })
         .environmentObject(viewModel)
         .background(
@@ -291,6 +338,68 @@ struct HomeView: View {
             .presentationDragIndicator(.hidden)
             .presentationDetents([.fraction(Constants.getReportSheetHeight())])
         })
+        .fullScreenCover(isPresented: $viewModel.showReels) {
+            ReelsViewRepresentable(
+                reels: viewModel.reels,
+                initialReelID: viewModel.initialReelID,
+                isMuted: UserDefaultsManager.shared.getMuteStatus(),
+                onLoadMore: {
+                    // Load more feed pages when reaching end of reels
+                    viewModel.getHomeData(page: viewModel.currentPageNo + 1, showLoadingIndicator: false, suggestion: false)
+                },
+                onVideoChanged: nil,
+                onLike: { postID, _ in
+                    viewModel.toggleLike(for: postID)
+                },
+                onComment: { postID in
+                    viewModel.presentReelsCommentSheet(postID: postID)
+                },
+                onShare: { postID in
+                    viewModel.openReelsShare(postID: postID)
+                },
+                onBookmark: { postID, _ in
+                    viewModel.toggleBookmark(for: postID)
+                },
+                onProfileTapped: { userID in
+                    viewModel.showUserProfileScreen(id: userID)
+                }
+            )
+            .ignoresSafeArea()
+            .sheet(isPresented: $viewModel.showReelsShareSheet) {
+                if let router = viewModel.router as AnyRouter?,
+                   let postData = viewModel.reelsSharePostData {
+                    UnifiedShareSheet(
+                        shareURL: viewModel.reelsShareURL.absoluteString,
+                        postData: postData,
+                        router: router,
+                        onChatSelected: nil,
+                        onDismiss: {
+                            viewModel.showReelsShareSheet = false
+                        }
+                    )
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                }
+            }
+            .sheet(isPresented: $viewModel.showReelsCommentSheet) {
+                if let postID = viewModel.reelsCommentPostID {
+                    let totalComments = viewModel.reels.first(where: { $0.postData?.id == postID })?.postData?.comments ?? 0
+                    ReelsCommentSheet(
+                        showSheet: $viewModel.showReelsCommentSheet,
+                        newComment: $reelsNewComment,
+                        replyComment: $reelsReplyComment,
+                        postID: postID,
+                        totalComments: totalComments,
+                        onCommentDelta: { delta in
+                            viewModel.adjustCommentCount(for: postID, delta: delta)
+                        }
+                    )
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(28)
+                }
+            }
+        }
         .simultaneousGesture(homeSwipeGesture)
     }
 }

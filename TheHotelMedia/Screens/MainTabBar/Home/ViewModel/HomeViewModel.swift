@@ -47,6 +47,16 @@ class HomeViewModel: ObservableObject {
     @Published var selectedStoryIndex: Int = 0
     @Published var showStoryScreen: Bool = false
     
+    // Reels (video-only) player state
+    @Published var showReels: Bool = false
+    @Published var reels: [Reel] = []
+    @Published var initialReelID: String? = nil
+    @Published var showReelsCommentSheet: Bool = false
+    @Published var reelsCommentPostID: String? = nil
+    @Published var showReelsShareSheet: Bool = false
+    var reelsSharePostData: PostData?
+    var reelsShareURL: URL = URL(string: "https://thehotelmedia.com/post")!
+    
     @Published var refreshPostView: Bool = false
     @State var createPostOn: Bool = false
     
@@ -128,6 +138,136 @@ class HomeViewModel: ObservableObject {
             SinglePostView(viewModel: SinglePostViewModel(router: newRouter, postID: id), isPaused: .constant(false))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
+        }
+    }
+    
+    // Open reels experience for a tapped video in the feed
+    func openReels(postID: String?, mediaID: String?) {
+        // Build reels from current feed posts (only video media)
+        var videoReels: [Reel] = []
+        
+        for post in allPosts {
+            guard let mediaRefs = post.mediaRef else { continue }
+            for media in mediaRefs where media.mediaType == "video" {
+                guard let urlString = media.sourceURL, let url = URL(string: urlString) else { continue }
+                let thumb = media.thumbnailURL
+                let reelID = media.id ?? post.id ?? UUID().uuidString
+                videoReels.append(
+                    Reel(
+                        id: reelID,
+                        url: url,
+                        thumbnailURL: URL(string: thumb ?? ""),
+                        views: post.views,
+                        postData: post
+                    )
+                )
+            }
+        }
+        
+        guard !videoReels.isEmpty else { return }
+        let targetID = mediaID ?? postID
+        if let targetID, videoReels.contains(where: { $0.id == targetID }) {
+            initialReelID = targetID
+        } else {
+            initialReelID = videoReels.first?.id
+        }
+        
+        reels = videoReels
+        showReels = true
+    }
+
+    // MARK: - Reels actions
+    func toggleLike(for postID: String) {
+        Task {
+            do {
+                _ = try await postDataManager.likeAPost(postID: postID)
+            } catch {
+                // Ignore network error here; UI already optimistically toggles
+            }
+        }
+        applyToggle(postID: postID, isLike: true)
+    }
+    
+    func toggleBookmark(for postID: String) {
+        Task {
+            do {
+                _ = try await postDataManager.saveAPost(postID: postID)
+            } catch {
+                // Ignore network error here; UI already optimistically toggles
+            }
+        }
+        applyToggle(postID: postID, isLike: false)
+    }
+    
+    private func applyToggle(postID: String, isLike: Bool) {
+        func update(_ post: inout PostData) {
+            if isLike {
+                let liked = post.likedByMe ?? false
+                post.likedByMe = !liked
+                let likes = post.likes ?? 0
+                post.likes = max(0, likes + (liked ? -1 : 1))
+            } else {
+                let saved = post.savedByMe ?? false
+                post.savedByMe = !saved
+            }
+        }
+        
+        // Update feed posts
+        if let idx = allPosts.firstIndex(where: { $0.id == postID }) {
+            var post = allPosts[idx]
+            update(&post)
+            allPosts[idx] = post
+        }
+        
+        // Update reels list so UI reflects changes immediately
+        reels = reels.map { reel in
+            if let pid = reel.postData?.id, pid == postID {
+                var updatedPost = reel.postData ?? PostData(id: postID, data: nil, isPublished: nil, feelings: nil, googleReviewedBusiness: nil, publicUserID: nil, reviews: nil, businessProfileID: nil, postType: nil, userID: nil, content: nil, location: nil, createdAt: nil, mediaRef: nil, taggedRef: nil, postedBy: nil, likes: nil, comments: nil, likedByMe: nil, savedByMe: nil, reviewedBusinessProfileID: nil, placeID: nil, rating: nil, reviewedBusinessProfileRef: nil, name: nil, startTime: nil, startDate: nil, venue: nil, type: nil, refreshPost: nil, endDate: nil, endTime: nil, streamingLink: nil, shared: nil, views: nil, imJoining: nil, placeName: nil, commentsCount: nil, interestedPeople: nil, eventJoinsRef: nil, collaboratorRef: nil)
+                update(&updatedPost)
+                return Reel(id: reel.id, url: reel.url, thumbnailURL: reel.thumbnailURL, views: reel.views, postData: updatedPost)
+            }
+            return reel
+        }
+    }
+    
+    func adjustCommentCount(for postID: String, delta: Int) {
+        // Update feed posts
+        if let idx = allPosts.firstIndex(where: { $0.id == postID }) {
+            var post = allPosts[idx]
+            let current = post.comments ?? 0
+            post.comments = max(0, current + delta)
+            allPosts[idx] = post
+        }
+        
+        // Update reels list so it stays in sync
+        reels = reels.map { reel in
+            guard let pid = reel.postData?.id, pid == postID else { return reel }
+            var updatedPost = reel.postData ?? PostData(id: postID, data: nil, isPublished: nil, feelings: nil, googleReviewedBusiness: nil, publicUserID: nil, reviews: nil, businessProfileID: nil, postType: nil, userID: nil, content: nil, location: nil, createdAt: nil, mediaRef: nil, taggedRef: nil, postedBy: nil, likes: nil, comments: nil, likedByMe: nil, savedByMe: nil, reviewedBusinessProfileID: nil, placeID: nil, rating: nil, reviewedBusinessProfileRef: nil, name: nil, startTime: nil, startDate: nil, venue: nil, type: nil, refreshPost: nil, endDate: nil, endTime: nil, streamingLink: nil, shared: nil, views: nil, imJoining: nil, placeName: nil, commentsCount: nil, interestedPeople: nil, eventJoinsRef: nil, collaboratorRef: nil)
+            let current = updatedPost.comments ?? 0
+            updatedPost.comments = max(0, current + delta)
+            return Reel(id: reel.id, url: reel.url, thumbnailURL: reel.thumbnailURL, views: reel.views, postData: updatedPost)
+        }
+    }
+    
+    // MARK: - Reels comment handling
+    func presentReelsCommentSheet(postID: String) {
+        reelsCommentPostID = postID
+        showReelsCommentSheet = true
+    }
+    
+    func openReelsShare(postID: String) {
+        guard let post = reels.first(where: { $0.postData?.id == postID })?.postData else { return }
+        reelsSharePostData = post
+        
+        var baseURLString = "\(Constants.baseShareUrl)/share/posts"
+        if post.postType == "event" {
+            baseURLString = "\(Constants.baseShareUrl)/share/events"
+        }
+        
+        if let encryptedID = EncryptionHelper.encrypt(postID),
+           let encryptedUserID = EncryptionHelper.encrypt(ownUserID) {
+            reelsShareURL = URL(string: "\(baseURLString)?postID=\(encryptedID)&userID=\(encryptedUserID)") ?? reelsShareURL
+            showReelsShareSheet = true
         }
     }
     

@@ -39,6 +39,7 @@ struct PostView2<Content: View>: View {
     var onScrollChange: ((Bool) -> Void)?
     var onRefresh: (() -> Void)?
     var onNavigate: (() -> Void)?
+    var onVideoTapped: ((PostData, Int) -> Void)? = nil
     @State var currentPost: Int? = nil
     //    @State var lastAddedPostID: String = ""
     @State var lastUpdateIndex: Int? = nil
@@ -648,11 +649,22 @@ struct PostView2<Content: View>: View {
                         viewModel.showProfileScreen = true
                     },
                     onTapMedia: { mediaIndex in
-                        viewModel.pauseVideoOnNavigate()
-                        viewModel.currentPostIndex = index
-                        viewModel.currentMediaIndex = mediaIndex
-                        onNavigate?()
-                        viewModel.showMediaPreview = true
+                        let post = posts[index]
+                        if let mediaRef = post.mediaRef,
+                           mediaIndex < mediaRef.count,
+                           mediaRef[mediaIndex].mediaType == "video" {
+                            viewModel.pauseVideoOnNavigate()
+                            viewModel.currentPostIndex = index
+                            viewModel.currentMediaIndex = mediaIndex
+                            onNavigate?()
+                            onVideoTapped?(post, mediaIndex)
+                        } else {
+                            viewModel.pauseVideoOnNavigate()
+                            viewModel.currentPostIndex = index
+                            viewModel.currentMediaIndex = mediaIndex
+                            onNavigate?()
+                            viewModel.showMediaPreview = true
+                        }
                     },
                     onTapReview: { id in
                         onTappedReview?(id)
