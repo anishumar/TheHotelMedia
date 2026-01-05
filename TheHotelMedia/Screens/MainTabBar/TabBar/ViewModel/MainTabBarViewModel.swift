@@ -631,4 +631,6 @@ extension Notification.Name {
     static let currentTab = Notification.Name("CurrentTab")
     static let isScrolling = Notification.Name("isScrolling")
     static let navigateTo = Notification.Name("navigateTo")
+    static let openSharedPost = Notification.Name("openSharedPost")
+    static let openSharedPostForwarded = Notification.Name("openSharedPostForwarded")
 }

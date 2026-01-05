@@ -271,14 +271,11 @@ extension ChatView {
                 }
             } else if path.contains("/share/posts") {
                 if let postID = queryItems?.first(where: { $0.name == "postID" })?.value,
-                   let userID = queryItems?.first(where: { $0.name == "userID" })?.value {
-//                    if let decryptedID = EncryptionHelper.decrypt(id),
-//                       let decryptedUserID = EncryptionHelper.decrypt(userID) {
-//
-//                        guard decryptedID != ownUserID else { return }
-//
-//                    }
-                    viewModel.showSharePostView(postID: postID, sharedByID: userID)
+                   let userID = queryItems?.first(where: { $0.name == "userID" })?.value,
+                   let decryptedPostID = EncryptionHelper.decrypt(postID),
+                   let decryptedUserID = EncryptionHelper.decrypt(userID) {
+                    
+                    NotificationCenter.default.post(name: .openSharedPost, object: nil, userInfo: ["postID": decryptedPostID, "sharedByID": decryptedUserID])
                 }
             } else if path.contains("/share/events") {
                 if let postID = queryItems?.first(where: { $0.name == "postID" })?.value,
