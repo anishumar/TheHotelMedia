@@ -401,16 +401,6 @@ struct HomeView: View {
             }
         }
         .simultaneousGesture(homeSwipeGesture)
-        .onReceive(NotificationCenter.default.publisher(for: .openSharedPost)) { notification in
-            if let postID = notification.userInfo?["postID"] as? String {
-                viewModel.showSinglePostView(id: postID)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openSharedPostForwarded)) { notification in
-            if let postID = notification.userInfo?["postID"] as? String {
-                viewModel.showSinglePostView(id: postID)
-            }
-        }
     }
 }
 

@@ -18,7 +18,7 @@ struct ProfilePhotoDetailView: View {
     
     @StateObject private var viewModel: ProfilePhotoDetailViewModel
     @State private var hasScrolledToInitial = false
-    @State private var commentShowScreen = true
+    @State private var commentShowScreen = false
     
     init(userProfileID: String, initialMediaID: String?, profileData: ProfileData? = nil, preloadedPhotos: [MediaRef]? = nil, onPostDeleted: ((String) -> Void)? = nil, onPostUpdated: ((PostData) -> Void)? = nil) {
         _viewModel = StateObject(wrappedValue: ProfilePhotoDetailViewModel(userProfileID: userProfileID, initialMediaID: initialMediaID, profileData: profileData, preloadedPhotos: preloadedPhotos, onPostDeleted: onPostDeleted, onPostUpdated: onPostUpdated))
@@ -48,7 +48,7 @@ struct ProfilePhotoDetailView: View {
             } else {
                 ScrollViewReader { proxy in
                     ScrollView(showsIndicators: false) {
-                        LazyVStack(spacing: 14) {
+                        VStack(spacing: 14) {
                             ForEach(viewModel.posts.indices, id: \.self) { index in
                                 let post = viewModel.posts[index]
                                 let postID = postIdentifier(for: post, index: index)
@@ -143,6 +143,7 @@ struct ProfilePhotoDetailView: View {
                                     .padding()
                             }
                         }
+                        .animation(.none, value: viewModel.posts.count)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 16)
                     }

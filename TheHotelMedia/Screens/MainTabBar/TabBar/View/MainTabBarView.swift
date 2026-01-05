@@ -151,14 +151,6 @@ struct MainTabBarView: View {
         }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
-        .onReceive(NotificationCenter.default.publisher(for: .openSharedPost)) { notification in
-            if let postID = notification.userInfo?["postID"] as? String {
-                // Switch to home tab and let HomeView handle showing the post
-                viewModel.selectedTab = .home
-                viewModel.currentTab = .home
-                NotificationCenter.default.post(name: .openSharedPostForwarded, object: nil, userInfo: ["postID": postID])
-            }
-        }
         .onAppear {
             viewModel.getSubscriptionMeta()
             viewModel.createPostOn = false
@@ -385,11 +377,14 @@ extension MainTabBarView {
                 }
             } else if path.contains("/share/posts") {
                 if let postID = queryItems?.first(where: { $0.name == "postID" })?.value,
-                   let userID = queryItems?.first(where: { $0.name == "userID" })?.value,
-                   let decryptedPostID = EncryptionHelper.decrypt(postID),
-                   let decryptedUserID = EncryptionHelper.decrypt(userID) {
-                    
-                    NotificationCenter.default.post(name: .openSharedPost, object: nil, userInfo: ["postID": decryptedPostID, "sharedByID": decryptedUserID])
+                   let userID = queryItems?.first(where: { $0.name == "userID" })?.value {
+//                    if let decryptedID = EncryptionHelper.decrypt(id),
+//                       let decryptedUserID = EncryptionHelper.decrypt(userID) {
+//                            
+//                        guard decryptedID != ownUserID else { return }
+//                        
+//                    }
+                    viewModel.showSharePostView(postID: postID, sharedByID: userID)
                 }
             } else if path.contains("/share/events") {
                 if let postID = queryItems?.first(where: { $0.name == "postID" })?.value,
