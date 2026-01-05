@@ -330,9 +330,10 @@ class BaseNetworkManager {
     
     
     // This method requires access token and also refreshes token.
-    func accessLoad<T: Codable & Refreshable>(_ resource: Resource<T>) async throws -> T {
+    func accessLoad<T: Codable & Refreshable>(_ resource: Resource<T>, uploadProgress: ((Double) -> Void)? = nil) async throws -> T {
         
         let request = try await configureDataRequest(resource: resource)
+        attachUploadProgressIfNeeded(request: request, uploadProgress: uploadProgress)
         
         do {
             let data = try await getAndValidateResponse(request: request)
@@ -356,6 +357,7 @@ class BaseNetworkManager {
                     
                     if isRefreshed {
                         let request2 = try await configureDataRequest(resource: resource)
+                        attachUploadProgressIfNeeded(request: request2, uploadProgress: uploadProgress)
                         
                         let data = try await getAndValidateResponse(request: request2)
                         
@@ -873,6 +875,15 @@ class BaseNetworkManager {
         }
         
         return request
+    }
+
+    private func attachUploadProgressIfNeeded(request: DataRequest, uploadProgress: ((Double) -> Void)?) {
+        guard let uploadProgress else { return }
+        guard let uploadRequest = request as? UploadRequest else { return }
+
+        uploadRequest.uploadProgress { progress in
+            uploadProgress(progress.fractionCompleted)
+        }
     }
     
     

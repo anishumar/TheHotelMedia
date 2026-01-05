@@ -42,6 +42,9 @@ struct PrivateMessage: Identifiable {
     var thumbnail: UIImage? = nil
     var hasUploaded: Bool? = nil
     var isUploading: Bool? = nil
+    /// 0.0 ... 1.0 upload progress for outgoing media messages.
+    /// Only used for locally-created "sending" bubbles (WhatsApp-style progress UI).
+    var uploadProgress: Double? = nil
     var isRemotePDF: Bool? = nil
     var isURL: Bool = false
     var showDate: Bool? = false

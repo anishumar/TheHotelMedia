@@ -1086,6 +1086,7 @@ extension UserProfileViewModel {
                                                 enrichedData[index].likedByMe = post.likedByMe
                                                 enrichedData[index].savedByMe = post.savedByMe
                                                 enrichedData[index].views = post.views
+                                                enrichedData[index].createdAt = post.createdAt
                                                 print("✅ [Profile] Media \(mediaID) matched to post \(post.id ?? "nil") | Likes: \(post.likes ?? 0) | Views: \(post.views ?? 0)")
                                             } else {
                                                 print("⚠️ [Profile] No post found for media \(mediaID)")

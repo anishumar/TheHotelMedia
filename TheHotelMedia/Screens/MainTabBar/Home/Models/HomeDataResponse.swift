@@ -145,6 +145,9 @@ struct MediaRef: Codable, Equatable, Identifiable, Hashable {
     var videoThumbnail: UIImage? = nil
     var postID: String? = ""  // Setting this value on our own.
     var postType: String? = ""  // Setting this value on our own.
+    /// Parent post upload time (ISO8601 string). Not provided by the media endpoint;
+    /// we populate this client-side when we can match media -> post.
+    var createdAt: String? = nil
     var likes: Int? = 0
     var comments: Int? = 0
     var likedByMe: Bool? = false

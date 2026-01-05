@@ -235,104 +235,24 @@ class ChatViewModel: ObservableObject {
         $photoPickerItems
             .sink { [weak self] pickerItems in
                 guard let self else { return }
-                
-                Task {
-                    if !pickerItems.isEmpty {
-                        await self.parsePhotoPickerItem(pickerItems[0])
-                        await MainActor.run {
-                            self.photoPickerItems.removeAll()
-                        }
-                    }
+                guard let firstItem = pickerItems.first else { return }
+
+                // Insert the "sending" bubble immediately (especially important for videos,
+                // since `loadTransferable` can take a moment to export/move the asset).
+                let clientID = UUID().uuidString
+                Task { @MainActor [weak self] in
+                    self?.insertPendingMediaMessage(for: firstItem, clientID: clientID)
+                    self?.photoPickerItems.removeAll()
+                }
+
+                Task { [weak self] in
+                    await self?.processPickedMediaItem(firstItem, clientID: clientID)
                 }
             }
             .store(in: &cancellables)
         
-        $selectedImageToSend
-            .sink { [weak self] image in
-                guard let self else { return }
-                if let image {
-                    let randomID = UUID().uuidString
-                    var message = PrivateMessage(
-                        id: randomID,
-                        createdAt: DateManager.dateIntoIsoFormat(date: Date()),
-                        isSeen: 1,
-                        content: "Image",
-                        sentByMe: 1,
-                        type: "image",
-                        messageID: nil,
-                        clientMessageID: randomID,
-                        thumbnail: image,
-                        isUploading: true
-                    )
-                    
-                    if let first = messages.first {
-                        let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
-                        message.showDate = hasChanged
-                    }
-                    
-                    messages.insert(message, at: 0)
-                    
-                    let media = MessageMedia(id: randomID, type: .photo(image))
-                    let parameters: [String: Any] = [
-                        "username": username,
-                        "message": "Image",
-                        "messageType": "image",
-                    ]
-                    
-                    sendMediaMessage(media: [media], parameters: parameters)
-                    selectedImageToSend = nil
-                }
-            }
-            .store(in: &cancellables)
-        
-        $selectedVideoToSend
-            .sink { [weak self] videoURL in
-                guard let self else { return }
-                if let videoURL {
-                    let randomID = UUID().uuidString
-                    var message = PrivateMessage(
-                        id: randomID,
-                        createdAt: DateManager.dateIntoIsoFormat(date: Date()),
-                        isSeen: 1,
-                        content: "Video",
-                        sentByMe: 1,
-                        type: "video",
-                        messageID: nil,
-                        clientMessageID: randomID,
-                        mediaUrl: videoURL.absoluteString,
-                        isUploading: true
-                    )
-                    
-                    if let first = messages.first {
-                        let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
-                        message.showDate = hasChanged
-                    }
-                    
-                    messages.insert(message, at: 0)
-                    
-                    Task { [weak self] in
-                        guard let self else { return }
-                        if let thumbnail = try? await videoURL.generateVideoThumbnail() {
-                            await MainActor.run {
-                                if let index = self.messages.firstIndex(where: {$0.id == randomID }) {
-                                    self.messages[index].thumbnail = thumbnail
-                                }
-                            }
-                        }
-                    }
-                    
-                    let media = MessageMedia(id: randomID, type: .video(UIImage(), videoURL))
-                    let parameters: [String: Any] = [
-                        "username": username,
-                        "message": "Video",
-                        "messageType": "video",
-                    ]
-                    
-                    sendMediaMessage(media: [media], parameters: parameters)
-                    selectedVideoToSend = nil
-                }
-            }
-            .store(in: &cancellables)
+        // NOTE: Sending image/video is now driven directly from `photoPickerItems` so we can
+        // show the "sending" bubble instantly (videos can take time to export via PhotosPicker).
         
         $fileImporterResult
             .sink { [weak self] result in
@@ -353,6 +273,7 @@ class ChatViewModel: ObservableObject {
                             messageID: nil,
                             clientMessageID: randomID,
                             isUploading: true,
+                            uploadProgress: 0.0,
                             isRemotePDF: false,
                             pdfData: data
                         )
@@ -522,23 +443,101 @@ class ChatViewModel: ObservableObject {
     }
     
     
-    private func parsePhotoPickerItem(_ photoPickerItem: PhotosPickerItem) async {
-        if photoPickerItem.isVideo {
+    // parsePhotoPickerItem no longer used (kept logic in `processPickedMediaItem`).
 
-            if let mov = try? await photoPickerItem.loadTransferable(type: VideoPickerTransferable.self) {
+    @MainActor
+    private func insertPendingMediaMessage(for item: PhotosPickerItem, clientID: String) {
+        let type = item.isVideo ? "video" : "image"
+        let contentText = item.isVideo ? "Video" : "Image"
+
+        var message = PrivateMessage(
+            id: clientID,
+            createdAt: DateManager.dateIntoIsoFormat(date: Date()),
+            isSeen: 1,
+            content: contentText,
+            sentByMe: 1,
+            type: type,
+            messageID: nil,
+            clientMessageID: clientID,
+            isUploading: true,
+            uploadProgress: 0.0
+        )
+
+        if let first = messages.first {
+            let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
+            message.showDate = hasChanged
+        }
+
+        messages.insert(message, at: 0)
+    }
+
+    private func processPickedMediaItem(_ item: PhotosPickerItem, clientID: String) async {
+        if item.isVideo {
+            guard let mov = try? await item.loadTransferable(type: VideoPickerTransferable.self) else {
                 await MainActor.run {
-                    selectedVideoToSend = mov.url
+                    if let index = messages.firstIndex(where: { $0.id == clientID }) {
+                        messages.remove(at: index)
+                    }
+                    ErrorModalManager.showErrorModal(router: router, errorText: "failed_to_send_media".localized(localizationManager.language))
+                }
+                return
+            }
+
+            let videoURL = mov.url
+
+            // Update local message with a thumbnail as soon as we can generate it.
+            if let thumbnail = try? await videoURL.generateVideoThumbnail() {
+                await MainActor.run {
+                    if let index = messages.firstIndex(where: { $0.id == clientID }) {
+                        messages[index].thumbnail = thumbnail
+                        messages[index].mediaUrl = videoURL.absoluteString
+                    }
+                }
+            } else {
+                await MainActor.run {
+                    if let index = messages.firstIndex(where: { $0.id == clientID }) {
+                        messages[index].mediaUrl = videoURL.absoluteString
+                    }
                 }
             }
-            
+
+            let media = MessageMedia(id: clientID, type: .video(UIImage(), videoURL))
+            let parameters: [String: Any] = [
+                "username": username,
+                "message": "Video",
+                "messageType": "video",
+            ]
+            await MainActor.run {
+                sendMediaMessage(media: [media], parameters: parameters)
+            }
         } else {
             guard
-            let data = try? await photoPickerItem.loadTransferable(type: Data.self),
-            let image = UIImage(data: data)
-            else { return }
-            
+                let data = try? await item.loadTransferable(type: Data.self),
+                let image = UIImage(data: data)
+            else {
+                await MainActor.run {
+                    if let index = messages.firstIndex(where: { $0.id == clientID }) {
+                        messages.remove(at: index)
+                    }
+                    ErrorModalManager.showErrorModal(router: router, errorText: "failed_to_send_media".localized(localizationManager.language))
+                }
+                return
+            }
+
             await MainActor.run {
-                selectedImageToSend = UIImage(data: data)
+                if let index = messages.firstIndex(where: { $0.id == clientID }) {
+                    messages[index].thumbnail = image
+                }
+            }
+
+            let media = MessageMedia(id: clientID, type: .photo(image))
+            let parameters: [String: Any] = [
+                "username": username,
+                "message": "Image",
+                "messageType": "image",
+            ]
+            await MainActor.run {
+                sendMediaMessage(media: [media], parameters: parameters)
             }
         }
     }
@@ -1344,18 +1343,22 @@ class ChatViewModel: ObservableObject {
 extension ChatViewModel {
     
     func sendMediaMessage(media: [MessageMedia], parameters: [String: Any]) {
-        
-        showLoadingIndicator = true
-        
         Task {
             do {
-                let result = try await dataManager.uploadMedia(media: media, parameters: parameters)
+                let result = try await dataManager.uploadMedia(media: media, parameters: parameters, uploadProgress: { [weak self] progress in
+                    guard let self else { return }
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        self.updateUploadProgress(clientMessageID: media.first?.id, progress: progress)
+                    }
+                })
                 
                 await MainActor.run {
                     let range = 200...204
                     if result.status && range.contains(result.statusCode) {
                         if let index = messages.firstIndex(where: { $0.id == media[0].id }) {
                             messages[index].isUploading = false
+                            messages[index].uploadProgress = nil
                         }
                         
                         if let data = result.data,
@@ -1382,18 +1385,29 @@ extension ChatViewModel {
                         }
                         ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                     }
-                    
-                    showLoadingIndicator = false
                 }
             } catch {
                 await MainActor.run {
                     if let index = messages.firstIndex(where: { $0.id == media[0].id }) {
                         messages.remove(at: index)
                     }
-                    showLoadingIndicator = false
                     ErrorModalManager.showErrorModal(router: router, errorText: "failed_to_send_media".localized(localizationManager.language))
                 }
             }
+        }
+    }
+
+    @MainActor
+    private func updateUploadProgress(clientMessageID: String?, progress: Double) {
+        guard let clientMessageID else { return }
+        guard let index = messages.firstIndex(where: { $0.id == clientMessageID }) else { return }
+        guard messages[index].isUploading == true else { return }
+
+        let clamped = max(0.0, min(1.0, progress))
+        let current = messages[index].uploadProgress ?? 0.0
+        // Reduce UI churn for large uploads.
+        if clamped - current >= 0.01 || clamped >= 1.0 {
+            messages[index].uploadProgress = clamped
         }
     }
     

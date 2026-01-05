@@ -393,7 +393,15 @@ extension ChatView {
                                             MessageBox(normalRadius: 12, smallRadius: 3, isMyMessage: sentByMe == 1)
                                                 .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                         )
+                                        .overlay {
+                                            if content.isUploading == true {
+                                                uploadingMediaOverlay(progress: content.uploadProgress)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                    .padding(6)
+                                            }
+                                        }
                                         .onTapGesture {
+                                            if content.isUploading == true { return }
                                             if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
                                                 viewModel.openSharedPostInFeed(from: content)
                                             } else if let mediaUrl {
@@ -413,7 +421,15 @@ extension ChatView {
                                                 MessageBox(normalRadius: 12, smallRadius: 3, isMyMessage: sentByMe == 1)
                                                     .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                             )
+                                            .overlay {
+                                                if content.isUploading == true {
+                                                    uploadingMediaOverlay(progress: content.uploadProgress)
+                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                        .padding(6)
+                                                }
+                                            }
                                             .onTapGesture {
+                                                if content.isUploading == true { return }
                                                 if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
                                                     viewModel.openSharedPostInFeed(from: content)
                                                 } else {
@@ -432,7 +448,15 @@ extension ChatView {
                                                 MessageBox(normalRadius: 12, smallRadius: 3, isMyMessage: sentByMe == 1)
                                                     .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                             )
+                                            .overlay {
+                                                if content.isUploading == true {
+                                                    uploadingMediaOverlay(progress: content.uploadProgress)
+                                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                                        .padding(6)
+                                                }
+                                            }
                                             .onTapGesture {
+                                                if content.isUploading == true { return }
                                                 if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
                                                     viewModel.openSharedPostInFeed(from: content)
                                                 } else if let mediaUrl {
@@ -455,20 +479,25 @@ extension ChatView {
                                                 .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                         )
                                         .overlay(
-                                            Button(action: {
-                                                if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
-                                                    viewModel.openSharedPostInFeed(from: content)
-                                                } else if let mediaUrl {
-                                                    viewModel.selectedMedia = .video(urlString: mediaUrl)
-                                                    viewModel.showMediaPreview = true
+                                            ZStack {
+                                                if content.isUploading == true {
+                                                    uploadingMediaOverlay(progress: content.uploadProgress)
+                                                } else {
+                                                    Button(action: {
+                                                        if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                            viewModel.openSharedPostInFeed(from: content)
+                                                        } else if let mediaUrl {
+                                                            viewModel.selectedMedia = .video(urlString: mediaUrl)
+                                                            viewModel.showMediaPreview = true
+                                                        }
+                                                    }, label: {
+                                                        Image("PlayIcon")
+                                                            .resizable()
+                                                            .scaledToFit()
+                                                            .frame(width: 52, height: 52)
+                                                    })
                                                 }
-                                            }, label: {
-                                                Image("PlayIcon")
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 52, height: 52)
-                                            })
-                                            
+                                            }
                                         )
                                 } else {
                                     WebImage(url: URL(string: content.thumbnailUrl ?? "")) { image in
@@ -483,19 +512,25 @@ extension ChatView {
                                                     .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                             )
                                             .overlay(
-                                                Button(action: {
-                                                    if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
-                                                        viewModel.openSharedPostInFeed(from: content)
-                                                    } else if let mediaUrl {
-                                                        viewModel.selectedMedia = .video(urlString: mediaUrl)
-                                                        viewModel.showMediaPreview = true
+                                                ZStack {
+                                                    if content.isUploading == true {
+                                                        uploadingMediaOverlay(progress: content.uploadProgress)
+                                                    } else {
+                                                        Button(action: {
+                                                            if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                                viewModel.openSharedPostInFeed(from: content)
+                                                            } else if let mediaUrl {
+                                                                viewModel.selectedMedia = .video(urlString: mediaUrl)
+                                                                viewModel.showMediaPreview = true
+                                                            }
+                                                        }, label: {
+                                                            Image("PlayIcon")
+                                                                .resizable()
+                                                                .scaledToFit()
+                                                                .frame(width: 52, height: 52)
+                                                        })
                                                     }
-                                                }, label: {
-                                                    Image("PlayIcon")
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 52, height: 52)
-                                                })
+                                                }
                                             )
                                     } placeholder: {
                                         Image("PostImagePlaceholder")
@@ -509,19 +544,25 @@ extension ChatView {
                                                     .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                             )
                                             .overlay(
-                                                Button(action: {
-                                                    if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
-                                                        viewModel.openSharedPostInFeed(from: content)
-                                                    } else if let mediaUrl {
-                                                        viewModel.selectedMedia = .video(urlString: mediaUrl)
-                                                        viewModel.showMediaPreview = true
+                                                ZStack {
+                                                    if content.isUploading == true {
+                                                        uploadingMediaOverlay(progress: content.uploadProgress)
+                                                    } else {
+                                                        Button(action: {
+                                                            if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                                viewModel.openSharedPostInFeed(from: content)
+                                                            } else if let mediaUrl {
+                                                                viewModel.selectedMedia = .video(urlString: mediaUrl)
+                                                                viewModel.showMediaPreview = true
+                                                            }
+                                                        }, label: {
+                                                            Image("PlayIcon")
+                                                                .resizable()
+                                                                .scaledToFit()
+                                                                .frame(width: 52, height: 52)
+                                                        })
                                                     }
-                                                }, label: {
-                                                    Image("PlayIcon")
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 52, height: 52)
-                                                })
+                                                }
                                             )
     //                                        .onAppear {
     //                                            Task {
@@ -555,7 +596,14 @@ extension ChatView {
                                         }
                                         .frame(width: 120)
                                     }
+                                    .overlay {
+                                        if content.isUploading == true {
+                                            uploadingMediaOverlay(progress: content.uploadProgress)
+                                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                        }
+                                    }
                                     .onTapGesture {
+                                        if content.isUploading == true { return }
                                         if let pdfData = content.pdfData {
                                             viewModel.isRemotePDFUrl = false
                                             viewModel.viewPDFName = messageContent
@@ -666,6 +714,38 @@ extension ChatView {
                         .fill(.hmDarkerGray)
                 }
             )
+    }
+
+    private func uploadingMediaOverlay(progress: Double?) -> some View {
+        let fraction = max(0.0, min(1.0, progress ?? 0.0))
+        let percent = Int((fraction * 100.0).rounded())
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.black.opacity(0.35))
+
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.25), lineWidth: 3)
+                        .frame(width: 26, height: 26)
+                    Circle()
+                        .trim(from: 0, to: fraction)
+                        .stroke(
+                            Color.white.opacity(0.95),
+                            style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 26, height: 26)
+                }
+
+                Text("\(percent)%")
+                    .withComicFont(11, color: .white.opacity(0.95))
+            }
+            .padding(10)
+            .background(Color.black.opacity(0.25))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
     }
     
     

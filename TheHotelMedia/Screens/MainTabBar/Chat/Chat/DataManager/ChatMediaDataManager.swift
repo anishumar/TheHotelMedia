@@ -20,6 +20,12 @@ class ChatMediaDataManager {
         
         return result
     }
+
+    func uploadMedia(media: [MessageMedia], parameters: [String: Any], uploadProgress: ((Double) -> Void)?) async throws -> UploadChatMediaResponse {
+        let resource = Resource<UploadChatMediaResponse>(url: .sendMessageMedia, method: .mediaMessage(media, parameters))
+        let result = try await baseNetworkManager.accessLoad(resource, uploadProgress: uploadProgress)
+        return result
+    }
     
     
     func deleteChat(userID: String) async throws -> DeleteChatResponse {

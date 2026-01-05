@@ -40,6 +40,11 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
     private let dataManager = ProfileDataManager()
     private let postDataManager = PostDataManager()
     private let singlePostDataManager = SinglePostDataManager()
+
+    // Used to enrich MediaRef (from images endpoint) with parent post metadata (createdAt, likes, etc.)
+    @MainActor private var didBuildPostLookup: Bool = false
+    @MainActor private var isBuildingPostLookup: Bool = false
+    @MainActor private var postLookupByMediaID: [String: PostData] = [:]
     
     @AppStorage("ownUserID") var ownUserID: String = ""
     var router: AnyRouter?
@@ -74,7 +79,13 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
             // Use preloaded photos for the first page if available
             if currentPage == 1, let preloaded = preloadedPhotos, !preloaded.isEmpty {
                  print("📸 [PhotoDetail] Using \(preloaded.count) preloaded photos.")
-                 let newPosts = preloaded.map { createDummyPost(from: $0) }
+                 let mediaToUse: [MediaRef]
+                 if preloaded.allSatisfy({ !($0.createdAt ?? "").isEmpty }) {
+                     mediaToUse = preloaded
+                 } else {
+                     mediaToUse = await enrichMediaWithParentPostMetadata(preloaded)
+                 }
+                 let newPosts = mediaToUse.map { createDummyPost(from: $0) }
                  posts = newPosts
                  
                  isLoading = false
@@ -111,9 +122,8 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                         print("🔍 [PhotoDetail] Fetched \(newImages.count) images.")
                         
                         // Map MediaRef to PostData
-                        let newPosts = newImages.map { media in
-                            createDummyPost(from: media)
-                        }
+                        let enrichedImages = await enrichMediaWithParentPostMetadata(newImages)
+                        let newPosts = enrichedImages.map { createDummyPost(from: $0) }
                         
                         print("📸 [PhotoDetail] Loaded page \(currentPage): \(newPosts.count) posts mapped from images")
                         
@@ -157,6 +167,83 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
                 print("❌ [PhotoDetail] Error loading posts: \(error)")
             }
         }
+    }
+
+    @MainActor
+    private func enrichMediaWithParentPostMetadata(_ media: [MediaRef]) async -> [MediaRef] {
+        await buildPostLookupIfNeeded()
+        guard !postLookupByMediaID.isEmpty else { return media }
+
+        var enriched = media
+        for index in enriched.indices {
+            guard let mediaID = enriched[index].id else { continue }
+            guard let post = postLookupByMediaID[mediaID] else { continue }
+            enriched[index].postID = post.id
+            enriched[index].likes = post.likes
+            enriched[index].comments = post.comments
+            enriched[index].likedByMe = post.likedByMe
+            enriched[index].savedByMe = post.savedByMe
+            enriched[index].views = post.views
+            enriched[index].createdAt = post.createdAt
+        }
+        return enriched
+    }
+
+    /// Loads a small set of profile posts and builds a mapping from `mediaID -> PostData`,
+    /// so we can show correct timestamps for items coming from the images endpoint.
+    @MainActor
+    private func buildPostLookupIfNeeded() async {
+        if didBuildPostLookup || isBuildingPostLookup { return }
+        isBuildingPostLookup = true
+        defer {
+            isBuildingPostLookup = false
+            didBuildPostLookup = true
+        }
+
+        var allPosts: [PostData] = []
+        var maxPage = 1
+        var totalPages = 1
+
+        // Load a few pages; enough to cover most profiles and keeps this lightweight.
+        for page in 1...3 {
+            do {
+                let postsResult = try await dataManager.getProfilePosts(id: userProfileID, pageNo: page)
+                if postsResult.status && (200...204).contains(postsResult.statusCode) {
+                    if let postsData = postsResult.data, !postsData.isEmpty {
+                        allPosts += postsData
+                        maxPage = postsResult.pageNo ?? page
+                        totalPages = postsResult.totalPages ?? 1
+                    }
+                }
+            } catch {
+                break
+            }
+
+            if maxPage >= totalPages { break }
+        }
+
+        // Deduplicate posts by ID
+        var uniquePosts: [PostData] = []
+        var seenIDs: Set<String> = []
+        for post in allPosts {
+            if let postID = post.id, !seenIDs.contains(postID) {
+                seenIDs.insert(postID)
+                uniquePosts.append(post)
+            }
+        }
+
+        // Build mediaID -> post lookup
+        var lookup: [String: PostData] = [:]
+        for post in uniquePosts {
+            for media in post.mediaRef ?? [] {
+                if let mediaID = media.id {
+                    lookup[mediaID] = post
+                }
+            }
+        }
+
+        postLookupByMediaID = lookup
+        print("🧩 [PhotoDetail] Built post lookup: \(postLookupByMediaID.count) mediaIDs mapped")
     }
 
     private func createDummyPost(from media: MediaRef) -> PostData {
@@ -218,7 +305,7 @@ final class ProfilePhotoDetailViewModel: ObservableObject {
             userID: profileData?.id,
             content: "", // Caption not available in MediaRef
             location: nil,
-            createdAt: nil, // Date not available in MediaRef
+            createdAt: media.createdAt,
             mediaRef: [media],
             taggedRef: nil,
             postedBy: postedBy,
