@@ -394,7 +394,9 @@ extension ChatView {
                                                 .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                         )
                                         .onTapGesture {
-                                            if let mediaUrl {
+                                            if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                viewModel.openSharedPostInFeed(from: content)
+                                            } else if let mediaUrl {
                                                 viewModel.selectedMedia = .image(urlString: mediaUrl)
                                                 viewModel.showMediaPreview = true
                                             }
@@ -412,8 +414,12 @@ extension ChatView {
                                                     .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                             )
                                             .onTapGesture {
-                                                viewModel.selectedImage = thumbnail
-                                                viewModel.showMediaPreview = true
+                                                if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                    viewModel.openSharedPostInFeed(from: content)
+                                                } else {
+                                                    viewModel.selectedImage = thumbnail
+                                                    viewModel.showMediaPreview = true
+                                                }
                                             }
                                     } else {
                                         Image("PostImagePlaceholder")
@@ -427,7 +433,9 @@ extension ChatView {
                                                     .fill(sentByMe == 1 ? themeManager.currentTheme.hmIndigo_hmIndigo05 : themeManager.currentTheme.mediumGray05_mediumGray)
                                             )
                                             .onTapGesture {
-                                                if let mediaUrl {
+                                                if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                    viewModel.openSharedPostInFeed(from: content)
+                                                } else if let mediaUrl {
                                                     viewModel.selectedMedia = .image(urlString: mediaUrl)
                                                     viewModel.showMediaPreview = true
                                                 }
@@ -448,7 +456,9 @@ extension ChatView {
                                         )
                                         .overlay(
                                             Button(action: {
-                                                if let mediaUrl {
+                                                if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                    viewModel.openSharedPostInFeed(from: content)
+                                                } else if let mediaUrl {
                                                     viewModel.selectedMedia = .video(urlString: mediaUrl)
                                                     viewModel.showMediaPreview = true
                                                 }
@@ -474,7 +484,9 @@ extension ChatView {
                                             )
                                             .overlay(
                                                 Button(action: {
-                                                    if let mediaUrl {
+                                                    if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                        viewModel.openSharedPostInFeed(from: content)
+                                                    } else if let mediaUrl {
                                                         viewModel.selectedMedia = .video(urlString: mediaUrl)
                                                         viewModel.showMediaPreview = true
                                                     }
@@ -498,7 +510,9 @@ extension ChatView {
                                             )
                                             .overlay(
                                                 Button(action: {
-                                                    if let mediaUrl {
+                                                    if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                        viewModel.openSharedPostInFeed(from: content)
+                                                    } else if let mediaUrl {
                                                         viewModel.selectedMedia = .video(urlString: mediaUrl)
                                                         viewModel.showMediaPreview = true
                                                     }

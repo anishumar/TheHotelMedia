@@ -1161,7 +1161,11 @@ class ChatViewModel: ObservableObject {
             messageID: nil,
             clientMessageID: clientMessageID,
             mediaUrl: mediaUrl,
-            thumbnailUrl: thumbnailUrl
+            thumbnailUrl: thumbnailUrl,
+            mediaID: mediaID,
+            postID: postData.id,
+            postOwnerID: (postData.userID ?? postData.postedBy?.id),
+            isSharedPost: true
         )
         
         if let first = messages.first {
@@ -1176,7 +1180,10 @@ class ChatViewModel: ObservableObject {
             "message": messageText,
             "clientMessageID": clientMessageID,
             "mediaID": mediaID,
-            "mediaUrl": mediaUrl
+            "mediaUrl": mediaUrl,
+            "postID": postData.id ?? "",
+            "postOwnerID": (postData.userID ?? postData.postedBy?.id ?? ""),
+            "isSharedPost": true
         ]
         
         if let thumbnailUrl {
@@ -1259,6 +1266,62 @@ class ChatViewModel: ObservableObject {
             EventDetailView(viewModel: EventDetailViewModel(router: router, postID: postID, sharedByID: sharedByID))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
+        }
+    }
+    
+    // Open a shared post "in feed" (like Android's UserPostsViewer): photos list or reels for videos.
+    func openSharedPostInFeed(from message: PrivateMessage) {
+        let initialMediaID = message.mediaID
+        let type = (message.type ?? "").lowercased()
+        
+        // Prefer explicit owner id when backend provides it
+        if let ownerID = message.postOwnerID, !ownerID.isEmpty {
+            openViewer(ownerID: ownerID, type: type, initialMediaID: initialMediaID)
+            return
+        }
+        
+        // Backend currently sends `postID` but not `postOwnerID`.
+        // Resolve owner by fetching the post once.
+        guard let postID = message.postID, !postID.isEmpty else { return }
+        
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await SinglePostDataManager().getSinglePost(id: postID)
+                let ownerID = result.data?.userID ?? result.data?.postedBy?.id
+                
+                await MainActor.run {
+                    guard let ownerID, !ownerID.isEmpty else {
+                        // Fallback to single post view if we couldn't resolve the owner feed.
+                        self.showSharePostView(postID: postID, sharedByID: "")
+                        return
+                    }
+                    self.openViewer(ownerID: ownerID, type: type, initialMediaID: initialMediaID)
+                }
+            } catch {
+                await MainActor.run {
+                    // If post fetch fails, fallback to single post view.
+                    self.showSharePostView(postID: postID, sharedByID: "")
+                }
+            }
+        }
+    }
+    
+    private func openViewer(ownerID: String, type: String, initialMediaID: String?) {
+        if type == "video" {
+            router.showScreen(.push) { router in
+                ProfileVideoDetailView(userProfileID: ownerID, initialMediaID: initialMediaID, profileData: nil)
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
+                    .navigationBarBackButtonHidden()
+            }
+        } else {
+            router.showScreen(.push) { router in
+                ProfilePhotoDetailView(userProfileID: ownerID, initialMediaID: initialMediaID, profileData: nil, preloadedPhotos: nil)
+                    .environmentObject(ThemeManager.shared)
+                    .environmentObject(LocalizationManager.shared)
+                    .navigationBarBackButtonHidden()
+            }
         }
     }
     

@@ -30,6 +30,13 @@ struct PrivateMessage: Identifiable {
     
     var mediaUrl: String? = nil
     var thumbnailUrl: String? = nil
+    
+    // Shared-post metadata (present when the message represents a shared post/media, not a normal upload)
+    var mediaID: String? = nil
+    var postID: String? = nil
+    var postOwnerID: String? = nil
+    var isSharedPost: Bool? = nil
+    
     var from: String? = nil
     var to: String? = nil
     var thumbnail: UIImage? = nil

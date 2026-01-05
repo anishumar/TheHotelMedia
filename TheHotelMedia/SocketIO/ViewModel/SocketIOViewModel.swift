@@ -14,6 +14,17 @@ class SocketIOViewModel: ObservableObject {
     
     static var shared = SocketIOViewModel()
     
+    /// Enable to print raw socket payloads for debugging chat message formats.
+    /// - Debug: ON by default (so we can inspect backend payloads without extra steps)
+    /// - Release: OFF by default (can be enabled via UserDefaults key "debugSocketPayloads")
+    private var debugSocketPayloads: Bool {
+#if DEBUG
+        return true
+#else
+        return UserDefaults.standard.bool(forKey: "debugSocketPayloads")
+#endif
+    }
+    
     private var socketManager: SocketManager?
     private var handlersRegistered: Bool = false
     private var configuredUsername: String? = nil
@@ -109,7 +120,13 @@ class SocketIOViewModel: ObservableObject {
         
             socket.on("private message") { [weak self] data, ack in
             guard let self else { return }
+            if debugSocketPayloads {
+                print("🧩 [Socket] private message raw payload:", String(describing: data))
+            }
             if let message = JSONSerializationManager.getSingleMessage(data: data) {
+                if debugSocketPayloads {
+                    print("🧩 [Socket] parsed PrivateMessage:", message)
+                }
                 DispatchQueue.main.async {
                     self.newMessage = message
                 }
@@ -166,6 +183,9 @@ class SocketIOViewModel: ObservableObject {
         
             socket.on("fetch conversations") { [weak self] data, ack in
             guard let self else { return }
+            if debugSocketPayloads {
+                print("🧩 [Socket] fetch conversations raw payload:", String(describing: data))
+            }
             let (array, pageNumber, totalPages) = JSONSerializationManager.getPrivateMessagesList(data: data)
             
             if let array = array,
@@ -267,6 +287,10 @@ class SocketIOViewModel: ObservableObject {
             deletedAt: old.deletedAt,
             mediaUrl: old.mediaUrl,
             thumbnailUrl: old.thumbnailUrl,
+            mediaID: old.mediaID,
+            postID: old.postID,
+            postOwnerID: old.postOwnerID,
+            isSharedPost: old.isSharedPost,
             from: update.from ?? old.from,
             to: update.to ?? old.to,
             thumbnail: old.thumbnail,
@@ -298,6 +322,10 @@ class SocketIOViewModel: ObservableObject {
             deletedAt: old.deletedAt ?? DateManager.dateIntoIsoFormat(date: Date()),
             mediaUrl: old.mediaUrl,
             thumbnailUrl: old.thumbnailUrl,
+            mediaID: old.mediaID,
+            postID: old.postID,
+            postOwnerID: old.postOwnerID,
+            isSharedPost: old.isSharedPost,
             from: update.from ?? old.from,
             to: update.to ?? old.to,
             thumbnail: old.thumbnail,

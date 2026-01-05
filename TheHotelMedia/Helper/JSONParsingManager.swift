@@ -150,14 +150,23 @@ class JSONSerializationManager {
                         var type: String? = nil
                         var mediaUrl: String? = normalizedURLString(message["mediaUrl"] as? String)
                         var thumbnailUrl: String? = normalizedURLString(message["thumbnailUrl"] as? String)
+                        var mediaID: String? = message["mediaID"] as? String
+                        var postID: String? = message["postID"] as? String
+                        var postOwnerID: String? = message["postOwnerID"] as? String
+                        let topLevelIsSharedPost = boolValue(message["isSharedPost"])
                         var nestedClientMessageID: String? = nil
                         var nestedMessageID: String? = nil
+                        var nestedIsSharedPost: Bool? = nil
                         
                         if let nested = message["message"] as? [String: Any] {
                             newMessage = nested["message"] as? String
                             type = nested["type"] as? String ?? message["type"] as? String
                             mediaUrl = normalizedURLString(nested["mediaUrl"] as? String) ?? mediaUrl
                             thumbnailUrl = normalizedURLString(nested["thumbnailUrl"] as? String) ?? thumbnailUrl
+                            mediaID = (nested["mediaID"] as? String) ?? mediaID
+                            postID = (nested["postID"] as? String) ?? postID
+                            postOwnerID = (nested["postOwnerID"] as? String) ?? postOwnerID
+                            nestedIsSharedPost = boolValue(nested["isSharedPost"])
                             nestedClientMessageID = nested["clientMessageID"] as? String
                             nestedMessageID = nested["_id"] as? String ?? nested["messageID"] as? String
                         } else {
@@ -186,7 +195,11 @@ class JSONSerializationManager {
                                 isDeleted: isDeleted,
                                 deletedAt: deletedAt,
                                 mediaUrl: mediaUrl,
-                                thumbnailUrl: thumbnailUrl
+                                thumbnailUrl: thumbnailUrl,
+                                mediaID: mediaID,
+                                postID: postID,
+                                postOwnerID: postOwnerID,
+                                isSharedPost: nestedIsSharedPost ?? topLevelIsSharedPost
                             )
                         )
                     }
@@ -236,13 +249,23 @@ class JSONSerializationManager {
         var mediaUrl: String? = nil
         var thumbnailUrl: String? = nil
         var nestedClientMessageID: String? = nil
+        var mediaID: String? = singleMessage["mediaID"] as? String
+        var postID: String? = singleMessage["postID"] as? String
+        var postOwnerID: String? = singleMessage["postOwnerID"] as? String
+        let topLevelIsSharedPost = boolValue(singleMessage["isSharedPost"])
+        var nestedIsSharedPost: Bool? = nil
         
         if let message = singleMessage["message"] as? [String: Any] {
             content = message["message"] as? String
             type = message["type"] as? String
             mediaUrl = normalizedURLString(message["mediaUrl"] as? String)
             thumbnailUrl = normalizedURLString(message["thumbnailUrl"] as? String)
-            nestedClientMessageID = message["clientMessageID"] as? String
+            mediaID = (message["mediaID"] as? String) ?? mediaID
+            postID = (message["postID"] as? String) ?? postID
+            postOwnerID = (message["postOwnerID"] as? String) ?? postOwnerID
+            nestedIsSharedPost = boolValue(message["isSharedPost"])
+            // Backend sometimes uses `tempMessageID` instead of `clientMessageID`
+            nestedClientMessageID = (message["clientMessageID"] as? String) ?? (message["tempMessageID"] as? String)
             // Some backends embed the Mongo `_id` inside message object
             if topLevelMessageID == nil {
                 // keep topLevelMessageID unchanged if already present
@@ -278,6 +301,10 @@ class JSONSerializationManager {
             deletedAt: topLevelDeletedAt,
             mediaUrl: mediaUrl,
             thumbnailUrl: thumbnailUrl,
+            mediaID: mediaID,
+            postID: postID,
+            postOwnerID: postOwnerID,
+            isSharedPost: nestedIsSharedPost ?? topLevelIsSharedPost,
             from: from,
             to: to
         )
