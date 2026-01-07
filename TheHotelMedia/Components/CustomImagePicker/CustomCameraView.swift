@@ -64,6 +64,9 @@ class CameraViewController: UIViewController {
     private var isRecording = false
     private var recordingStartTime: Date?
     private var isLongPressActive = false // Track if long press gesture is active
+    private let sessionQueue = DispatchQueue(label: "com.thehotelmedia.camera.sessionQueue")
+    private var isSessionConfigured = false
+    private var shouldResumeSessionOnForeground = false
     
     private var shutterButton: UIButton!
     private var flipButton: UIButton!
@@ -78,8 +81,9 @@ class CameraViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupCamera()
         setupUI()
+        setupObservers()
+        checkPermissionAndConfigureSession()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -89,54 +93,131 @@ class CameraViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        stopTimer()
         stopSession()
+    }
+
+    deinit {
+        stopTimer()
+        NotificationCenter.default.removeObserver(self)
+        stopSession()
+    }
+
+    private func setupObservers() {
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive),
+                                               name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive),
+                                               name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(sessionWasInterrupted(_:)),
+                                               name: AVCaptureSession.wasInterruptedNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(sessionInterruptionEnded(_:)),
+                                               name: AVCaptureSession.interruptionEndedNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(sessionRuntimeError(_:)),
+                                               name: AVCaptureSession.runtimeErrorNotification, object: nil)
+    }
+
+    private func checkPermissionAndConfigureSession() {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        switch status {
+        case .authorized:
+            configureSessionIfNeeded()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                guard let self else { return }
+                DispatchQueue.main.async {
+                    if granted {
+                        self.configureSessionIfNeeded()
+                        self.startSession()
+                    } else {
+                        self.showPermissionAlertAndClose()
+                    }
+                }
+            }
+        default:
+            showPermissionAlertAndClose()
+        }
+    }
+
+    private func showPermissionAlertAndClose() {
+        let alert = UIAlertController(
+            title: "Camera Permission",
+            message: "Please allow camera access in Settings to take photos/videos.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.coordinator?.cancelled()
+        })
+        present(alert, animated: true)
+    }
+
+    private func configureSessionIfNeeded() {
+        guard !isSessionConfigured else { return }
+        isSessionConfigured = true
+        sessionQueue.async { [weak self] in
+            self?.setupCamera()
+            // Avoid a race where viewWillAppear() calls startSession() before the session exists.
+            // Starting here guarantees the session runs once configuration finishes.
+            if let session = self?.captureSession, !session.isRunning {
+                session.startRunning()
+            }
+        }
     }
     
     private func setupCamera() {
-        captureSession = AVCaptureSession()
-        guard let captureSession = captureSession else { return }
+        let session = AVCaptureSession()
+        captureSession = session
         
-        captureSession.sessionPreset = .high
+        session.beginConfiguration()
+        session.sessionPreset = .high
         
         // Setup camera input
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentCameraPosition),
               let videoInput = try? AVCaptureDeviceInput(device: videoDevice) else {
+            session.commitConfiguration()
             return
         }
         
         currentVideoDevice = videoDevice
         
-        if captureSession.canAddInput(videoInput) {
-            captureSession.addInput(videoInput)
+        if session.canAddInput(videoInput) {
+            session.addInput(videoInput)
         }
         
         // Setup audio input for video recording
         if let audioDevice = AVCaptureDevice.default(for: .audio),
            let audioInput = try? AVCaptureDeviceInput(device: audioDevice),
-           captureSession.canAddInput(audioInput) {
-            captureSession.addInput(audioInput)
+           session.canAddInput(audioInput) {
+            session.addInput(audioInput)
         }
         
         // Setup photo output
         photoOutput = AVCapturePhotoOutput()
-        if let photoOutput = photoOutput, captureSession.canAddOutput(photoOutput) {
-            captureSession.addOutput(photoOutput)
+        if let photoOutput = photoOutput, session.canAddOutput(photoOutput) {
+            session.addOutput(photoOutput)
         }
         
         // Setup video output
         videoOutput = AVCaptureMovieFileOutput()
-        if let videoOutput = videoOutput, captureSession.canAddOutput(videoOutput) {
+        if let videoOutput = videoOutput, session.canAddOutput(videoOutput) {
             // Set max duration
             let maxDuration = CMTime(seconds: maxVideoDuration, preferredTimescale: 600)
             videoOutput.maxRecordedDuration = maxDuration
-            captureSession.addOutput(videoOutput)
+            session.addOutput(videoOutput)
         }
         
+        session.commitConfiguration()
+
         // Setup preview layer
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer?.videoGravity = .resizeAspectFill
-        if let previewLayer = previewLayer {
-            view.layer.addSublayer(previewLayer)
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let captureSession = self.captureSession else { return }
+            // Prevent stacking layers if the session gets reconfigured.
+            self.previewLayer?.removeFromSuperlayer()
+            self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+            self.previewLayer?.videoGravity = .resizeAspectFill
+            if let previewLayer = self.previewLayer {
+                self.view.layer.insertSublayer(previewLayer, at: 0)
+                previewLayer.frame = self.view.bounds
+            }
         }
     }
     
@@ -233,35 +314,39 @@ class CameraViewController: UIViewController {
     }
     
     @objc private func flipCamera() {
-        guard let captureSession = captureSession else { return }
-        
-        captureSession.beginConfiguration()
-        
-        // Remove current input
-        if let currentInput = captureSession.inputs.first as? AVCaptureDeviceInput {
-            captureSession.removeInput(currentInput)
-        }
-        
-        // Switch camera position
-        currentCameraPosition = currentCameraPosition == .back ? .front : .back
-        
-        // Add new input
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentCameraPosition),
-              let videoInput = try? AVCaptureDeviceInput(device: videoDevice) else {
+        guard !isRecording else { return }
+        sessionQueue.async { [weak self] in
+            guard let self, let captureSession = self.captureSession else { return }
+
+            captureSession.beginConfiguration()
+
+            // Remove current video input (keep audio)
+            if let currentVideoInput = captureSession.inputs.compactMap({ $0 as? AVCaptureDeviceInput })
+                .first(where: { $0.device.hasMediaType(.video) }) {
+                captureSession.removeInput(currentVideoInput)
+            }
+
+            // Switch camera position
+            self.currentCameraPosition = self.currentCameraPosition == .back ? .front : .back
+
+            // Add new input
+            guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: self.currentCameraPosition),
+                  let videoInput = try? AVCaptureDeviceInput(device: videoDevice) else {
+                captureSession.commitConfiguration()
+                return
+            }
+
+            self.currentVideoDevice = videoDevice
+
+            if captureSession.canAddInput(videoInput) {
+                captureSession.addInput(videoInput)
+            }
+
             captureSession.commitConfiguration()
-            return
+
+            // Reset zoom when flipping camera
+            self.initialZoomFactor = 1.0
         }
-        
-        currentVideoDevice = videoDevice
-        
-        if captureSession.canAddInput(videoInput) {
-            captureSession.addInput(videoInput)
-        }
-        
-        captureSession.commitConfiguration()
-        
-        // Reset zoom when flipping camera
-        initialZoomFactor = 1.0
     }
     
     @objc private func takePhoto() {
@@ -275,7 +360,9 @@ class CameraViewController: UIViewController {
             settings = AVCapturePhotoSettings()
         }
         
-        photoOutput.capturePhoto(with: settings, delegate: self)
+        sessionQueue.async {
+            photoOutput.capturePhoto(with: settings, delegate: self)
+        }
     }
     
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
@@ -366,7 +453,10 @@ class CameraViewController: UIViewController {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let videoPath = documentsPath.appendingPathComponent("temp_video_\(UUID().uuidString).mov")
         
-        videoOutput.startRecording(to: videoPath, recordingDelegate: self)
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            videoOutput.startRecording(to: videoPath, recordingDelegate: self)
+        }
         isRecording = true
         recordingStartTime = Date()
         
@@ -383,7 +473,9 @@ class CameraViewController: UIViewController {
     private func stopVideoRecording() {
         guard isRecording else { return }
         
-        videoOutput?.stopRecording()
+        sessionQueue.async { [weak self] in
+            self?.videoOutput?.stopRecording()
+        }
         isRecording = false
         
         // Update UI
@@ -399,7 +491,7 @@ class CameraViewController: UIViewController {
     private var timer: Timer?
     
     private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        let newTimer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self, let startTime = self.recordingStartTime else { return }
             let elapsed = Date().timeIntervalSince(startTime)
             let minutes = Int(elapsed) / 60
@@ -411,6 +503,8 @@ class CameraViewController: UIViewController {
                 self.stopVideoRecording()
             }
         }
+        timer = newTimer
+        RunLoop.main.add(newTimer, forMode: .common)
     }
     
     private func stopTimer() {
@@ -420,14 +514,49 @@ class CameraViewController: UIViewController {
     }
     
     private func startSession() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.captureSession?.startRunning()
+        sessionQueue.async { [weak self] in
+            guard let self, let session = self.captureSession else { return }
+            if !session.isRunning {
+                session.startRunning()
+            }
         }
     }
     
     private func stopSession() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.captureSession?.stopRunning()
+        sessionQueue.async { [weak self] in
+            guard let self, let session = self.captureSession else { return }
+            if session.isRunning {
+                session.stopRunning()
+            }
+        }
+    }
+
+    @objc private func appWillResignActive() {
+        // If the camera view is visible and the app is backgrounding/interrupted, stop the session.
+        shouldResumeSessionOnForeground = isViewLoaded && view.window != nil
+        stopSession()
+    }
+
+    @objc private func appDidBecomeActive() {
+        guard shouldResumeSessionOnForeground else { return }
+        shouldResumeSessionOnForeground = false
+        startSession()
+    }
+
+    @objc private func sessionWasInterrupted(_ notification: Notification) {
+        // Treat interruption like backgrounding; we'll resume when it ends/when app becomes active.
+        shouldResumeSessionOnForeground = true
+    }
+
+    @objc private func sessionInterruptionEnded(_ notification: Notification) {
+        startSession()
+    }
+
+    @objc private func sessionRuntimeError(_ notification: Notification) {
+        // Common recovery path when media services reset.
+        guard let error = notification.userInfo?[AVCaptureSessionErrorKey] as? AVError else { return }
+        if error.code == .mediaServicesWereReset {
+            startSession()
         }
     }
 }
