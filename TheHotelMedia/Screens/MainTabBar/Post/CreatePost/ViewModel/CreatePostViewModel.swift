@@ -45,6 +45,8 @@ final class CreatePostViewModel: ObservableObject {
     @Published var showPicker = false
     @Published var feeling: Feeling?
     @Published var showCameraPicker: Bool = false
+    @Published var showVideoCameraPicker: Bool = false
+    @Published var capturedVideo: URL? = nil
     @Published var showLoadingAnimation: Bool = false
     @Published var postUploaded: Bool = false
     @Published var messageText: String = ""
@@ -144,6 +146,22 @@ final class CreatePostViewModel: ObservableObject {
                     }
 //                    trimmedVideoUrl = url
 //                    hasSelectedSomeMedia = false
+                }
+            }
+            .store(in: &cancellables)
+        
+        $capturedVideo
+            .sink { [weak self] url in
+                guard let self = self, let url = url else { return }
+                // Handle captured video from custom camera for posts
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    self.router.showScreen(.fullScreenCover) { router in
+                        VideoEditorView(videoURL: url, limit: self.videoLimit) { [weak self] editedVideoURL in
+                            guard let self else { return }
+                            trimmedVideoUrl = editedVideoURL
+                            hasSelectedSomeMedia = false
+                        }
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -266,10 +284,21 @@ final class CreatePostViewModel: ObservableObject {
         if photoPickerItem.isVideo {
 
             if let mov = try? await photoPickerItem.loadTransferable(type: VideoPickerTransferable.self) {
-                await MainActor.run {
-                    selectedVideoUrl = mov.url
-                }
+                // Auto-trim post videos to 3 minutes (180 seconds)
+                let maxDuration: TimeInterval = 180 // 3 minutes for posts
                 
+                do {
+                    let trimmedURL = try await mov.url.trimVideo(toMaxDuration: maxDuration)
+                    await MainActor.run {
+                        selectedVideoUrl = trimmedURL
+                    }
+                } catch {
+                    await MainActor.run {
+                        print("Failed to trim video: \(error)")
+                        // Fallback to original if trimming fails
+                        selectedVideoUrl = mov.url
+                    }
+                }
             }
             
         } else {

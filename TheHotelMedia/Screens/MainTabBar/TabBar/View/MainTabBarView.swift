@@ -142,7 +142,7 @@ struct MainTabBarView: View {
                             onVideoCaptured: { url in
                                 viewModel.capturedVideo = url
                             },
-                            maxVideoDuration: 180 // 3 minutes
+                            maxVideoDuration: 15 // 15 seconds for stories
                         )
                         .ignoresSafeArea()
                         #endif

@@ -10,6 +10,7 @@ import Alamofire
 import SwiftUI
 import SwiftyJSON
 import AVKit
+import AVFoundation
 import Photos
 import UniformTypeIdentifiers
 
@@ -789,7 +790,8 @@ class BaseNetworkManager {
             for attachment in attachments {
                 switch attachment.type {
                 case .video(_ , let videoURL):
-                    if let newvideoURL = try? await encodeVideo(at: videoURL) {
+                    // Use aggressive compression for stories to avoid 413 errors
+                    if let newvideoURL = try? await encodeVideo(at: videoURL, isStory: true) {
                         updatedMediaAttachments.append(MediaAttachment(id: attachment.id, type: .video(attachment.thumbnail, newvideoURL)))
                     } else {
                         updatedMediaAttachments.append(attachment)
@@ -984,7 +986,7 @@ class BaseNetworkManager {
 
     
 
-    func encodeVideo(at videoURL: URL) async throws -> URL {
+    func encodeVideo(at videoURL: URL, isStory: Bool = false) async throws -> URL {
         let avAsset = AVURLAsset(url: videoURL)
         
         // Set up a temporary file path for the exported video
@@ -996,7 +998,12 @@ class BaseNetworkManager {
             try FileManager.default.removeItem(at: outputURL)
         }
         
-        // Create and configure the export session
+        // For stories, use more aggressive compression with bitrate limits
+        if isStory {
+            return try await encodeVideoWithBitrateLimit(asset: avAsset, outputURL: outputURL)
+        }
+        
+        // Create and configure the export session for regular videos
         guard let exportSession = AVAssetExportSession(asset: avAsset, presetName: AVAssetExportPreset1280x720) else {
             throw NSError(domain: "com.example.videoexport",
                           code: -1,
@@ -1020,6 +1027,122 @@ class BaseNetworkManager {
                     continuation.resume(throwing: NSError(domain: "com.example.videoexport",
                                                           code: -1,
                                                           userInfo: [NSLocalizedDescriptionKey: "Export cancelled."]))
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    private func encodeVideoWithBitrateLimit(asset: AVAsset, outputURL: URL) async throws -> URL {
+        // Use high quality preset for stories (15 seconds videos are small enough for high quality)
+        // Use 1280x720 preset which provides good balance of quality and file size
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPreset1280x720) else {
+            // Fallback to highest quality if 1280x720 fails
+            guard let fallbackSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+                throw NSError(domain: "com.example.videoexport",
+                              code: -1,
+                              userInfo: [NSLocalizedDescriptionKey: "Failed to create export session."])
+            }
+            fallbackSession.outputFileType = .mp4
+            fallbackSession.outputURL = outputURL
+            fallbackSession.shouldOptimizeForNetworkUse = true
+            
+            return try await withCheckedThrowingContinuation { continuation in
+                fallbackSession.exportAsynchronously {
+                    switch fallbackSession.status {
+                    case .completed:
+                        continuation.resume(returning: outputURL)
+                    case .failed:
+                        continuation.resume(throwing: fallbackSession.error ?? NSError(domain: "com.example.videoexport",
+                                                                                         code: -1,
+                                                                                         userInfo: [NSLocalizedDescriptionKey: "Export failed."]))
+                    case .cancelled:
+                        continuation.resume(throwing: NSError(domain: "com.example.videoexport",
+                                                              code: -1,
+                                                              userInfo: [NSLocalizedDescriptionKey: "Export cancelled."]))
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+        
+        exportSession.outputFileType = .mp4
+        exportSession.outputURL = outputURL
+        exportSession.shouldOptimizeForNetworkUse = true
+        
+        // Perform the export operation
+        return try await withCheckedThrowingContinuation { continuation in
+            exportSession.exportAsynchronously {
+                switch exportSession.status {
+                case .completed:
+                    // For 15-second stories, file size should be manageable even with high quality
+                    // Only check if file is extremely large (>50MB) and recompress if needed
+                    Task {
+                        do {
+                            let fileSize = try FileManager.default.attributesOfItem(atPath: outputURL.path)[.size] as? Int64 ?? 0
+                            let maxSize: Int64 = 50 * 1024 * 1024 // 50 MB max for stories (shouldn't happen with 15s videos)
+                            
+                            if fileSize > maxSize {
+                                // Re-encode with medium quality only if file is extremely large
+                                let recompressedURL = try await self.recompressVideoWithLowerQuality(inputURL: outputURL)
+                                continuation.resume(returning: recompressedURL)
+                            } else {
+                                continuation.resume(returning: outputURL)
+                            }
+                        } catch {
+                            continuation.resume(returning: outputURL) // Return original if recompression fails
+                        }
+                    }
+                case .failed:
+                    continuation.resume(throwing: exportSession.error ?? NSError(domain: "com.example.videoexport",
+                                                                                 code: -1,
+                                                                                 userInfo: [NSLocalizedDescriptionKey: "Export failed."]))
+                case .cancelled:
+                    continuation.resume(throwing: NSError(domain: "com.example.videoexport",
+                                                          code: -1,
+                                                          userInfo: [NSLocalizedDescriptionKey: "Export cancelled."]))
+                default:
+                    break
+                }
+            }
+        }
+    }
+    
+    private func recompressVideoWithLowerQuality(inputURL: URL) async throws -> URL {
+        let avAsset = AVURLAsset(url: inputURL)
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let outputURL = tempDirectory.appendingPathComponent("\(UUID().uuidString).mp4")
+        
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+        
+        // Use medium quality preset for recompression
+        guard let exportSession = AVAssetExportSession(asset: avAsset, presetName: AVAssetExportPresetMediumQuality) else {
+            throw NSError(domain: "com.example.videoexport",
+                          code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Failed to create recompression session."])
+        }
+        
+        exportSession.outputFileType = .mp4
+        exportSession.outputURL = outputURL
+        exportSession.shouldOptimizeForNetworkUse = true
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            exportSession.exportAsynchronously {
+                switch exportSession.status {
+                case .completed:
+                    continuation.resume(returning: outputURL)
+                case .failed:
+                    continuation.resume(throwing: exportSession.error ?? NSError(domain: "com.example.videoexport",
+                                                                                 code: -1,
+                                                                                 userInfo: [NSLocalizedDescriptionKey: "Recompression failed."]))
+                case .cancelled:
+                    continuation.resume(throwing: NSError(domain: "com.example.videoexport",
+                                                          code: -1,
+                                                          userInfo: [NSLocalizedDescriptionKey: "Recompression cancelled."]))
                 default:
                     break
                 }

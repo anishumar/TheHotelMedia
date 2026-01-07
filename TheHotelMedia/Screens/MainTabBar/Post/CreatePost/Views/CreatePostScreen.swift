@@ -12,6 +12,7 @@ import PhotosUI
 import SDWebImageSwiftUI
 import Lottie
 import Combine
+import AVFoundation
 
 
 
@@ -629,7 +630,27 @@ struct CreatePostScreen: View {
                             .fullScreenCover(isPresented: $viewModel.showCameraPicker) {
                                 SUImagePickerView(sourceType: .camera, image: $viewModel.selectedCameraImage, isPresented: $viewModel.showCameraPicker)
                             }
+                            .fullScreenCover(isPresented: $viewModel.showVideoCameraPicker) {
+                                #if targetEnvironment(simulator)
+                                // Simulator fallback
+                                SUImagePickerView(sourceType: .photoLibrary, image: $viewModel.selectedCameraImage, isPresented: $viewModel.showVideoCameraPicker)
+                                #else
+                                // Real device - use custom camera for video recording
+                                CustomCameraView(
+                                    isPresented: $viewModel.showVideoCameraPicker,
+                                    onPhotoCaptured: { image in
+                                        // Handle photo if needed
+                                    },
+                                    onVideoCaptured: { url in
+                                        viewModel.capturedVideo = url
+                                    },
+                                    maxVideoDuration: 180 // 3 minutes for posts
+                                )
+                                .ignoresSafeArea()
+                                #endif
+                            }
                             .onTapGesture {
+                                // For now, just show photo camera. Video recording can be done via photo/video picker
                                 viewModel.showCameraPicker.toggle()
                             }
                         

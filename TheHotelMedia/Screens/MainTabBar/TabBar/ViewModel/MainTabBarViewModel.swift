@@ -207,7 +207,7 @@ final class MainTabBarViewModel: ObservableObject {
                 if let url {
                     print("🎬 [MainTabBarViewModel] Presenting VideoEditorView for URL: \(url)")
                     router.showScreen(.fullScreenCover) { router in
-                        VideoEditorView(videoURL: url, limit: self.videoLimit) { [weak self] (editedVideoURL: URL?) in
+                        VideoEditorView(videoURL: url, limit: 15) { [weak self] (editedVideoURL: URL?) in // 15 seconds limit for stories
                             guard let self else { return }
                             print("✅ [MainTabBarViewModel] VideoEditorView completed. Edited URL: \(String(describing: editedVideoURL))")
                             
@@ -412,8 +412,20 @@ final class MainTabBarViewModel: ObservableObject {
         if photoPickerItem.isVideo {
 
             if let mov = try? await photoPickerItem.loadTransferable(type: VideoPickerTransferable.self) {
-                await MainActor.run {
-                    selectedStoryVideo = mov.url
+                // Auto-trim story videos to 15 seconds
+                let maxDuration: TimeInterval = 15 // 15 seconds for stories
+                
+                do {
+                    let trimmedURL = try await mov.url.trimVideo(toMaxDuration: maxDuration)
+                    await MainActor.run {
+                        selectedStoryVideo = trimmedURL
+                    }
+                } catch {
+                    await MainActor.run {
+                        print("Failed to trim video: \(error)")
+                        // Fallback to original if trimming fails
+                        selectedStoryVideo = mov.url
+                    }
                 }
             }
             

@@ -51,5 +51,60 @@ extension URL {
             }
         }
     }
+    
+    /// Trims a video to a specified maximum duration
+    /// - Parameter maxDuration: Maximum duration in seconds
+    /// - Returns: URL of the trimmed video
+    func trimVideo(toMaxDuration maxDuration: TimeInterval) async throws -> URL {
+        let asset = AVURLAsset(url: self)
+        
+        // Get video duration
+        let duration = try await asset.load(.duration)
+        let durationInSeconds = CMTimeGetSeconds(duration)
+        
+        // If video is already within limit, return original
+        if durationInSeconds <= maxDuration {
+            return self
+        }
+        
+        // Create output URL
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let outputURL = tempDirectory.appendingPathComponent("\(UUID().uuidString).mp4")
+        
+        // Remove existing file if present
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+        
+        // Create export session
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+            throw NSError(domain: "VideoTrimming", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create export session"])
+        }
+        
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .mp4
+        exportSession.shouldOptimizeForNetworkUse = true
+        
+        // Set time range to trim (from start to maxDuration)
+        let startTime = CMTime.zero
+        let endTime = CMTime(seconds: maxDuration, preferredTimescale: duration.timescale)
+        exportSession.timeRange = CMTimeRange(start: startTime, end: endTime)
+        
+        // Export the trimmed video
+        return try await withCheckedThrowingContinuation { continuation in
+            exportSession.exportAsynchronously {
+                switch exportSession.status {
+                case .completed:
+                    continuation.resume(returning: outputURL)
+                case .failed:
+                    continuation.resume(throwing: exportSession.error ?? NSError(domain: "VideoTrimming", code: -1, userInfo: [NSLocalizedDescriptionKey: "Export failed"]))
+                case .cancelled:
+                    continuation.resume(throwing: NSError(domain: "VideoTrimming", code: -1, userInfo: [NSLocalizedDescriptionKey: "Export cancelled"]))
+                default:
+                    continuation.resume(throwing: NSError(domain: "VideoTrimming", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown export status"]))
+                }
+            }
+        }
+    }
 
 }

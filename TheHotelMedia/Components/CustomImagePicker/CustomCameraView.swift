@@ -54,7 +54,7 @@ struct CustomCameraView: UIViewControllerRepresentable {
 }
 
 class CameraViewController: UIViewController {
-    var coordinator: CustomCameraView.Coordinator?
+    weak var coordinator: CustomCameraView.Coordinator?
     var maxVideoDuration: TimeInterval = 180
     
     private var captureSession: AVCaptureSession?
@@ -98,9 +98,42 @@ class CameraViewController: UIViewController {
     }
 
     deinit {
+        // Stop timer synchronously to ensure it's invalidated before deallocation
         stopTimer()
+        recordingStartTime = nil
+        
+        // Stop recording animation
+        recordingIndicator?.layer.removeAnimation(forKey: "pulse")
+        recordingAnimation = nil
+        
+        // Remove observers
         NotificationCenter.default.removeObserver(self)
-        stopSession()
+        
+        // Clean up capture session
+        sessionQueue.sync {
+            if let session = captureSession, session.isRunning {
+                session.stopRunning()
+            }
+            // Remove all inputs and outputs
+            if let session = captureSession {
+                session.beginConfiguration()
+                for input in session.inputs {
+                    session.removeInput(input)
+                }
+                for output in session.outputs {
+                    session.removeOutput(output)
+                }
+                session.commitConfiguration()
+            }
+            captureSession = nil
+            photoOutput = nil
+            videoOutput = nil
+            currentVideoDevice = nil
+        }
+        
+        // Remove preview layer
+        previewLayer?.removeFromSuperlayer()
+        previewLayer = nil
     }
 
     private func setupObservers() {
@@ -168,6 +201,7 @@ class CameraViewController: UIViewController {
         captureSession = session
         
         session.beginConfiguration()
+        // Use high preset for video recording (best quality for video)
         session.sessionPreset = .high
         
         // Setup camera input
@@ -209,7 +243,10 @@ class CameraViewController: UIViewController {
 
         // Setup preview layer
         DispatchQueue.main.async { [weak self] in
-            guard let self, let captureSession = self.captureSession else { return }
+            guard let self = self else { return }
+            guard let captureSession = self.captureSession else { return }
+            // Check if view is still loaded and window exists
+            guard self.isViewLoaded, self.view.window != nil else { return }
             // Prevent stacking layers if the session gets reconfigured.
             self.previewLayer?.removeFromSuperlayer()
             self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
@@ -224,51 +261,49 @@ class CameraViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .black
         
-        // Close button
+        // Close button - Native iOS style
         closeButton = UIButton(type: .system)
-        closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+        let closeImage = UIImage(systemName: "xmark.circle.fill")
+        closeButton.setImage(closeImage, for: .normal)
         closeButton.tintColor = .white
-        closeButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        closeButton.layer.cornerRadius = 20
-        closeButton.frame = CGRect(x: 20, y: 50, width: 40, height: 40)
+        closeButton.frame = CGRect(x: 20, y: 50, width: 44, height: 44)
         closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
         view.addSubview(closeButton)
         
-        // Flip camera button
+        // Flip camera button - Native iOS style
         flipButton = UIButton(type: .system)
-        flipButton.setImage(UIImage(systemName: "camera.rotate"), for: .normal)
+        let flipImage = UIImage(systemName: "arrow.triangle.2.circlepath.camera.fill")
+        flipButton.setImage(flipImage, for: .normal)
         flipButton.tintColor = .white
-        flipButton.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        flipButton.layer.cornerRadius = 20
-        flipButton.frame = CGRect(x: view.bounds.width - 60, y: 50, width: 40, height: 40)
+        flipButton.frame = CGRect(x: view.bounds.width - 64, y: 50, width: 44, height: 44)
         flipButton.addTarget(self, action: #selector(flipCamera), for: .touchUpInside)
         view.addSubview(flipButton)
         
-        // Timer label
+        // Timer label - Clean, native iOS style
         timerLabel = UILabel()
         timerLabel.text = "00:00"
         timerLabel.textColor = .white
-        timerLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        timerLabel.font = .monospacedDigitSystemFont(ofSize: 17, weight: .medium)
         timerLabel.textAlignment = .center
         timerLabel.isHidden = true
-        timerLabel.frame = CGRect(x: 0, y: 100, width: view.bounds.width, height: 40)
+        timerLabel.frame = CGRect(x: 0, y: 0, width: 60, height: 22)
         view.addSubview(timerLabel)
         
-        // Recording indicator
+        // Recording indicator - Clean, native iOS style
         recordingIndicator = UIView()
-        recordingIndicator.backgroundColor = .red
-        recordingIndicator.layer.cornerRadius = 4
+        recordingIndicator.backgroundColor = .systemRed
+        recordingIndicator.layer.cornerRadius = 3
         recordingIndicator.isHidden = true
-        recordingIndicator.frame = CGRect(x: view.bounds.width / 2 - 30, y: 100, width: 12, height: 12)
+        recordingIndicator.frame = CGRect(x: 0, y: 0, width: 6, height: 6)
         view.addSubview(recordingIndicator)
         
-        // Shutter button
+        // Shutter button - Native iOS camera style
         shutterButton = UIButton(type: .custom)
         shutterButton.backgroundColor = .white
-        shutterButton.layer.cornerRadius = 40
-        shutterButton.layer.borderWidth = 4
+        shutterButton.layer.cornerRadius = 35
+        shutterButton.layer.borderWidth = 5
         shutterButton.layer.borderColor = UIColor.white.cgColor
-        shutterButton.frame = CGRect(x: view.bounds.width / 2 - 40, y: view.bounds.height - 120, width: 80, height: 80)
+        shutterButton.frame = CGRect(x: view.bounds.width / 2 - 35, y: view.bounds.height - 120, width: 70, height: 70)
         
         // Add long press gesture for video (must be added first)
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
@@ -289,7 +324,8 @@ class CameraViewController: UIViewController {
         view.addGestureRecognizer(panGesture)
         
         // Update layout when view appears
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.isViewLoaded else { return }
             self.updateLayout()
         }
     }
@@ -302,11 +338,19 @@ class CameraViewController: UIViewController {
     private func updateLayout() {
         previewLayer?.frame = view.bounds
         
-        closeButton.frame = CGRect(x: 20, y: view.safeAreaInsets.top + 10, width: 40, height: 40)
-        flipButton.frame = CGRect(x: view.bounds.width - 60, y: view.safeAreaInsets.top + 10, width: 40, height: 40)
-        timerLabel.frame = CGRect(x: 0, y: view.safeAreaInsets.top + 60, width: view.bounds.width, height: 40)
-        recordingIndicator.frame = CGRect(x: view.bounds.width / 2 - 30, y: view.safeAreaInsets.top + 60, width: 12, height: 12)
-        shutterButton.frame = CGRect(x: view.bounds.width / 2 - 40, y: view.bounds.height - view.safeAreaInsets.bottom - 120, width: 80, height: 80)
+        // Top controls - positioned in safe area
+        let topInset = view.safeAreaInsets.top
+        closeButton.frame = CGRect(x: 20, y: topInset + 8, width: 44, height: 44)
+        flipButton.frame = CGRect(x: view.bounds.width - 64, y: topInset + 8, width: 44, height: 44)
+        
+        // Timer and recording indicator - centered at top
+        let timerY = topInset + 12
+        timerLabel.frame = CGRect(x: view.bounds.width / 2 - 30, y: timerY, width: 60, height: 22)
+        recordingIndicator.frame = CGRect(x: view.bounds.width / 2 - 3, y: timerY + 26, width: 6, height: 6)
+        
+        // Shutter button - bottom center with safe area
+        let bottomInset = view.safeAreaInsets.bottom
+        shutterButton.frame = CGRect(x: view.bounds.width / 2 - 35, y: view.bounds.height - bottomInset - 100, width: 70, height: 70)
     }
     
     @objc private func closeTapped() {
@@ -461,11 +505,18 @@ class CameraViewController: UIViewController {
         recordingStartTime = Date()
         
         // Update UI
-        DispatchQueue.main.async {
-            self.shutterButton.backgroundColor = .red
-            self.shutterButton.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.isViewLoaded else { return }
+            // Clean native iOS recording state
+            UIView.animate(withDuration: 0.2) {
+                self.shutterButton.backgroundColor = .systemRed
+                self.shutterButton.transform = CGAffineTransform(scaleX: 0.85, y: 0.85)
+                self.shutterButton.layer.cornerRadius = 8
+            }
             self.timerLabel.isHidden = false
+            self.timerLabel.textColor = .white
             self.recordingIndicator.isHidden = false
+            self.startRecordingAnimation()
             self.startTimer()
         }
     }
@@ -478,39 +529,125 @@ class CameraViewController: UIViewController {
         }
         isRecording = false
         
+        // Stop timer and clear recording start time
+        stopTimer()
+        recordingStartTime = nil
+        
         // Update UI
-        DispatchQueue.main.async {
-            self.shutterButton.backgroundColor = .white
-            self.shutterButton.transform = .identity
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, self.isViewLoaded else { return }
+            // Reset to original state with animation
+            UIView.animate(withDuration: 0.2) {
+                self.shutterButton.backgroundColor = .white
+                self.shutterButton.transform = .identity
+                self.shutterButton.layer.cornerRadius = 35
+            }
             self.timerLabel.isHidden = true
             self.recordingIndicator.isHidden = true
-            self.stopTimer()
+            self.stopRecordingAnimation()
         }
     }
     
     private var timer: Timer?
+    private var recordingAnimation: CAAnimation?
+    
+    private func startRecordingAnimation() {
+        // Stop any existing animation
+        stopRecordingAnimation()
+        
+        // Clean, subtle pulsing animation
+        let pulseAnimation = CABasicAnimation(keyPath: "opacity")
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 0.5
+        pulseAnimation.duration = 1.0
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = .greatestFiniteMagnitude
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        recordingIndicator.layer.add(pulseAnimation, forKey: "pulse")
+        recordingAnimation = pulseAnimation
+    }
+    
+    private func stopRecordingAnimation() {
+        recordingIndicator.layer.removeAnimation(forKey: "pulse")
+        recordingAnimation = nil
+    }
     
     private func startTimer() {
-        let newTimer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, let startTime = self.recordingStartTime else { return }
+        // Ensure we're on the main thread
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in
+                self?.startTimer()
+            }
+            return
+        }
+        
+        // Stop any existing timer first
+        stopTimer()
+        
+        // Ensure recordingStartTime is set
+        guard recordingStartTime != nil else {
+            print("Warning: recordingStartTime is nil, cannot start timer")
+            return
+        }
+        
+        let newTimer = Timer(timeInterval: 0.1, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+            guard let startTime = self.recordingStartTime else {
+                timer.invalidate()
+                return
+            }
             let elapsed = Date().timeIntervalSince(startTime)
+            let remaining = max(0, self.maxVideoDuration - elapsed)
+            
+            // Format elapsed time
             let minutes = Int(elapsed) / 60
             let seconds = Int(elapsed) % 60
-            self.timerLabel.text = String(format: "%02d:%02d", minutes, seconds)
+            
+            // Format remaining time
+            let remainingMinutes = Int(remaining) / 60
+            let remainingSeconds = Int(remaining) % 60
+            
+            // Update UI on main thread - Clean native style
+            DispatchQueue.main.async {
+                // Simple timer display
+                self.timerLabel.text = String(format: "%02d:%02d", minutes, seconds)
+                
+                // Subtle color change when approaching limit
+                if remaining <= 3 {
+                    self.timerLabel.textColor = .systemRed
+                } else {
+                    self.timerLabel.textColor = .white
+                }
+            }
             
             // Auto-stop at max duration
             if elapsed >= self.maxVideoDuration {
-                self.stopVideoRecording()
+                DispatchQueue.main.async {
+                    self.stopVideoRecording()
+                }
             }
         }
         timer = newTimer
-        RunLoop.main.add(newTimer, forMode: .common)
+        RunLoop.current.add(newTimer, forMode: .common)
     }
     
     private func stopTimer() {
-        timer?.invalidate()
+        // Timer must be invalidated on the main thread
+        // Don't clear recordingStartTime here - it should only be cleared when stopping recording
+        let timerToInvalidate = timer
         timer = nil
-        recordingStartTime = nil
+        
+        if Thread.isMainThread {
+            timerToInvalidate?.invalidate()
+        } else {
+            DispatchQueue.main.async {
+                timerToInvalidate?.invalidate()
+            }
+        }
     }
     
     private func startSession() {
@@ -523,12 +660,18 @@ class CameraViewController: UIViewController {
     }
     
     private func stopSession() {
+        // Use a synchronous dispatch group to ensure cleanup completes
+        let group = DispatchGroup()
+        group.enter()
         sessionQueue.async { [weak self] in
+            defer { group.leave() }
             guard let self, let session = self.captureSession else { return }
             if session.isRunning {
                 session.stopRunning()
             }
         }
+        // Wait with a timeout to avoid blocking indefinitely
+        _ = group.wait(timeout: .now() + 1.0)
     }
 
     @objc private func appWillResignActive() {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVKit
+import AVFoundation
 import SDWebImageSwiftUI
 
 struct THMStoryDetailView2: View {
@@ -383,6 +384,23 @@ extension THMStoryDetailView2 {
                     let playerItem = AVPlayerItem(url: url)
                     player = AVPlayer(playerItem: playerItem)
                     player.automaticallyWaitsToMinimizeStalling = false
+                    
+                    // Get actual video duration and update story duration
+                    Task {
+                        let asset = AVURLAsset(url: url)
+                        let duration = try? await asset.load(.duration)
+                        let durationInSeconds = duration.map { CMTimeGetSeconds($0) } ?? 15.0
+                        
+                        await MainActor.run {
+                            // Use actual video duration, but ensure minimum 15 seconds
+                            let actualDuration = max(durationInSeconds, 15.0)
+                            if actualDuration > currentStoryDuration {
+                                currentStoryDuration = actualDuration
+                                toIncreaseProgress = 100 / (currentStoryDuration * 10)
+                            }
+                        }
+                    }
+                    
                     updateStoryView()
                 }
                 .onDisappear {
