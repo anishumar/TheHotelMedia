@@ -27,6 +27,8 @@ final class EditPostViewModel: ObservableObject {
     @Published var selectedImage: UIImage? = nil
     @Published var selectedVideoUrl: URL? = nil
     @Published var trimmedVideoUrl: URL? = nil
+    
+    @AppStorage("videoLimit") var videoLimit: Double = 180
     @Published var selectedCameraImage: Image? = nil
     @Published var mediaAttachments: [MediaAttachment] = []
     @Published var existingMediaRefs: [MediaRef] = [] // Existing media from the post
@@ -40,7 +42,7 @@ final class EditPostViewModel: ObservableObject {
     @Published var postUpdated: Bool = false
     @Published var messageText: String = ""
     
-    @AppStorage("videoLimit") var videoLimit: Double = 30
+    @AppStorage("videoLimit") var videoLimit: Double = 180
     
     var onPostUpdated: (() -> Void)?
     

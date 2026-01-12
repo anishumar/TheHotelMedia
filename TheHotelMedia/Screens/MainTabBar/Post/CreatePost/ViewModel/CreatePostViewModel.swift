@@ -27,6 +27,8 @@ final class CreatePostViewModel: ObservableObject {
     @Published var selectedImage: UIImage? = nil
     @Published var selectedVideoUrl: URL? = nil
     @Published var trimmedVideoUrl: URL? = nil
+    
+    @AppStorage("videoLimit") var videoLimit: Double = 180
     @Published var reviewPlace: ProfileData? = nil
     @Published var selectedCameraImage: Image? = nil
     @Published var addressString: String = ""
@@ -53,7 +55,7 @@ final class CreatePostViewModel: ObservableObject {
     @Published var profileImage: String = ""
     @Published var coverImage: String = ""
     
-    @AppStorage("videoLimit") var videoLimit: Double = 30
+    @AppStorage("videoLimit") var videoLimit: Double = 180
     @AppStorage("newPostCreated") var newPostCreated: Bool = false
     
     var onPostCreated: (() -> Void)?
@@ -284,20 +286,8 @@ final class CreatePostViewModel: ObservableObject {
         if photoPickerItem.isVideo {
 
             if let mov = try? await photoPickerItem.loadTransferable(type: VideoPickerTransferable.self) {
-                // Auto-trim post videos to 3 minutes (180 seconds)
-                let maxDuration: TimeInterval = 180 // 3 minutes for posts
-                
-                do {
-                    let trimmedURL = try await mov.url.trimVideo(toMaxDuration: maxDuration)
-                    await MainActor.run {
-                        selectedVideoUrl = trimmedURL
-                    }
-                } catch {
-                    await MainActor.run {
-                        print("Failed to trim video: \(error)")
-                        // Fallback to original if trimming fails
-                        selectedVideoUrl = mov.url
-                    }
+                await MainActor.run {
+                    selectedVideoUrl = mov.url
                 }
             }
             

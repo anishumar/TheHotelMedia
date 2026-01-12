@@ -39,6 +39,8 @@ class CreateReviewViewModel: ObservableObject {
     @Published var selectedImage: UIImage? = nil
     @Published var trimmedVideoUrl: URL? = nil
     
+    @AppStorage("videoLimit") var videoLimit: Double = 180
+    
     var placeID: String = ""
     
     @AppStorage("newPostCreated") var newPostCreated: Bool = false
@@ -171,7 +173,7 @@ class CreateReviewViewModel: ObservableObject {
                 guard let self else { return }
                 if let url {
                     router.showScreen(.fullScreenCover) { router in
-                        VideoEditorView(videoURL: url) { [weak self] editedVideoURL in
+                        VideoEditorView(videoURL: url, limit: self.videoLimit) { [weak self] editedVideoURL in
                             guard let self else { return }
                             trimmedVideoUrl = editedVideoURL
                             hasSelectedSomeMedia = false

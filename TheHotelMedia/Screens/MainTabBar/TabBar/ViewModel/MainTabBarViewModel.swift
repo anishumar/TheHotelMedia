@@ -69,7 +69,7 @@ final class MainTabBarViewModel: ObservableObject {
     @AppStorage("hasReadNotifcation") var hasReadNotifcation: Bool = true
     @AppStorage("hasReadChat") var hasReadChat: Bool = true
     @AppStorage("pdfLimit") var pdfLimit: Double = 5.0
-    @AppStorage("videoLimit") var videoLimit: Double = 30
+    @AppStorage("videoLimit") var videoLimit: Double = 180
     @AppStorage("hasSubscription") var hasSubscription: Bool = false
     
     let socketViewModel: SocketIOViewModel = SocketIOViewModel.shared
@@ -412,20 +412,8 @@ final class MainTabBarViewModel: ObservableObject {
         if photoPickerItem.isVideo {
 
             if let mov = try? await photoPickerItem.loadTransferable(type: VideoPickerTransferable.self) {
-                // Auto-trim story videos to 15 seconds
-                let maxDuration: TimeInterval = 15 // 15 seconds for stories
-                
-                do {
-                    let trimmedURL = try await mov.url.trimVideo(toMaxDuration: maxDuration)
-                    await MainActor.run {
-                        selectedStoryVideo = trimmedURL
-                    }
-                } catch {
-                    await MainActor.run {
-                        print("Failed to trim video: \(error)")
-                        // Fallback to original if trimming fails
-                        selectedStoryVideo = mov.url
-                    }
+                await MainActor.run {
+                    selectedStoryVideo = mov.url
                 }
             }
             
