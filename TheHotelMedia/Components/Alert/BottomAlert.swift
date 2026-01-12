@@ -28,9 +28,8 @@ struct BottomAlert: View {
         .padding(.horizontal)
         
         
-        .frame(maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom)
-        .padding(.bottom, 60)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .padding(.top, 70)
     }
 }
 

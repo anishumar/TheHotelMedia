@@ -112,7 +112,7 @@ final class OtpViewModel: ObservableObject {
     
     
     func showErrorModal() {
-        router.showModal(transition: .move(edge: .bottom)) {
+        router.showModal(transition: .move(edge: .top)) {
             BottomAlert(message: self.errorText)
         }
         print(self.errorText)

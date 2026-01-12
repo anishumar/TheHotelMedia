@@ -12,7 +12,7 @@ import SwiftfulRouting
 class ErrorModalManager {
     // This function can be called by any view model
     static func showErrorModal(router: AnyRouter, errorText: String, completion: @escaping () -> Void = {}) {
-        router.showModal(transition: .move(edge: .bottom)) {
+        router.showModal(transition: .move(edge: .top)) {
             BottomAlert(message: errorText)
         }
         print(errorText)
