@@ -55,7 +55,6 @@ final class CreatePostViewModel: ObservableObject {
     @Published var profileImage: String = ""
     @Published var coverImage: String = ""
     
-    @AppStorage("videoLimit") var videoLimit: Double = 180
     @AppStorage("newPostCreated") var newPostCreated: Bool = false
     
     var onPostCreated: (() -> Void)?

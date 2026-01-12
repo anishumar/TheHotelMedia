@@ -717,30 +717,39 @@ extension ChatView {
     }
 
     private func uploadingMediaOverlay(progress: Double?) -> some View {
-        let fraction = max(0.0, min(1.0, progress ?? 0.0))
-        let percent = Int((fraction * 100.0).rounded())
-
         return ZStack {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.black.opacity(0.35))
 
             VStack(spacing: 6) {
-                ZStack {
-                    Circle()
-                        .stroke(Color.white.opacity(0.25), lineWidth: 3)
-                        .frame(width: 26, height: 26)
-                    Circle()
-                        .trim(from: 0, to: fraction)
-                        .stroke(
-                            Color.white.opacity(0.95),
-                            style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
-                        )
-                        .rotationEffect(.degrees(-90))
-                        .frame(width: 26, height: 26)
-                }
+                if let progress = progress {
+                    let fraction = max(0.0, min(1.0, progress))
+                    let percent = Int((fraction * 100.0).rounded())
+                    
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.25), lineWidth: 3)
+                            .frame(width: 26, height: 26)
+                        Circle()
+                            .trim(from: 0, to: fraction)
+                            .stroke(
+                                Color.white.opacity(0.95),
+                                style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .frame(width: 26, height: 26)
+                    }
 
-                Text("\(percent)%")
-                    .withComicFont(11, color: .white.opacity(0.95))
+                    Text("\(percent)%")
+                        .withComicFont(11, color: .white.opacity(0.95))
+                } else {
+                    ProgressView()
+                        .tint(.white)
+                        .scaleEffect(0.8)
+                    
+                    Text("Sending...")
+                        .withComicFont(11, color: .white.opacity(0.95))
+                }
             }
             .padding(10)
             .background(Color.black.opacity(0.25))

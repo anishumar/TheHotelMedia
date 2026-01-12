@@ -155,21 +155,21 @@ class ChatViewModel: ObservableObject {
                         }
                     }
                     
-                    if let mediaUrl = message.mediaUrl {
-                        if !self.recentlySentMediaURLs.isEmpty && self.recentlySentMediaURLs.contains(mediaUrl) {
-                            return false
-                        }
-                        if !self.recentlySharedPostMediaURLs.isEmpty && self.recentlySharedPostMediaURLs.contains(mediaUrl) {
-                            return false
-                        }
-                    }
                     return true
                 }
                 
                 let updatedMessages = addShowDatePropertyToMessages(messages: filteredMessages)
                 
                 if refresh {
-                    self.messages = updatedMessages
+                    // Preserving local pending messages (those with clientMessageID but no server messageID yet)
+                    let pendingMessages = self.messages.filter { $0.clientMessageID != nil && $0.messageID == nil }
+                    
+                    // Filter out any messages from updatedMessages that were already in pendingMessages to avoid duplicates if server is fast
+                    let filteredUpdated = updatedMessages.filter { serverMsg in
+                        !pendingMessages.contains(where: { $0.clientMessageID == serverMsg.clientMessageID })
+                    }
+                    
+                    self.messages = pendingMessages + filteredUpdated
                 } else {
                     self.messages += updatedMessages
                 }
@@ -181,12 +181,25 @@ class ChatViewModel: ObservableObject {
                 guard let self else { return }
                 if var message {
                     if let from = message.from {
-                        if from == username {
-                            if suppressNextOutgoingEcho {
+                        let isFromRecipient = from == username
+                        let isEchoFromMe = from == socketViewModel.username && message.to == username
+                        
+                        if isFromRecipient || isEchoFromMe {
+                            // If it's an echo from me, ensure we flag it as sentByMe = 1
+                            if isEchoFromMe {
+                                message.sentByMe = 1
+                            }
+
+                            if isFromRecipient && suppressNextOutgoingEcho {
                                 suppressNextOutgoingEcho = false
                                 return
                             }
                             
+                            if isEchoFromMe && suppressNextOutgoingEcho {
+                                suppressNextOutgoingEcho = false
+                                return
+                            }
+
                             if let blockStart = sharePostBlockStartTime, 
                                Date().timeIntervalSince(blockStart) < 10.0 {
                                 let isMediaType = message.type == "image" || message.type == "video" || message.type == "post"
@@ -195,21 +208,26 @@ class ChatViewModel: ObservableObject {
                                 }
                             }
                             
-                            if let mediaUrl = message.mediaUrl {
-                                if recentlySentMediaURLs.contains(mediaUrl) {
-                                    return
-                                }
-                                if recentlySharedPostMediaURLs.contains(mediaUrl) {
-                                    return
-                                }
-                            }
+                            // No more URL-based filtering here. clientID matching below handles it.
                             
-                            if let first = messages.first {
-                                let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
-                                message.showDate = hasChanged
+                            if let clientID = message.clientMessageID ?? message.id,
+                               let index = messages.firstIndex(where: { $0.clientMessageID == clientID || $0.id == clientID }) {
+                                // Update existing optimistic message with server data
+                                var updated = message
+                                updated.showDate = messages[index].showDate
+                                // Preserve local properties that might be missing from server echo
+                                if updated.isUploading == nil {
+                                    updated.isUploading = false
+                                }
+                                messages[index] = updated
+                            } else {
+                                if let first = messages.first {
+                                    let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
+                                    message.showDate = hasChanged
+                                }
+                                
+                                messages.insert(message, at: 0)
                             }
-                            
-                            messages.insert(message, at: 0)
                         }
                     }
                 }
@@ -1164,7 +1182,8 @@ class ChatViewModel: ObservableObject {
             mediaID: mediaID,
             postID: postData.id,
             postOwnerID: (postData.userID ?? postData.postedBy?.id),
-            isSharedPost: true
+            isSharedPost: true,
+            isUploading: true
         )
         
         if let first = messages.first {
@@ -1191,10 +1210,10 @@ class ChatViewModel: ObservableObject {
         
         let parameters: [String: Any] = [
             "message": messageModel,
-            "to": username
+            "to": username,
+            "clientMessageID": clientMessageID
         ]
         
-        suppressNextOutgoingEcho = true
         socketViewModel.sendMessage(parameters: parameters)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in

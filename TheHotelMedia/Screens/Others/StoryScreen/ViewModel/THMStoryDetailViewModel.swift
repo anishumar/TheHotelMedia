@@ -29,17 +29,20 @@ class THMStoryDetailViewModel: ObservableObject {
     
     
     func sendMessage(message: String, mediaUrl: String, storyID: String, mediaID: String, username: String) {
+        let clientMessageID = UUID().uuidString
         let messageModel: [String: Any] = [
             "type" : "story-comment",
             "message": message,
             "mediaUrl": mediaUrl,
             "mediaID": mediaID,
-            "storyID": storyID
+            "storyID": storyID,
+            "clientMessageID": clientMessageID
         ]
         
         let parameters: [String: Any] = [
             "message": messageModel,
-            "to": username
+            "to": username,
+            "clientMessageID": clientMessageID
         ]
         
         socketViewModel.sendMessage(parameters: parameters)

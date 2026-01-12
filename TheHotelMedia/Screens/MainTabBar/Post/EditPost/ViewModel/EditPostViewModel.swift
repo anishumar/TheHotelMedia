@@ -42,8 +42,6 @@ final class EditPostViewModel: ObservableObject {
     @Published var postUpdated: Bool = false
     @Published var messageText: String = ""
     
-    @AppStorage("videoLimit") var videoLimit: Double = 180
-    
     var onPostUpdated: (() -> Void)?
     
     let imagesColumns: [GridItem] = [

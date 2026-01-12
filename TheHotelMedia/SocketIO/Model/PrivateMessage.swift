@@ -13,7 +13,7 @@ struct PrivateMessage: Identifiable {
     let createdAt: String?
     let isSeen: Int?
     let content: String?
-    let sentByMe: Int?
+    var sentByMe: Int?
     let type: String?
     
     /// MongoDB `_id` (server-side). Present once the message is persisted / fetched.

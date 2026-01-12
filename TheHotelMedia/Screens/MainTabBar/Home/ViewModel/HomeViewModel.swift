@@ -77,7 +77,7 @@ class HomeViewModel: ObservableObject {
     @AppStorage("ownUserID") var ownUserID: String = ""
 //    @AppStorage("isMute") var isMute: Bool = false
     @AppStorage("pdfLimit") var pdfLimit: Double = 5.0
-    @AppStorage("videoLimit") var videoLimit: Double = 30
+    @AppStorage("videoLimit") var videoLimit: Double = 180
     @AppStorage("hasSubscription") var hasSubscription: Bool = false
     
     let locationManager = LocationManager()
