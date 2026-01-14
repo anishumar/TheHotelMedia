@@ -312,38 +312,85 @@ extension THMStoryDetailView2 {
             }
         }
     }
+    
+    func handleStoryDeletion() {
+        // Remove the deleted story from the model
+        let deletedIndex = currentStoryIndex
+        model.stories.remove(at: deletedIndex)
+        totalStories = model.stories.count
+        
+        // Also update the viewModel's stories array
+        if let index = viewModel.stories.firstIndex(where: { $0.id == model.id }) {
+            viewModel.stories[index].stories = model.stories
+        }
+        
+        // Reset player
+        resetPlayer()
+        
+        // Navigate to next story or user
+        if model.stories.isEmpty {
+            // No more stories for this user, remove from viewModel and go to next user
+            if let index = viewModel.stories.firstIndex(where: { $0.id == model.id }) {
+                viewModel.stories.remove(at: index)
+            }
+            
+            // Navigate to next user or dismiss if no more users
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if viewModel.stories.isEmpty {
+                    // No more stories at all, dismiss
+                    dismiss()
+                } else {
+                    // Go to next user
+                    toNextUser()
+                }
+            }
+        } else {
+            // There are more stories for this user
+            if currentStoryIndex >= model.stories.count {
+                // We were at the last story, go to the new last one
+                currentStoryIndex = model.stories.count - 1
+            }
+            // Reset progress and update view
+            currentStoryProgress = 0
+            onChangeStory.toggle()
+            configureProgress()
+            
+            // Notify parent if needed
+            onDeleteStory?(deletedIndex)
+        }
+    }
 }
 
 
 // MARK: - Components
 extension THMStoryDetailView2 {
     private func storyImageView(urlString: String) -> some View {
-        Rectangle()
-            .fill(themeManager.currentTheme.backgroundColor)
-            .overlay {
-                WebImage(url: URL(string: urlString)) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                loadingVideo = false
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                stopProgress = false
-                                updateStoryView()
-                            }
+        ZStack {
+            // Black background for aspect fit
+            Rectangle()
+                .fill(Color.black)
+            
+            WebImage(url: URL(string: urlString)) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            loadingVideo = false
                         }
-                } placeholder: {
-                    Rectangle()
-                        .fill(.black)
-                }
-
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            stopProgress = false
+                            updateStoryView()
+                        }
+                    }
+            } placeholder: {
+                Rectangle()
+                    .fill(.black)
             }
-            .clipped()
-            .onAppear {
-                loadingVideo = true
-            }
+        }
+        .onAppear {
+            loadingVideo = true
+        }
     }
     
     
@@ -507,12 +554,8 @@ extension THMStoryDetailView2 {
                 date: date) {
                     if model.isMyStory {
                         detailViewModel.showDeleteStoryModal(id: getStory().id) {
-                            
-//                            onDeleteStory?(index)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                dismiss()
-                            }
-                            
+                            // Handle story deletion - navigate to next story
+                            handleStoryDeletion()
                         } onDismiss: {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2 ) {
                                 startVideo()

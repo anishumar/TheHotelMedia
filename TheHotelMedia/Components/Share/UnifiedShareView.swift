@@ -670,6 +670,7 @@ struct UnifiedShareSheet: View {
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
                             onStoryShared?()
                             showStoryUploadedToast()
+                            // Completion notification is sent by StoryDataManager
                         } else {
                             UINotificationFeedbackGenerator().notificationOccurred(.error)
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
@@ -697,6 +698,7 @@ struct UnifiedShareSheet: View {
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
                             onStoryShared?()
                             showStoryUploadedToast()
+                            // Completion notification is sent by StoryDataManager
                         } else {
                             UINotificationFeedbackGenerator().notificationOccurred(.error)
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)

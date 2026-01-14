@@ -112,15 +112,35 @@ struct MainTabBarView: View {
                     .environmentObject(compassHeading)
                     .environmentObject(gyroManager)
                     .fullScreenCover(isPresented: $viewModel.showCropView) {
-                        ImageCropper(image: $viewModel.selectedStoryImage2,
-                                     cropShapeType: $viewModel.cropShapeType,
-                                     presetFixedRatioType: $viewModel.presetFixedRatioType,
-                                     type: $viewModel.cropperType, transformation: $viewModel.transformation, onCropped: { uiImage in
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 ) {
-                                viewModel.showCreateStoryScreen(uiImage: uiImage)
+                        NativeImageCropper(
+                            image: viewModel.selectedStoryImage2,
+                            aspectRatio: 9.0 / 16.0, // Story aspect ratio
+                            router: viewModel.router, // Pass router for direct navigation
+                            onCropped: { editedImage, taggingData in
+                                // This receives the final edited image and tagging data from EditStoryImageView
+                                // Call postStory directly here
+                                if let taggingData = taggingData {
+                                    viewModel.postStory(
+                                        image: editedImage,
+                                        mentions: taggingData.mentions,
+                                        placeName: taggingData.placeName,
+                                        lat: taggingData.lat,
+                                        lng: taggingData.lng,
+                                        locationPositionX: taggingData.locationPositionX,
+                                        locationPositionY: taggingData.locationPositionY,
+                                        userTagged: taggingData.userTagged,
+                                        userTaggedId: taggingData.userTaggedId,
+                                        userTaggedPositionX: taggingData.userTaggedPositionX,
+                                        userTaggedPositionY: taggingData.userTaggedPositionY
+                                    )
+                                } else {
+                                    viewModel.postStory(image: editedImage)
+                                }
+                            },
+                            onCancel: {
+                                // Handle cancel if needed
                             }
-                        })
+                        )
                         .ignoresSafeArea()
                     }
                     .photosPicker(

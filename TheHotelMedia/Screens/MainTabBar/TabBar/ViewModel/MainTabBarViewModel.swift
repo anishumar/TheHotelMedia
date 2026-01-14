@@ -482,7 +482,11 @@ extension MainTabBarViewModel {
                         
                         if result.status && range.contains(result.statusCode) {
                             uploadedStory = true
+                            // Send completion notification
+                            StoryUploadNotificationManager.shared.sendStoryUploadNotification(isCompleted: true)
                         } else {
+                            // Send failure notification
+                            StoryUploadNotificationManager.shared.sendStoryUploadNotification(isFailed: true, errorMessage: result.message)
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                         }
                     }
@@ -491,6 +495,8 @@ extension MainTabBarViewModel {
                     await MainActor.run {
                         isUploadingStory = false
                         let errorMessage = getStoryUploadErrorMessage(from: error)
+                        // Send failure notification
+                        StoryUploadNotificationManager.shared.sendStoryUploadNotification(isFailed: true, errorMessage: errorMessage)
                         ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                     }
                 }
@@ -510,7 +516,11 @@ extension MainTabBarViewModel {
                         
                         if result.status && range.contains(result.statusCode) {
                             uploadedStory = true
+                            // Send completion notification
+                            StoryUploadNotificationManager.shared.sendStoryUploadNotification(isCompleted: true)
                         } else {
+                            // Send failure notification
+                            StoryUploadNotificationManager.shared.sendStoryUploadNotification(isFailed: true, errorMessage: result.message)
                             ErrorModalManager.showErrorModal(router: router, errorText: result.message)
                         }
                     }
@@ -519,6 +529,8 @@ extension MainTabBarViewModel {
                     await MainActor.run {
                         isUploadingStory = false
                         let errorMessage = getStoryUploadErrorMessage(from: error)
+                        // Send failure notification
+                        StoryUploadNotificationManager.shared.sendStoryUploadNotification(isFailed: true, errorMessage: errorMessage)
                         ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
                     }
                 }

@@ -262,8 +262,13 @@ extension EditStoryVideoView {
         let height = UIScreen.main.bounds.height - 140 - UIApplication.topSafeAreaHeightTHM - UIApplication.bottomSafeAreaHeightTHM
         
         return ZStack {
+            // Black background for aspect fit videos
+            Rectangle()
+                .fill(Color.black)
+                .frame(width: width, height: height)
+            
             if let player = player {
-                CustomVideoPlayer(player: player, contentMode: .resizeAspect, backgroundColor: UIColor(themeManager.currentTheme.backgroundColor))
+                CustomVideoPlayer(player: player, contentMode: .resizeAspect, backgroundColor: UIColor.black)
                     .frame(width: width, height: height)
                     .clipShape(RoundedRectangle(cornerRadius: roundedCorner ? 20 : 0))
             } else {
@@ -688,23 +693,34 @@ struct EditStoryImageView: View {
     var body: some View {
         VStack {
             
-            header
-                .opacity(viewModel.showHeader && !viewModel.showEmojiDeleteButon ? 1.0 : 0)
-                .allowsHitTesting(viewModel.showHeader && !viewModel.showEmojiDeleteButon)
-                .overlay {
-                    ZStack {
-                        if viewModel.showEmojiDeleteButon {
-                            emojiEditButtons
-                                .padding(.top, 16)
-                        }
-                        
-                        if viewModel.selectedType == .text {
-                            textEditButtons
-                                .padding(.top, 16)
-                        }
-                    }
-                    .zIndex(2.0)
+            ZStack {
+                // Header - only show when no edit buttons are active
+                if viewModel.showHeader && !viewModel.showEmojiDeleteButon && viewModel.selectedType != .text && viewModel.selectedType != .tag && viewModel.selectedType != .location {
+                    header
                 }
+                
+                // Edit buttons - replace header when active
+                if viewModel.showEmojiDeleteButon {
+                    emojiEditButtons
+                        .padding(.top, 16)
+                }
+                
+                if viewModel.selectedType == .text {
+                    textEditButtons
+                        .padding(.top, 16)
+                }
+                
+                if viewModel.selectedType == .tag && !viewModel.taggedUsers.isEmpty {
+                    tagEditButtons
+                        .padding(.top, 16)
+                }
+                
+                if viewModel.selectedType == .location && viewModel.locationTag != nil {
+                    locationEditButtons
+                        .padding(.top, 16)
+                }
+            }
+            .frame(height: 60) // Fixed height to prevent layout shifts
             VStack {
                 ZStack {
                     edittedImageView(roundedCorner: true)
@@ -887,21 +903,49 @@ extension EditStoryImageView {
     
     
     private var textEditButtons: some View {
-        HStack {
+        HStack(spacing: 16) {
+            // Back button
             Button(action: {
                 viewModel.selectedType = nil
             }, label: {
-                Text("add".localized(localizationManager.language))
-                    .font(.custom(Constants.comicBold, size: 16))
+                Image(systemName: "chevron.left")
+                    .font(.title2)
                     .foregroundColor(themeManager.currentTheme.label)
+                    .fontWeight(.bold)
+                    .frame(width: 28, height: 28)
+            })
+            
+            // Scale Out Button
+            Button(action: {
+                let index = viewModel.currentIndex
+                let newScale = max(0.5, viewModel.textBoxes[index].scale - 0.1)
+                viewModel.textBoxes[index].scale = newScale
+                viewModel.textBoxes[index].lastScale = newScale
+            }, label: {
+                Image(systemName: "minus.magnifyingglass")
+                    .font(.system(size: 20))
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .frame(width: 44, height: 44)
+            })
+            
+            // Scale In Button
+            Button(action: {
+                let index = viewModel.currentIndex
+                let newScale = min(3.0, viewModel.textBoxes[index].scale + 0.1)
+                viewModel.textBoxes[index].scale = newScale
+                viewModel.textBoxes[index].lastScale = newScale
+            }, label: {
+                Image(systemName: "plus.magnifyingglass")
+                    .font(.system(size: 20))
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .frame(width: 44, height: 44)
             })
             
             Spacer()
             
             ColorPicker("", selection: $viewModel.textBoxes[viewModel.currentIndex].textColor)
                 .labelsHidden()
-            
-            Spacer()
+                .frame(width: 44, height: 44)
             
             Button(action: {
                 viewModel.cancelTextView()
@@ -909,11 +953,13 @@ extension EditStoryImageView {
                 Text("cancel".localized(localizationManager.language))
                     .font(.custom(Constants.comicBold, size: 16))
                     .foregroundColor(themeManager.currentTheme.label)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             })
-            
+            .padding(.leading, 8)
         }
-        .padding(.horizontal, 12)
-        .frame(maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
     }
     
     
@@ -922,6 +968,14 @@ extension EditStoryImageView {
         let height = UIScreen.main.bounds.height - 140 - UIApplication.topSafeAreaHeightTHM - UIApplication.bottomSafeAreaHeightTHM
         
         return ZStack {
+            // Black background for aspect fit
+            Rectangle()
+                .fill(Color.black)
+                .frame(
+                    width: viewModel.currentImageStyle == "portrait" ? height * viewModel.currentImageWidthRatio : width,
+                    height: viewModel.currentImageStyle == "portrait" ? height : width * viewModel.currentImageHeightRatio
+                )
+            
             Image(ciImage: (viewModel.filter.ciImage(uiImage: viewModel.edittedImage2)))
                 .resizable()
                 .scaledToFit()
@@ -1017,6 +1071,130 @@ extension EditStoryImageView {
     }
     
     
+    private var tagEditButtons: some View {
+        HStack(spacing: 20) {
+            // Back button
+            Button(action: {
+                viewModel.selectedType = nil
+            }, label: {
+                Image(systemName: "chevron.left")
+                    .font(.title2)
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .fontWeight(.bold)
+                    .frame(width: 28, height: 28)
+            })
+            
+            Spacer()
+            
+            // Scale Out Button
+            Button(action: {
+                // Scale all tags or the first one if multiple
+                for index in 0..<viewModel.taggedUsers.count {
+                    let newScale = max(0.5, viewModel.taggedUsers[index].scale - 0.1)
+                    viewModel.taggedUsers[index].scale = newScale
+                    viewModel.taggedUsers[index].lastScale = newScale
+                }
+            }, label: {
+                Image(systemName: "minus.magnifyingglass")
+                    .font(.system(size: 20))
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .frame(width: 44, height: 44)
+            })
+            
+            // Scale In Button
+            Button(action: {
+                // Scale all tags or the first one if multiple
+                for index in 0..<viewModel.taggedUsers.count {
+                    let newScale = min(3.0, viewModel.taggedUsers[index].scale + 0.1)
+                    viewModel.taggedUsers[index].scale = newScale
+                    viewModel.taggedUsers[index].lastScale = newScale
+                }
+            }, label: {
+                Image(systemName: "plus.magnifyingglass")
+                    .font(.system(size: 20))
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .frame(width: 44, height: 44)
+            })
+            
+            Spacer()
+            
+            Button(action: {
+                if !viewModel.taggedUsers.isEmpty {
+                    viewModel.taggedUsers.removeFirst()
+                    if viewModel.taggedUsers.isEmpty {
+                        viewModel.selectedType = nil
+                    }
+                }
+            }, label: {
+                Text("remove".localized(localizationManager.language))
+                    .font(.custom(Constants.comicBold, size: 16))
+                    .foregroundColor(themeManager.currentTheme.label)
+            })
+        }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var locationEditButtons: some View {
+        HStack(spacing: 20) {
+            // Back button
+            Button(action: {
+                viewModel.selectedType = nil
+            }, label: {
+                Image(systemName: "chevron.left")
+                    .font(.title2)
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .fontWeight(.bold)
+                    .frame(width: 28, height: 28)
+            })
+            
+            Spacer()
+            
+            // Scale Out Button
+            Button(action: {
+                if var loc = viewModel.locationTag {
+                    let newScale = max(0.5, loc.scale - 0.1)
+                    loc.scale = newScale
+                    loc.lastScale = newScale
+                    viewModel.locationTag = loc
+                }
+            }, label: {
+                Image(systemName: "minus.magnifyingglass")
+                    .font(.system(size: 20))
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .frame(width: 44, height: 44)
+            })
+            
+            // Scale In Button
+            Button(action: {
+                if var loc = viewModel.locationTag {
+                    let newScale = min(3.0, loc.scale + 0.1)
+                    loc.scale = newScale
+                    loc.lastScale = newScale
+                    viewModel.locationTag = loc
+                }
+            }, label: {
+                Image(systemName: "plus.magnifyingglass")
+                    .font(.system(size: 20))
+                    .foregroundColor(themeManager.currentTheme.label)
+                    .frame(width: 44, height: 44)
+            })
+            
+            Spacer()
+            
+            Button(action: {
+                viewModel.locationTag = nil
+                viewModel.selectedType = nil
+            }, label: {
+                Text("remove".localized(localizationManager.language))
+                    .font(.custom(Constants.comicBold, size: 16))
+                    .foregroundColor(themeManager.currentTheme.label)
+            })
+        }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+    }
+    
     private var emojiEditButtons: some View {
         HStack {
             Button(action: {
@@ -1055,10 +1233,22 @@ extension EditStoryImageView {
             .padding(.horizontal)
             .padding(.vertical, 6)
             .rotationEffect(box.angle)
+            .scaleEffect(box.scale) // Add scale effect
             .offset(box.offset)
             .gesture(
-                // Drag Gesture
-                DragGesture()
+                // Pinch-to-zoom gesture (pinch in/out for resizing)
+                MagnificationGesture()
+                    .onChanged { value in
+                        let newScale = box.lastScale * value
+                        viewModel.textBoxes[index].scale = max(0.5, min(3.0, newScale)) // Limit scale between 0.5x and 3x
+                    }
+                    .onEnded { value in
+                        viewModel.textBoxes[index].lastScale = box.scale
+                    }
+            )
+            .simultaneousGesture(
+                // Drag Gesture (works simultaneously with pinch)
+                DragGesture(minimumDistance: 5)
                     .onChanged { value in
                         let newTranslation = CGSize(
                             width: value.translation.width + box.lastOffset.width,
@@ -1081,17 +1271,6 @@ extension EditStoryImageView {
                     }
                     .onEnded { angle in
                         viewModel.textBoxes[index].lastAngle = angle + box.lastAngle
-                    }
-            )
-            .simultaneousGesture(
-                // Magnification Gesture for Font Size
-                MagnificationGesture()
-                    .onChanged { value in
-                        let newFontSize = box.lastFontSize * value
-                        viewModel.textBoxes[index].fontSize = max(10, newFontSize) // Minimum font size
-                    }
-                    .onEnded { value in
-                        viewModel.textBoxes[index].lastFontSize = box.fontSize
                     }
             )
             .onTapGesture {
@@ -1233,7 +1412,25 @@ extension EditStoryImageView {
         .scaleEffect(box.scale)
         .offset(box.offset)
         .gesture(
-            DragGesture()
+            // Pinch-to-zoom gesture (pinch in/out for resizing)
+            MagnificationGesture()
+                .onChanged { value in
+                    if var loc = viewModel.locationTag {
+                        let newScale = loc.lastScale * value
+                        loc.scale = max(0.5, min(3.0, newScale)) // Limit scale between 0.5x and 3x
+                        viewModel.locationTag = loc
+                    }
+                }
+                .onEnded { value in
+                    if var loc = viewModel.locationTag {
+                        loc.lastScale = loc.scale
+                        viewModel.locationTag = loc
+                    }
+                }
+        )
+        .simultaneousGesture(
+            // Drag Gesture (works simultaneously with pinch)
+            DragGesture(minimumDistance: 5)
                 .onChanged { value in
                     if var loc = viewModel.locationTag {
                          let newTranslation = CGSize(
@@ -1252,6 +1449,7 @@ extension EditStoryImageView {
                 }
         )
         .simultaneousGesture(
+            // Rotation Gesture
             RotationGesture()
                 .onChanged { angle in
                     if var loc = viewModel.locationTag {
@@ -1266,21 +1464,10 @@ extension EditStoryImageView {
                     }
                 }
         )
-        .simultaneousGesture(
-            MagnificationGesture()
-                .onChanged { value in
-                    if var loc = viewModel.locationTag {
-                        loc.scale = loc.lastScale * value
-                        viewModel.locationTag = loc
-                    }
-                }
-                .onEnded { value in
-                    if var loc = viewModel.locationTag {
-                        loc.lastScale = loc.scale
-                        viewModel.locationTag = loc
-                    }
-                }
-        )
+        .onTapGesture {
+            // Select location tag when tapped
+            viewModel.selectedType = .location
+        }
     }
     
     private func tagBoxView(box: TagBox) -> some View {
@@ -1302,7 +1489,19 @@ extension EditStoryImageView {
         .scaleEffect(box.scale)
         .offset(box.offset)
         .gesture(
-            DragGesture()
+            // Pinch-to-zoom gesture (pinch in/out for resizing)
+            MagnificationGesture()
+                .onChanged { value in
+                    let newScale = box.lastScale * value
+                    viewModel.taggedUsers[index].scale = max(0.5, min(3.0, newScale)) // Limit scale between 0.5x and 3x
+                }
+                .onEnded { value in
+                    viewModel.taggedUsers[index].lastScale = viewModel.taggedUsers[index].scale
+                }
+        )
+        .simultaneousGesture(
+            // Drag Gesture (works simultaneously with pinch)
+            DragGesture(minimumDistance: 5)
                 .onChanged { value in
                     let newTranslation = CGSize(
                         width: value.translation.width + box.lastOffset.width,
@@ -1318,6 +1517,7 @@ extension EditStoryImageView {
                 }
         )
         .simultaneousGesture(
+            // Rotation Gesture
             RotationGesture()
                 .onChanged { angle in
                     viewModel.taggedUsers[index].rotation = angle + box.lastRotation
@@ -1326,15 +1526,10 @@ extension EditStoryImageView {
                     viewModel.taggedUsers[index].lastRotation = angle + box.lastRotation
                 }
         )
-        .simultaneousGesture(
-            MagnificationGesture()
-                .onChanged { value in
-                    viewModel.taggedUsers[index].scale = box.lastScale * value
-                }
-                .onEnded { value in
-                    viewModel.taggedUsers[index].lastScale = viewModel.taggedUsers[index].scale
-                }
-        )
+        .onTapGesture {
+            // Select tag when tapped
+            viewModel.selectedType = .tag
+        }
     }
     
     

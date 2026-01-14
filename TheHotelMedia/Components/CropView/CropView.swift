@@ -141,7 +141,7 @@ struct CropView: View {
             if let image {
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .aspectRatio(contentMode: .fit)
                     .overlay(
                         GeometryReader{ proxy in
                             let rect = proxy.frame(in: .named("CropView"))
@@ -225,7 +225,9 @@ struct CropView: View {
                     out = true
                 }).onChanged({ value in
                     let updatedScale = value + lastScale
-                    scale = (updatedScale < 1 ? 1 : updatedScale)
+                    // Prevent zooming in too much - max scale of 3x
+                    let maxScale: CGFloat = 3.0
+                    scale = min(max(updatedScale, 1), maxScale)
                 }).onEnded({ value in
                     withAnimation(.easeInOut(duration: 0.2)) {
                         if scale < 1 {
@@ -238,6 +240,7 @@ struct CropView: View {
                 })
         )
         .frame(cropSize)
+        .background(Color.black) // Black background for aspect fit
         .clipShape(
             RoundedRectangle(cornerRadius: crop == .circle ? cropSize.height / 2 : 0)
         )

@@ -93,10 +93,13 @@ class THMImageLoader: UIView {
 // MARK: - Private Funcs
 private extension THMImageLoader {
    func setupImageView() {
+       // Set black background for aspect fit
+       self.backgroundColor = .black
+       
        self.addSubview(imageView)
        imageView.layer.cornerRadius = 12
        imageView.clipsToBounds = true
-       imageView.contentMode = .scaleAspectFill
+       imageView.contentMode = .scaleAspectFit // Changed from scaleAspectFill to scaleAspectFit
    }
 }
 // MARK: - Const funcs
