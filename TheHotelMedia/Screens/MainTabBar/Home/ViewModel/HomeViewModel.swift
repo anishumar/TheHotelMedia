@@ -56,6 +56,7 @@ class HomeViewModel: ObservableObject {
     @Published var showReelsShareSheet: Bool = false
     var reelsSharePostData: PostData?
     var reelsShareURL: URL = URL(string: "https://thehotelmedia.com/post")!
+    @Published var pendingProfileNavigationID: String? = nil
     
     @Published var refreshPostView: Bool = false
     @State var createPostOn: Bool = false
@@ -283,17 +284,28 @@ class HomeViewModel: ObservableObject {
     
     
     func showUserProfileScreen(id: String) {
+        // If reels view is showing, dismiss it first then navigate
+        if showReels {
+            pendingProfileNavigationID = id
+            showReels = false
+            // Navigation will happen in onDismiss callback
+        } else {
+            router.showScreen(.push) { router in
+                UserProfileView2(viewModel: UserProfileViewModel(router: router, publicProfileID: id))
+                    .environmentObject(ThemeManager.shared)
+                    .navigationBarBackButtonHidden()
+            }
+        }
+    }
+    
+    func navigateToPendingProfile() {
+        guard let profileID = pendingProfileNavigationID else { return }
+        pendingProfileNavigationID = nil
         router.showScreen(.push) { router in
-            UserProfileView2(viewModel: UserProfileViewModel(router: router, publicProfileID: id))
+            UserProfileView2(viewModel: UserProfileViewModel(router: router, publicProfileID: profileID))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
         }
-        
-//        router.showScreen(.push) { router in
-//            UserProfileView(createPostOn: .constant(false), viewModel: UserProfileViewModel(router: router, publicProfileID: id))
-//                .environmentObject(ThemeManager.shared)
-//                .navigationBarBackButtonHidden()
-//        }
     }
     
     

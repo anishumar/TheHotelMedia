@@ -86,15 +86,20 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .black
+        contentView.backgroundColor = .black
         setupViews()
     }
     
     required init?(coder: NSCoder) { fatalError() }
     
     private func setupViews() {
-        // Thumbnail
-        thumbnailImageView.contentMode = .scaleAspectFill
+        // Ensure black background
+        contentView.backgroundColor = .black
+        
+        // Thumbnail - use aspect fit to match video display
+        thumbnailImageView.contentMode = .scaleAspectFit
         thumbnailImageView.clipsToBounds = true
+        thumbnailImageView.backgroundColor = .black
         contentView.addSubview(thumbnailImageView)
         thumbnailImageView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -485,10 +490,10 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         muteFeedbackImageView.transform = .identity
     }
     
-    func configure(with reel: Reel, shouldAutoplay: Bool = false, isMuted: Bool = false, delegate: ReelCellDelegate?) {
+    func configure(with reel: Reel, shouldAutoplay: Bool = false, isMuted: Bool = false, delegate: ReelCellDelegate?, showBackButton: Bool = true) {
         self.isMuted = isMuted
         self.delegate = delegate
-        backButton.isHidden = false
+        backButton.isHidden = !showBackButton
         
         // Store current post data
         currentPost = reel.postData
@@ -526,8 +531,9 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         self.looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
         
         let pl = AVPlayerLayer(player: queuePlayer)
-        pl.videoGravity = .resizeAspectFill
+        pl.videoGravity = .resizeAspect // Changed to aspect fit to show full content without cropping
         pl.frame = contentView.bounds
+        pl.backgroundColor = UIColor.black.cgColor // Black background for borders
         contentView.layer.insertSublayer(pl, at: 1) // Above thumbnail
         self.playerLayer = pl
         
@@ -716,6 +722,8 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         playerLayer?.frame = contentView.bounds
+        // Ensure black background is maintained
+        contentView.backgroundColor = .black
     }
 }
 
@@ -726,6 +734,7 @@ final class ReelsViewController: UIViewController {
     private var dataSource: UICollectionViewDiffableDataSource<Int, String>!
     private var initialReelID: String?
     private var isMuted: Bool = false
+    var showBackButton: Bool = true
     
     var onLoadMore: (() -> Void)?
     var onVideoChanged: ((Int) -> Void)?
@@ -740,6 +749,14 @@ final class ReelsViewController: UIViewController {
         view.backgroundColor = .black
         configureCollectionView()
         configureDataSource()
+        
+        // Listen for pause notification when navigating to profile
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePauseNotification),
+            name: NSNotification.Name("PauseReelsVideos"),
+            object: nil
+        )
         
         // Apply snapshot if reels were set before viewDidLoad
         if !reels.isEmpty {
@@ -759,6 +776,14 @@ final class ReelsViewController: UIViewController {
                 }
             }
         }
+    }
+    
+    @objc private func handlePauseNotification() {
+        pauseAllVideos()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     private var hasScrolledToInitial: Bool = false
@@ -871,7 +896,7 @@ final class ReelsViewController: UIViewController {
             
             // Autoplay only for the initially visible cell
             let initiallyVisible = (indexPath.row == 0 && cv.indexPathsForVisibleItems.contains(indexPath))
-            cell.configure(with: reel, shouldAutoplay: initiallyVisible, isMuted: self?.isMuted ?? false, delegate: self)
+            cell.configure(with: reel, shouldAutoplay: initiallyVisible, isMuted: self?.isMuted ?? false, delegate: self, showBackButton: self?.showBackButton ?? true)
             cell.parentController = self
             return cell
         }
@@ -911,6 +936,32 @@ final class ReelsViewController: UIViewController {
                 onLoadMore?()
             }
         }
+    }
+    
+    // Pause all videos (useful when navigating away)
+    func pauseAllVideos() {
+        guard let collectionView = collectionView else { return }
+        for cell in collectionView.visibleCells {
+            if let reelCell = cell as? ReelCollectionViewCell {
+                reelCell.pause()
+            }
+        }
+        // Also pause any cells that might be off-screen
+        for case let cell as ReelCollectionViewCell in collectionView.subviews.compactMap({ $0 as? ReelCollectionViewCell }) {
+            cell.pause()
+        }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // Pause all videos when view is about to disappear
+        pauseAllVideos()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        // Ensure all videos are paused when view disappears
+        pauseAllVideos()
     }
 }
 

@@ -338,8 +338,15 @@ struct HomeView: View {
             .presentationDragIndicator(.hidden)
             .presentationDetents([.fraction(Constants.getReportSheetHeight())])
         })
-        .fullScreenCover(isPresented: $viewModel.showReels) {
-            ReelsViewRepresentable(
+        .fullScreenCover(isPresented: $viewModel.showReels, onDismiss: {
+            // Navigate to profile if there's a pending navigation
+            if viewModel.pendingProfileNavigationID != nil {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    viewModel.navigateToPendingProfile()
+                }
+            }
+        }) {
+            HomeReelsView(
                 reels: viewModel.reels,
                 initialReelID: viewModel.initialReelID,
                 isMuted: UserDefaultsManager.shared.getMuteStatus(),
@@ -361,10 +368,16 @@ struct HomeView: View {
                     viewModel.toggleBookmark(for: postID)
                 },
                 onProfileTapped: { userID in
+                    // Pause videos when navigating to profile
+                    NotificationCenter.default.post(name: NSNotification.Name("PauseReelsVideos"), object: nil)
                     viewModel.showUserProfileScreen(id: userID)
+                },
+                onDismiss: {
+                    viewModel.showReels = false
                 }
             )
-            .ignoresSafeArea()
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
             .sheet(isPresented: $viewModel.showReelsShareSheet) {
                 if let router = viewModel.router as AnyRouter?,
                    let postData = viewModel.reelsSharePostData {

@@ -49,6 +49,7 @@ struct ProfileVideoDetailView: View {
                     reels: convertToReels(viewModel.videos),
                     initialReelID: viewModel.targetVideoID,
                     isMuted: false,
+                    showBackButton: false,
                     onLoadMore: {
                         viewModel.loadVideos()
                     },
@@ -69,6 +70,8 @@ struct ProfileVideoDetailView: View {
                     },
                     onProfileTapped: { profileID in
                         guard !profileID.isEmpty else { return }
+                        // Pause videos immediately when navigating to profile
+                        NotificationCenter.default.post(name: NSNotification.Name("PauseReelsVideos"), object: nil)
                         viewModel.selectedProfileID = profileID
                         viewModel.showProfileScreen = true
                     }
@@ -239,6 +242,14 @@ struct ProfileVideoDetailView: View {
             )
             .environmentObject(ThemeManager.shared)
             .environmentObject(LocalizationManager.shared)
+        }
+        .onChange(of: viewModel.showProfileScreen) { showProfile in
+            if showProfile {
+                // Pause videos when navigating to profile
+                // The ReelsViewController will handle pausing via viewWillDisappear
+                // But we can also trigger it here for immediate response
+                NotificationCenter.default.post(name: NSNotification.Name("PauseReelsVideos"), object: nil)
+            }
         }
         .fullScreenCover(isPresented: $viewModel.showProfileScreen) {
             VStack {

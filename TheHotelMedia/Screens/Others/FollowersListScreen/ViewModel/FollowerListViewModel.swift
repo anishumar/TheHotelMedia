@@ -57,8 +57,9 @@ class FollowerListViewModel: ObservableObject {
     
     func showUserProfileScreen(id: String) {
         router.showScreen(.push) { router in
-            UserProfileView(createPostOn:  .constant(false), viewModel: UserProfileViewModel(router: router, publicProfileID: id))
+            UserProfileView2(viewModel: UserProfileViewModel(router: router, publicProfileID: id))
                 .environmentObject(ThemeManager.shared)
+                .environmentObject(LocalizationManager.shared)
                 .navigationBarBackButtonHidden()
         }
     }

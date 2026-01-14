@@ -626,6 +626,7 @@
 		04FFF1082E00000400AA1234 /* ProfileVideoDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */; };
 		04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10B2E00000500AA1234 /* ReelsViewController.swift */; };
 		04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */; };
+		04FFF10E2E00000700AA1234 /* HomeReelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FFF10F2E00000700AA1234 /* HomeReelsView.swift */; };
 		346414D485E4C33E3A9A814D /* PhoneLoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0FDD8F9D92F17B36141FDE /* PhoneLoginViewModel.swift */; };
 		426BFAD77A8B8FC201A87F72 /* RestaurantMenuResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A692855A04A99A1E5E57B3 /* RestaurantMenuResponse.swift */; };
 		88B000012D159999003208B3 /* UserSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A000012D159999003208B3 /* UserSelectionView.swift */; };
@@ -1264,6 +1265,7 @@
 		04FFF1092E00000400AA1234 /* ProfileVideoDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileVideoDetailViewModel.swift; sourceTree = "<group>"; };
 		04FFF10B2E00000500AA1234 /* ReelsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewController.swift; sourceTree = "<group>"; };
 		04FFF10D2E00000600AA1234 /* ReelsViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReelsViewRepresentable.swift; sourceTree = "<group>"; };
+		04FFF10F2E00000700AA1234 /* HomeReelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeReelsView.swift; sourceTree = "<group>"; };
 		126F75C5155E7B227A7A09EA /* RestaurantMenuViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RestaurantMenuViewModel.swift; sourceTree = "<group>"; };
 		4B0FDD8F9D92F17B36141FDE /* PhoneLoginViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhoneLoginViewModel.swift; sourceTree = "<group>"; };
 		56669AEE0360A1D92EA9A2E5 /* UploadMenuView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UploadMenuView.swift; sourceTree = "<group>"; };
@@ -3728,6 +3730,7 @@
 			isa = PBXGroup;
 			children = (
 				04CD960A2C59181300F6B7E4 /* HomeView.swift */,
+				04FFF10F2E00000700AA1234 /* HomeReelsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -5176,6 +5179,7 @@
 				04FFF1062E00000300AA1234 /* ProfileVideoDetailView.swift in Sources */,
 				04FFF10A2E00000500AA1234 /* ReelsViewController.swift in Sources */,
 				04FFF10C2E00000600AA1234 /* ReelsViewRepresentable.swift in Sources */,
+				04FFF10E2E00000700AA1234 /* HomeReelsView.swift in Sources */,
 				04A3135F2D76CA6B00E1AB97 /* BookingSummaryViewModel.swift in Sources */,
 				04BF79602C6C8C3E00EF2B9E /* SearchViewModel.swift in Sources */,
 				04CDDB812CB903290020786C /* ReplyCommentViewModel.swift in Sources */,

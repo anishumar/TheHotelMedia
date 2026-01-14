@@ -87,7 +87,9 @@ struct UserProfileView2: View {
                             .zIndex(2.0)
                             
                             
-                            if !viewModel.isPrivateAccount || viewModel.profileData?.isConnected ?? false {
+                            // Show content if account is not private OR if user is connected (follows the account)
+                            // Wait for profileData to load before showing private account message
+                            if viewModel.showLoadingIndicator || !viewModel.isPrivateAccount || (viewModel.profileData?.isConnected ?? false) {
                                 if viewModel.currentTab == .photos {
                                     photosTab
                                         .fullScreenCover(isPresented: $viewModel.showPhotoDetailScreen, content: {
@@ -134,7 +136,8 @@ struct UserProfileView2: View {
                                 } else {
                                     reviewsTab
                                 }
-                            } else {
+                            } else if !viewModel.showLoadingIndicator {
+                                // Only show private account message if not loading and account is private and not connected
                                 EmptyScreenView(image: "LockIcon2", title: "this_account_is_private".localized(localizationManager.language), subtitle: "follow_this_account_to_see_their_photos_and_videos".localized(localizationManager.language))
                             }
                             
