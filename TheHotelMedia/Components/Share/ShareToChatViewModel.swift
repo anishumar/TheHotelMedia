@@ -27,6 +27,11 @@ class ShareToChatViewModel: ObservableObject {
     @Published var showLoadingIndicator: Bool = false
     @Published var gotInitialData: Bool = false
     
+    // Multi-selection state
+    @Published var selectedUserIDs: Set<String> = []
+    @Published var isSharing: Bool = false
+    @Published var shareProgress: (sent: Int, total: Int) = (0, 0)
+    
     var dismissView: (() -> Void)?
     var sharePostData: PostData? = nil
     
@@ -165,6 +170,123 @@ class ShareToChatViewModel: ObservableObject {
     
     deinit {
         cancelPublishers()
+    }
+    
+    // MARK: - Multi-Selection Helpers
+    
+    func toggleUserSelection(userID: String) {
+        if selectedUserIDs.contains(userID) {
+            selectedUserIDs.remove(userID)
+        } else {
+            selectedUserIDs.insert(userID)
+        }
+    }
+    
+    func isUserSelected(userID: String) -> Bool {
+        return selectedUserIDs.contains(userID)
+    }
+    
+    func clearSelection() {
+        selectedUserIDs.removeAll()
+    }
+    
+    // MARK: - Batch Share Function
+    
+    func sharePostToMultipleUsers(
+        postData: PostData,
+        users: [(username: String, userID: String, profilePic: String, name: String)],
+        onProgress: @escaping (Int, Int) -> Void,
+        onComplete: @escaping (Int, Int) -> Void // (successCount, totalCount)
+    ) {
+        guard !isSharing else { return }
+        guard socketViewModel.isConnected else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
+            return
+        }
+        
+        guard let mediaRefs = postData.mediaRef, !mediaRefs.isEmpty else {
+            return
+        }
+        
+        isSharing = true
+        shareProgress = (0, users.count)
+        
+        // For video posts, find the video media. Otherwise use the first media.
+        let targetMedia = mediaRefs.first(where: { media in
+            if let mimeType = media.mimeType, mimeType.contains("video") {
+                return true
+            }
+            return false
+        }) ?? mediaRefs.first
+        
+        guard let firstMedia = targetMedia,
+              let mediaID = firstMedia.id,
+              let mediaUrl = firstMedia.sourceURL else {
+            isSharing = false
+            return
+        }
+        
+        let messageType: String
+        if let mimeType = firstMedia.mimeType, mimeType.contains("video") {
+            messageType = "video"
+        } else {
+            messageType = "image"
+        }
+        
+        let thumbnailUrl = firstMedia.thumbnailURL ?? (messageType == "image" ? mediaUrl : nil)
+        let messageText = postData.content ?? "Check this out!"
+        
+        var successCount = 0
+        var sentCount = 0
+        let totalCount = users.count
+        
+        // Send to all users with a small delay between each to avoid overwhelming the socket
+        for (index, user) in users.enumerated() {
+            let clientMessageID = UUID().uuidString
+            
+            var messageModel: [String: Any] = [
+                "type": messageType,
+                "message": messageText,
+                "clientMessageID": clientMessageID,
+                "mediaID": mediaID,
+                "mediaUrl": mediaUrl,
+                "postID": postData.id ?? "",
+                "postOwnerID": (postData.userID ?? postData.postedBy?.id ?? ""),
+                "isSharedPost": true
+            ]
+            
+            if let thumbnailUrl {
+                messageModel.updateValue(thumbnailUrl, forKey: "thumbnailUrl")
+            }
+            
+            let parameters: [String: Any] = [
+                "message": messageModel,
+                "to": user.username,
+                "clientMessageID": clientMessageID
+            ]
+            
+            // Add delay between sends to avoid overwhelming the socket
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
+                self.socketViewModel.sendMessage(parameters: parameters)
+                sentCount += 1
+                self.shareProgress = (sentCount, totalCount)
+                onProgress(sentCount, totalCount)
+                
+                // Mark as success after a short delay (server will confirm via socket)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    successCount += 1
+                    
+                    // If all messages sent, complete
+                    if sentCount == totalCount {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            self.isSharing = false
+                            self.shareProgress = (0, 0)
+                            onComplete(successCount, totalCount)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

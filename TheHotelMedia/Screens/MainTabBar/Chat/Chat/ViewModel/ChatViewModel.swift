@@ -54,6 +54,7 @@ class ChatViewModel: ObservableObject {
     // Prevent accidental double-tap sending for "share post" action.
     private var isSharingPost: Bool = false
     private var activeShareClientMessageID: String? = nil
+    @Published var hasInitiatedShare: Bool = false // Track if share was initiated from onAppear
     @Published var messages: [PrivateMessage] = []
     @Published var messageFieldText: String = ""
     @Published var editingMessage: PrivateMessage? = nil
@@ -210,6 +211,8 @@ class ChatViewModel: ObservableObject {
                                 if let active = self.activeShareClientMessageID, active == clientKey {
                                     self.isSharingPost = false
                                     self.activeShareClientMessageID = nil
+                                    self.hasInitiatedShare = false
+                                    print("✅ [ChatViewModel] Share confirmed by server, flag reset")
                                 }
                             } else if let serverMessageID = message.messageID, !serverMessageID.isEmpty,
                                       let index = messages.firstIndex(where: { ($0.messageID ?? "") == serverMessageID }) {
@@ -1033,15 +1036,21 @@ class ChatViewModel: ObservableObject {
         return nil
     }
     
+    /// Share a post via DM. This method handles all the logic and prevents duplicate calls.
     func sharePostViaDM(postData: PostData, caption: String? = nil) {
+        // Prevent duplicate calls if share is already in progress
+        guard !isSharingPost else {
+            print("⚠️ [ChatViewModel] Share already in progress, ignoring duplicate call")
+            return
+        }
+        
         guard socketViewModel.isConnected else {
             ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
             return
         }
         
-        // Prevent accidental double-taps until we receive server confirmation.
-        guard !isSharingPost else { return }
         isSharingPost = true
+        hasInitiatedShare = true
         
         guard let mediaRefs = postData.mediaRef, 
               !mediaRefs.isEmpty else {
@@ -1123,6 +1132,7 @@ class ChatViewModel: ObservableObject {
         ]
         
         socketViewModel.sendMessage(parameters: parameters)
+        print("📤 [ChatViewModel] Share message sent with clientMessageID: \(clientMessageID)")
 
         // Safety: if the server never echoes back, unlock after a timeout.
         DispatchQueue.main.asyncAfter(deadline: .now() + 15.0) { [weak self] in
@@ -1130,8 +1140,17 @@ class ChatViewModel: ObservableObject {
             if self.activeShareClientMessageID == clientMessageID {
                 self.isSharingPost = false
                 self.activeShareClientMessageID = nil
+                self.hasInitiatedShare = false
+                print("⚠️ [ChatViewModel] Share timeout - resetting flag after 15s")
             }
         }
+    }
+    
+    /// Reset share flags - useful when navigating away or on errors
+    func resetShareFlags() {
+        isSharingPost = false
+        activeShareClientMessageID = nil
+        hasInitiatedShare = false
     }
     
     

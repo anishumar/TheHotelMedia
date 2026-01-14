@@ -26,6 +26,9 @@ struct ChatView: View {
     @AppStorage("clearChat") var clearChat: Bool = true
     @Environment(\.scenePhase) var scenePhase
     
+    // Track if share has been initiated to prevent multiple onAppear calls
+    @State private var hasSharedPost: Bool = false
+    
 //    @FocusState private var focusedField: Field?
     @EnvironmentObject var themeManager: ThemeManager
     
@@ -184,6 +187,10 @@ struct ChatView: View {
             viewModel.cancelPublishers()
             if clearChat {
                 viewModel.socketViewModel.privateMessagesList.removeAll()
+            }
+            // Reset share flags when leaving chat to prevent stuck state
+            if viewModel.lastScreen == "share" {
+                viewModel.resetShareFlags()
             }
             onLeaveChat?(viewModel.username)
             

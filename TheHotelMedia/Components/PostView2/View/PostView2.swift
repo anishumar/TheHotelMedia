@@ -531,8 +531,13 @@ struct PostView2<Content: View>: View {
                     })
                     .environmentObject(ThemeManager.shared)
                     .navigationBarBackButtonHidden()
-                    .onAppear {
-                        chatViewModel.sharePostViaDM(postData: postToShare)
+                    .task {
+                        // Use task instead of onAppear to ensure it only runs once
+                        // and wait a moment for view to be fully ready
+                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                        if !chatViewModel.hasInitiatedShare {
+                            chatViewModel.sharePostViaDM(postData: postToShare)
+                        }
                     }
                     .onDisappear {
                         // Reset navigation flag when chat view disappears
@@ -543,7 +548,11 @@ struct PostView2<Content: View>: View {
                 }
             }
             
-            viewModel.sharePostData = nil
+            // Clear sharePostData AFTER navigation is initiated, not before
+            // This ensures postData is available when ChatView's task runs
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                viewModel.sharePostData = nil
+            }
             shareToChatViewModel = nil
         }
         

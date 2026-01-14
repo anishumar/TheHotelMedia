@@ -367,11 +367,9 @@ struct HomeView: View {
                 onBookmark: { postID, _ in
                     viewModel.toggleBookmark(for: postID)
                 },
-                onProfileTapped: { userID in
-                    // Pause videos when navigating to profile
-                    NotificationCenter.default.post(name: NSNotification.Name("PauseReelsVideos"), object: nil)
-                    viewModel.showUserProfileScreen(id: userID)
-                },
+                // Profile navigation is handled inside HomeReelsView so the transition
+                // goes directly from reels to profile without briefly showing Home.
+                onProfileTapped: nil,
                 onDismiss: {
                     viewModel.showReels = false
                 }
@@ -385,9 +383,44 @@ struct HomeView: View {
                         shareURL: viewModel.reelsShareURL.absoluteString,
                         postData: postData,
                         router: router,
-                        onChatSelected: nil,
+                        onChatSelected: { username, userID, profilePic, name in
+                            viewModel.showReelsShareSheet = false
+                            // Capture postData before clearing
+                            let postToShare = postData
+                            // Clear immediately to prevent reuse
+                            viewModel.reelsSharePostData = nil
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                router.showScreen(.push) { chatRouter in
+                                    let chatViewModel = ChatViewModel(
+                                        router: chatRouter,
+                                        username: username,
+                                        userID: userID,
+                                        profilePic: profilePic,
+                                        name: name,
+                                        lastScreen: "share"
+                                    )
+                                    ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                        SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
+                                    })
+                                    .environmentObject(ThemeManager.shared)
+                                    .environmentObject(LocalizationManager.shared)
+                                    .navigationBarBackButtonHidden()
+                                    .task {
+                                        // Use task instead of onAppear to ensure it only runs once
+                                        // and wait a moment for view to be fully ready
+                                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                                        if !chatViewModel.hasInitiatedShare {
+                                            chatViewModel.sharePostViaDM(postData: postToShare)
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         onDismiss: {
                             viewModel.showReelsShareSheet = false
+                            // Clear postData on dismiss to prevent stale data
+                            viewModel.reelsSharePostData = nil
                         }
                     )
                     .presentationDetents([.medium, .large])

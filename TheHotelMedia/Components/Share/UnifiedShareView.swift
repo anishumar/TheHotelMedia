@@ -27,6 +27,8 @@ struct UnifiedShareSheet: View {
     @State private var isSharingAsStory = false
     @State private var showNativeShareSheet = false
     @State private var shareImage: UIImage? = nil
+    @State private var showShareSuccessToast = false
+    @State private var shareSuccessCount = 0
     
     init(shareURL: String, postData: PostData?, router: AnyRouter?, onChatSelected: ((String, String, String, String) -> Void)?, onDismiss: (() -> Void)?, onStoryShared: (() -> Void)? = nil) {
         self.shareURL = shareURL
@@ -47,6 +49,14 @@ struct UnifiedShareSheet: View {
         VStack(spacing: 0) {
             // Top header with close button and post preview
             topHeader
+            
+            // Send button (appears when users are selected)
+            if !shareViewModel.selectedUserIDs.isEmpty {
+                sendButton
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(themeManager.currentTheme.white06_darkGray06)
+            }
             
             // Share options and user list together
             ScrollView(.vertical, showsIndicators: false) {
@@ -84,6 +94,15 @@ struct UnifiedShareSheet: View {
                 loadShareImage()
             }
         }
+        .overlay(alignment: .top) {
+            if showShareSuccessToast {
+                shareSuccessToast
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(1000)
+            }
+        }
+        .animation(.spring(response: 0.3), value: showShareSuccessToast)
+        .animation(.spring(response: 0.3), value: shareViewModel.selectedUserIDs)
     }
     
     @ViewBuilder
@@ -309,19 +328,43 @@ struct UnifiedShareSheet: View {
     }
     
     private func userGridItem(user: ChatUser) -> some View {
-        VStack(spacing: 4) {
+        let userID = user.userID ?? user.id ?? ""
+        let isSelected = shareViewModel.isUserSelected(userID: userID)
+        let wasSelectedBeforeTap = isSelected
+        let hadOtherSelections = shareViewModel.selectedUserIDs.count > (wasSelectedBeforeTap ? 1 : 0)
+        
+        return VStack(spacing: 4) {
             ZStack(alignment: .bottomTrailing) {
-                WebImage(url: URL(string: user.profilePic?.small ?? "")) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Image("NoProfilePic")
-                        .resizable()
-                        .scaledToFill()
+                ZStack(alignment: .topTrailing) {
+                    WebImage(url: URL(string: user.profilePic?.small ?? "")) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Image("NoProfilePic")
+                            .resizable()
+                            .scaledToFill()
+                    }
+                    .frame(width: 70, height: 70)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                    )
+                    
+                    // Selection checkbox
+                    if isSelected {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue)
+                                .frame(width: 24, height: 24)
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .offset(x: 2, y: -2)
+                    }
                 }
-                .frame(width: 70, height: 70)
-                .clipShape(Circle())
                 
                 if user.isOnline == 1 {
                     Circle()
@@ -342,8 +385,20 @@ struct UnifiedShareSheet: View {
         }
         .onTapGesture {
             haptics(.light)
-            if let username = user.username,
-               let userID = user.userID ?? user.id,
+            
+            // Check state BEFORE toggling
+            let wasInMultiSelectMode = !shareViewModel.selectedUserIDs.isEmpty
+            
+            if !userID.isEmpty {
+                shareViewModel.toggleUserSelection(userID: userID)
+            }
+            
+            // Only trigger single-tap share if:
+            // 1. We were NOT in multi-select mode before this tap (no other selections)
+            // 2. This user was NOT selected before (we're selecting, not unselecting)
+            // 3. We're not in multi-select mode now (no selections after toggle)
+            if !wasInMultiSelectMode && !wasSelectedBeforeTap && shareViewModel.selectedUserIDs.isEmpty,
+               let username = user.username,
                let name = user.name {
                 onChatSelected?(username, userID, user.profilePic?.small ?? "", name)
             }
@@ -351,18 +406,40 @@ struct UnifiedShareSheet: View {
     }
     
     private func chatGridItem(chat: RecentChat, username: String, userID: String, name: String) -> some View {
-        VStack(spacing: 4) {
-            WebImage(url: URL(string: chat.profilePic?.small ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Image("NoProfilePic")
-                    .resizable()
-                    .scaledToFill()
+        let isSelected = shareViewModel.isUserSelected(userID: userID)
+        let wasSelectedBeforeTap = isSelected
+        
+        return VStack(spacing: 4) {
+            ZStack(alignment: .topTrailing) {
+                WebImage(url: URL(string: chat.profilePic?.small ?? "")) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Image("NoProfilePic")
+                        .resizable()
+                        .scaledToFill()
+                }
+                .frame(width: 70, height: 70)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                
+                // Selection checkbox
+                if isSelected {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 24, height: 24)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .offset(x: 2, y: -2)
+                }
             }
-            .frame(width: 70, height: 70)
-            .clipShape(Circle())
             
             Text(name)
                 .font(.system(size: 12))
@@ -372,23 +449,57 @@ struct UnifiedShareSheet: View {
         }
         .onTapGesture {
             haptics(.light)
-            onChatSelected?(username, userID, chat.profilePic?.small ?? "", name)
+            
+            // Check state BEFORE toggling
+            let wasInMultiSelectMode = !shareViewModel.selectedUserIDs.isEmpty
+            
+            shareViewModel.toggleUserSelection(userID: userID)
+            
+            // Only trigger single-tap share if:
+            // 1. We were NOT in multi-select mode before this tap (no other selections)
+            // 2. This user was NOT selected before (we're selecting, not unselecting)
+            // 3. We're not in multi-select mode now (no selections after toggle)
+            if !wasInMultiSelectMode && !wasSelectedBeforeTap && shareViewModel.selectedUserIDs.isEmpty {
+                onChatSelected?(username, userID, chat.profilePic?.small ?? "", name)
+            }
         }
     }
     
     private func followerFollowingGridItem(profile: SearchProfileData, username: String, userID: String, name: String) -> some View {
-        VStack(spacing: 4) {
-            WebImage(url: URL(string: profile.profilePic?.small ?? "")) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                Image("NoProfilePic")
-                    .resizable()
-                    .scaledToFill()
+        let isSelected = shareViewModel.isUserSelected(userID: userID)
+        let wasSelectedBeforeTap = isSelected
+        
+        return VStack(spacing: 4) {
+            ZStack(alignment: .topTrailing) {
+                WebImage(url: URL(string: profile.profilePic?.small ?? "")) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Image("NoProfilePic")
+                        .resizable()
+                        .scaledToFill()
+                }
+                .frame(width: 70, height: 70)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                
+                // Selection checkbox
+                if isSelected {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 24, height: 24)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .offset(x: 2, y: -2)
+                }
             }
-            .frame(width: 70, height: 70)
-            .clipShape(Circle())
             
             Text(name)
                 .font(.system(size: 12))
@@ -398,7 +509,19 @@ struct UnifiedShareSheet: View {
         }
         .onTapGesture {
             haptics(.light)
-            onChatSelected?(username, userID, profile.profilePic?.small ?? "", name)
+            
+            // Check state BEFORE toggling
+            let wasInMultiSelectMode = !shareViewModel.selectedUserIDs.isEmpty
+            
+            shareViewModel.toggleUserSelection(userID: userID)
+            
+            // Only trigger single-tap share if:
+            // 1. We were NOT in multi-select mode before this tap (no other selections)
+            // 2. This user was NOT selected before (we're selecting, not unselecting)
+            // 3. We're not in multi-select mode now (no selections after toggle)
+            if !wasInMultiSelectMode && !wasSelectedBeforeTap && shareViewModel.selectedUserIDs.isEmpty {
+                onChatSelected?(username, userID, profile.profilePic?.small ?? "", name)
+            }
         }
     }
     
@@ -649,6 +772,195 @@ struct UnifiedShareSheet: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Multi-Share UI Components
+    
+    private var sendButton: some View {
+        // Calculate unique user count (deduplicated)
+        let uniqueUserCount = getUniqueSelectedUserCount()
+        
+        return Button {
+            handleBatchShare()
+        } label: {
+            HStack {
+                if shareViewModel.isSharing {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.8)
+                } else {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                
+                if shareViewModel.isSharing {
+                    Text("Sending to \(shareViewModel.shareProgress.sent) of \(shareViewModel.shareProgress.total)...")
+                        .font(.system(size: 15, weight: .semibold))
+                } else {
+                    Text("Send to \(uniqueUserCount) \(uniqueUserCount == 1 ? "user" : "users")")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(shareViewModel.isSharing ? Color.gray : Color.blue)
+            )
+        }
+        .disabled(shareViewModel.isSharing || uniqueUserCount == 0)
+    }
+    
+    // Helper to get unique user count (deduplicated across all sections)
+    private func getUniqueSelectedUserCount() -> Int {
+        var uniqueUserIDs = Set<String>()
+        
+        // Collect unique userIDs from all sections
+        for user in shareViewModel.filteredOnlineUsers {
+            if let userID = user.userID ?? user.id,
+               shareViewModel.selectedUserIDs.contains(userID) {
+                uniqueUserIDs.insert(userID)
+            }
+        }
+        
+        for chat in shareViewModel.filteredRecentChats {
+            if let userID = chat.id,
+               shareViewModel.selectedUserIDs.contains(userID) {
+                uniqueUserIDs.insert(userID)
+            }
+        }
+        
+        for profile in shareViewModel.filteredFollowersFollowing {
+            if shareViewModel.selectedUserIDs.contains(profile.id) {
+                uniqueUserIDs.insert(profile.id)
+            }
+        }
+        
+        return uniqueUserIDs.count
+    }
+    
+    private var shareSuccessToast: some View {
+        VStack {
+            HStack(spacing: 12) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                    .font(.system(size: 20))
+                
+                Text("Shared to \(shareSuccessCount) \(shareSuccessCount == 1 ? "user" : "users")")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(themeManager.currentTheme.label)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(themeManager.currentTheme.black09_white)
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+            )
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - Batch Share Handler
+    
+    private func handleBatchShare() {
+        guard let postData = postData else { return }
+        
+        // Collect all selected users from all sections, using a dictionary to deduplicate by userID
+        var selectedUsersDict: [String: (username: String, userID: String, profilePic: String, name: String)] = [:]
+        
+        // From online users
+        for user in shareViewModel.filteredOnlineUsers {
+            if let userID = user.userID ?? user.id,
+               shareViewModel.selectedUserIDs.contains(userID),
+               let username = user.username,
+               let name = user.name {
+                // Only add if not already added (deduplicate by userID)
+                if selectedUsersDict[userID] == nil {
+                    selectedUsersDict[userID] = (
+                        username: username,
+                        userID: userID,
+                        profilePic: user.profilePic?.small ?? "",
+                        name: name
+                    )
+                }
+            }
+        }
+        
+        // From recent chats
+        for chat in shareViewModel.filteredRecentChats {
+            if let userID = chat.id,
+               shareViewModel.selectedUserIDs.contains(userID),
+               let username = chat.username,
+               let name = chat.name {
+                // Only add if not already added (deduplicate by userID)
+                if selectedUsersDict[userID] == nil {
+                    selectedUsersDict[userID] = (
+                        username: username,
+                        userID: userID,
+                        profilePic: chat.profilePic?.small ?? "",
+                        name: name
+                    )
+                }
+            }
+        }
+        
+        // From followers/following
+        for profile in shareViewModel.filteredFollowersFollowing {
+            if shareViewModel.selectedUserIDs.contains(profile.id),
+               let username = profile.username,
+               let name = profile.name {
+                // Only add if not already added (deduplicate by userID)
+                if selectedUsersDict[profile.id] == nil {
+                    selectedUsersDict[profile.id] = (
+                        username: username,
+                        userID: profile.id,
+                        profilePic: profile.profilePic?.small ?? "",
+                        name: name
+                    )
+                }
+            }
+        }
+        
+        // Convert dictionary values to array (already deduplicated)
+        let selectedUsers = Array(selectedUsersDict.values)
+        
+        guard !selectedUsers.isEmpty else { return }
+        
+        haptics(.medium)
+        
+        shareViewModel.sharePostToMultipleUsers(
+            postData: postData,
+            users: selectedUsers,
+            onProgress: { sent, total in
+                // Progress updates handled by viewModel
+            },
+            onComplete: { successCount, totalCount in
+                DispatchQueue.main.async {
+                    shareSuccessCount = successCount
+                    showShareSuccessToast = true
+                    shareViewModel.clearSelection()
+                    
+                    // Dismiss toast after 2 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        withAnimation {
+                            showShareSuccessToast = false
+                        }
+                    }
+                    
+                    // Dismiss sheet after showing success
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                        onDismiss?()
+                    }
+                }
+            }
+        )
     }
 }
 

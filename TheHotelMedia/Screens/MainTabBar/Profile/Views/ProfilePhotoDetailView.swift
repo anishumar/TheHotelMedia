@@ -172,6 +172,11 @@ struct ProfilePhotoDetailView: View {
                 onChatSelected: { username, userID, profilePic, name in
                     viewModel.isSharePresented = false
                     if let postData = viewModel.sharePostData {
+                        // Capture postData before clearing
+                        let postToShare = postData
+                        // Clear immediately to prevent reuse
+                        viewModel.sharePostData = nil
+                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             router.showScreen(.push) { chatRouter in
                                 let chatViewModel = ChatViewModel(
@@ -187,13 +192,17 @@ struct ProfilePhotoDetailView: View {
                                 })
                                 .environmentObject(ThemeManager.shared)
                                 .navigationBarBackButtonHidden()
-                                .onAppear {
-                                    chatViewModel.sharePostViaDM(postData: postData)
+                                .task {
+                                    // Use task instead of onAppear to ensure it only runs once
+                                    // and wait a moment for view to be fully ready
+                                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                                    if !chatViewModel.hasInitiatedShare {
+                                        chatViewModel.sharePostViaDM(postData: postToShare)
+                                    }
                                 }
                             }
                         }
                     }
-                    viewModel.sharePostData = nil
                 },
                 onDismiss: {
                     viewModel.isSharePresented = false
