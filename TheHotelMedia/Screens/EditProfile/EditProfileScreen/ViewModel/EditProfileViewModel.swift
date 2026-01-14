@@ -117,6 +117,25 @@ final class EditProfileViewModel: ObservableObject {
     }
     
     
+    func showEditUsernameScreen() {
+        router.showScreen(.push) { router in
+            EditUsernameView(
+                viewModel: EditUsernameViewModel(
+                    router: router,
+                    currentUsername: self.profileData.username ?? ""
+                ),
+                onChangedUsername: { [weak self] changedUsername in
+                    guard let self else { return }
+                    self.editProfileComprehensive(username: changedUsername)
+                }
+            )
+            .environmentObject(ThemeManager.shared)
+            .environmentObject(LocalizationManager.shared)
+            .navigationBarBackButtonHidden()
+        }
+    }
+    
+    
     func showEditNameScreen() {
         router.showScreen(.push) { router in
             EditNameView(
@@ -218,6 +237,111 @@ final class EditProfileViewModel: ObservableObject {
         return parameters
     }
     
+    /// Comprehensive method to build parameters for profile editing with all supported fields
+    /// - Parameters:
+    ///   - username: Unique username (validated for uniqueness)
+    ///   - name: Full name / Business name
+    ///   - dialCode: Phone country code
+    ///   - phoneNumber: Phone number
+    ///   - bio: Biography/Description
+    ///   - profession: Profession (Individual only)
+    ///   - website: Business website URL (Business only)
+    ///   - email: Business email (Business only)
+    ///   - gstn: GST number (Business only)
+    ///   - businessTypeID: Business type ID (Business only)
+    ///   - businessSubTypeID: Business sub-type ID (Business only)
+    ///   - language: Preferred language
+    ///   - acceptedTerms: Terms acceptance status
+    ///   - privateAccount: Account privacy setting
+    ///   - notificationEnabled: Notification preference
+    /// - Returns: Dictionary of parameters to send to the API
+    func buildEditProfileParameters(
+        username: String? = nil,
+        name: String? = nil,
+        dialCode: String? = nil,
+        phoneNumber: String? = nil,
+        bio: String? = nil,
+        profession: String? = nil,
+        website: String? = nil,
+        email: String? = nil,
+        gstn: String? = nil,
+        businessTypeID: String? = nil,
+        businessSubTypeID: String? = nil,
+        language: String? = nil,
+        acceptedTerms: Bool? = nil,
+        privateAccount: Bool? = nil,
+        notificationEnabled: Bool? = nil
+    ) -> [String: Any] {
+        var parameters: [String: Any] = [:]
+        
+        // Common fields for both Individual and Business
+        if let username = username, !username.isEmpty {
+            parameters["username"] = username
+        }
+        
+        if let name = name, !name.isEmpty {
+            parameters["name"] = name
+        }
+        
+        if let dialCode = dialCode, !dialCode.isEmpty {
+            parameters["dialCode"] = dialCode
+        }
+        
+        if let phoneNumber = phoneNumber, !phoneNumber.isEmpty {
+            parameters["phoneNumber"] = phoneNumber
+        }
+        
+        if let bio = bio {
+            parameters["bio"] = bio
+        }
+        
+        if let language = language, !language.isEmpty {
+            parameters["language"] = language
+        }
+        
+        if let acceptedTerms = acceptedTerms {
+            parameters["acceptedTerms"] = acceptedTerms
+        }
+        
+        if let privateAccount = privateAccount {
+            parameters["privateAccount"] = privateAccount
+        }
+        
+        if let notificationEnabled = notificationEnabled {
+            parameters["notificationEnabled"] = notificationEnabled
+        }
+        
+        // Individual account fields
+        if isIndividual {
+            if let profession = profession, !profession.isEmpty {
+                parameters["profession"] = profession
+            }
+        } else {
+            // Business account fields
+            if let website = website, !website.isEmpty {
+                parameters["website"] = website
+            }
+            
+            if let email = email, !email.isEmpty {
+                parameters["email"] = email
+            }
+            
+            if let gstn = gstn, !gstn.isEmpty {
+                parameters["gstn"] = gstn
+            }
+            
+            if let businessTypeID = businessTypeID, !businessTypeID.isEmpty {
+                parameters["businessTypeID"] = businessTypeID
+            }
+            
+            if let businessSubTypeID = businessSubTypeID, !businessSubTypeID.isEmpty {
+                parameters["businessSubTypeID"] = businessSubTypeID
+            }
+        }
+        
+        return parameters
+    }
+    
     
     func imageSelectedFromFileImporter(result: Result<URL, Error>) {
         switch result {
@@ -253,6 +377,7 @@ final class EditProfileViewModel: ObservableObject {
 
 // MARK: - Networking
 extension EditProfileViewModel {
+    /// Legacy method for backward compatibility - updates name or bio only
     func editProfile(name: String? = nil, bio: String? = nil) {
         let parameters = getParameters(name: name, bio: bio)
         
@@ -281,6 +406,102 @@ extension EditProfileViewModel {
                     showLoadingIndicator = false
                 }
                 print(error)
+            }
+        }
+    }
+    
+    /// Comprehensive method to edit profile with all supported fields
+    /// All parameters are optional - only provided fields will be updated
+    /// - Parameters:
+    ///   - username: Unique username (validated for uniqueness)
+    ///   - name: Full name / Business name
+    ///   - dialCode: Phone country code
+    ///   - phoneNumber: Phone number
+    ///   - bio: Biography/Description
+    ///   - profession: Profession (Individual only)
+    ///   - website: Business website URL (Business only)
+    ///   - email: Business email (Business only)
+    ///   - gstn: GST number (Business only)
+    ///   - businessTypeID: Business type ID (Business only)
+    ///   - businessSubTypeID: Business sub-type ID (Business only)
+    ///   - language: Preferred language
+    ///   - acceptedTerms: Terms acceptance status
+    ///   - privateAccount: Account privacy setting
+    ///   - notificationEnabled: Notification preference
+    func editProfileComprehensive(
+        username: String? = nil,
+        name: String? = nil,
+        dialCode: String? = nil,
+        phoneNumber: String? = nil,
+        bio: String? = nil,
+        profession: String? = nil,
+        website: String? = nil,
+        email: String? = nil,
+        gstn: String? = nil,
+        businessTypeID: String? = nil,
+        businessSubTypeID: String? = nil,
+        language: String? = nil,
+        acceptedTerms: Bool? = nil,
+        privateAccount: Bool? = nil,
+        notificationEnabled: Bool? = nil,
+        completion: ((Bool, String) -> Void)? = nil
+    ) {
+        let parameters = buildEditProfileParameters(
+            username: username,
+            name: name,
+            dialCode: dialCode,
+            phoneNumber: phoneNumber,
+            bio: bio,
+            profession: profession,
+            website: website,
+            email: email,
+            gstn: gstn,
+            businessTypeID: businessTypeID,
+            businessSubTypeID: businessSubTypeID,
+            language: language,
+            acceptedTerms: acceptedTerms,
+            privateAccount: privateAccount,
+            notificationEnabled: notificationEnabled
+        )
+        
+        guard !parameters.isEmpty else {
+            completion?(false, "No fields to update")
+            return
+        }
+        
+        showLoadingIndicator = true
+        
+        Task {
+            do {
+                let result = try await dataManager.editProfileData(parameters: parameters)
+                
+                await MainActor.run {
+                    showLoadingIndicator = false
+                    errorText = result.message
+                    
+                    let success = result.status && (200...204).contains(result.statusCode)
+                    
+                    if success {
+                        ErrorModalManager.showErrorModal(router: router, errorText: errorText)
+                        
+                        if let data = result.data {
+                            profileData = data
+                            onEditedProfile?(data)
+                        }
+                    } else {
+                        ErrorModalManager.showErrorModal(router: router, errorText: errorText)
+                    }
+                    
+                    completion?(success, result.message)
+                }
+            } catch {
+                await MainActor.run {
+                    showLoadingIndicator = false
+                    let errorMessage = "Failed to update profile. Please try again."
+                    ErrorModalManager.showErrorModal(router: router, errorText: errorMessage)
+                    completion?(false, errorMessage)
+                }
+                print("❌ [EditProfileViewModel] Error editing profile: \(error)")
             }
         }
     }

@@ -30,6 +30,14 @@ struct EditProfileView: View {
                         Text("about_me".localized(localizationManager.language))
                             .foregroundColor(themeManager.currentTheme.label)
                         option(
+                            title: "username".localized(localizationManager.language),
+                            value: "@\(viewModel.profileData.username ?? "")",
+                            icon: "PersonIcon2"
+                        )
+                        .onTapGesture {
+                            viewModel.showEditUsernameScreen()
+                        }
+                        option(
                             title: "name".localized(localizationManager.language),
                             value: isIndividual ? viewModel.profileData.name ?? "" : viewModel.profileData.businessProfileRef?.name ?? "",
                             icon: "PersonIcon2"
