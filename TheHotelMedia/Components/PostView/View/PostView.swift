@@ -653,17 +653,13 @@ struct PostView: View {
                                                 name: name,
                                                 lastScreen: "share"
                                             )
-                                            chatViewModel.pendingPostToShare = postData
-                                            return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                                            ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
                                                 SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
                                             })
                                             .environmentObject(ThemeManager.shared)
                                             .navigationBarBackButtonHidden()
                                             .onAppear {
-                                                if let postToShare = chatViewModel.pendingPostToShare {
-                                                    chatViewModel.sharePostViaDM(postData: postToShare)
-                                                    chatViewModel.pendingPostToShare = nil
-                                                }
+                                                chatViewModel.sharePostViaDM(postData: postData)
                                             }
                                         }
                                     }

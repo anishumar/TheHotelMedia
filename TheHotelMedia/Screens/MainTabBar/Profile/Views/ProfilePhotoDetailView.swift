@@ -188,9 +188,7 @@ struct ProfilePhotoDetailView: View {
                                 .environmentObject(ThemeManager.shared)
                                 .navigationBarBackButtonHidden()
                                 .onAppear {
-                                    chatViewModel.pendingPostToShare = postData
                                     chatViewModel.sharePostViaDM(postData: postData)
-                                    chatViewModel.pendingPostToShare = nil
                                 }
                             }
                         }

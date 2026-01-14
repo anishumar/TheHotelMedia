@@ -17,10 +17,11 @@ final class AllChatListViewModel: ObservableObject {
     var socketViewModel = SocketIOViewModel.shared
     var refreshRecent: Bool = true
     var pageNo: Int = 1
-    var gotIntialData: Bool = false
+    @Published var gotIntialData: Bool = false
     var onThisScreen: Bool = false
-    var showLoadingIndicator: Bool = false
-    var firstDataSet: Bool = true
+    @Published var showLoadingIndicator: Bool = false
+    private var hasActiveSubscribers: Bool = false
+    private var didRequestInitialData: Bool = false
     @Published var searchFieldText: String = ""
     @Published var userList: [ChatUser] = []
     @Published var recentChat: [RecentChat] = []
@@ -33,6 +34,9 @@ final class AllChatListViewModel: ObservableObject {
     
     
     func addSubscribers() {
+        guard !hasActiveSubscribers else { return }
+        hasActiveSubscribers = true
+
         // List of users
         socketViewModel.$userList
             .sink { [weak self] list in
@@ -50,6 +54,7 @@ final class AllChatListViewModel: ObservableObject {
                 
                 if connected && !gotIntialData {
                     showLoadingIndicator = true
+                    didRequestInitialData = true
                     socketViewModel.usersListEmit()
                     socketViewModel.chatScreenEmit(query: "", pageNo: 1)
                     
@@ -74,12 +79,12 @@ final class AllChatListViewModel: ObservableObject {
             .sink { [weak self] (chat) in
                 guard let self else { return }
                 
-                if !firstDataSet {
+                // Only treat this as "initial data loaded" if we actually asked for it.
+                if !gotIntialData && didRequestInitialData {
                     gotIntialData = true
                     showLoadingIndicator = false
+                    didRequestInitialData = false
                 }
-                
-                firstDataSet = false
                 
                 if refreshRecent {
                     recentChat = chat
@@ -164,6 +169,8 @@ final class AllChatListViewModel: ObservableObject {
             cancellable.cancel()
         }
         cancellables.removeAll()
+        hasActiveSubscribers = false
+        didRequestInitialData = false
     }
     
     

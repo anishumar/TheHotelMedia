@@ -25,10 +25,17 @@ class JSONSerializationManager {
     
     private static func normalizedURLString(_ raw: String?) -> String? {
         guard var raw, !raw.isEmpty else { return nil }
-        // Some environments return `staging.thehotelmedia.com` URLs which currently fail TLS trust
-        // (cert mismatch). We normalize to the API host used elsewhere in the app.
+        // Some environments may accidentally return staging URLs. For production correctness,
+        // we do NOT silently rewrite hosts in Release builds (it hides backend misconfiguration).
+        #if DEBUG
         raw = raw.replacingOccurrences(of: "https://staging.thehotelmedia.com", with: "https://api.thehotelmedia.com")
         raw = raw.replacingOccurrences(of: "http://staging.thehotelmedia.com", with: "https://api.thehotelmedia.com")
+        #else
+        if UserDefaults.standard.bool(forKey: "rewriteStagingURLs") {
+            raw = raw.replacingOccurrences(of: "https://staging.thehotelmedia.com", with: "https://api.thehotelmedia.com")
+            raw = raw.replacingOccurrences(of: "http://staging.thehotelmedia.com", with: "https://api.thehotelmedia.com")
+        }
+        #endif
         return raw
     }
     

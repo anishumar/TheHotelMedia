@@ -200,19 +200,15 @@ struct ChatView: View {
         .onChange(of: scenePhase) { newPhase in
             switch newPhase {
             case .active:
-                viewModel.addSubscribers()
-                viewModel.socketViewModel.configureSocket {
-                    viewModel.socketViewModel.fetchPrivateConversation(username: viewModel.username, pageNumber: 1)
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                // Keep subscriptions stable; just ensure socket is connected and room presence is refreshed.
+                viewModel.socketViewModel.configureSocket()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     viewModel.socketViewModel.insidePrivateChat(user: viewModel.username)
+                    viewModel.socketViewModel.messageSeenEmit(user: viewModel.username)
                 }
-            case .inactive:
-                viewModel.cancelPublishers()
-                viewModel.socketViewModel.newMessage = nil
-                
-            case .background:
-                viewModel.cancelPublishers()
+            case .inactive, .background:
+                // Don't tear down Combine subscriptions here; `onDisappear` handles cleanup.
+                // Clearing `newMessage` avoids reprocessing a stale value when returning active.
                 viewModel.socketViewModel.newMessage = nil
             default:
                 break

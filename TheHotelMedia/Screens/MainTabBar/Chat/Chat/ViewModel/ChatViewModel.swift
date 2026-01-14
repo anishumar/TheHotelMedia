@@ -49,23 +49,15 @@ class ChatViewModel: ObservableObject {
     var pageNo: Int = 1
     var refresh: Bool = true
     var gotInitialData: Bool = false
-//    var onThisScreen: Bool = false
-    /// When true, the next outgoing echo from socket (`newMessage` where `from == username`)
-    /// will be ignored. Used to avoid duplicating locally-inserted messages (e.g. share post).
-    var suppressNextOutgoingEcho: Bool = false
-    var isSharingPost: Bool = false // Prevent multiple simultaneous post shares
-    private let sharingLock = NSLock() // Lock to prevent concurrent share calls
-    var recentlySentMediaURLs: Set<String> = [] // Track recently sent media to prevent duplicates
-    var recentlySharedPostMediaURLs: Set<String> = [] // Track ALL media URLs from a shared post to filter duplicates
-    var sharePostBlockStartTime: Date? = nil // Track when we started sharing to block messages within a time window
-    var pendingPostToShare: PostData? = nil // Post to share when ChatView appears
-    var lastSharedPostID: String? = nil // Track last shared post ID to prevent duplicates
+    private var hasActiveSubscribers: Bool = false
+    
+    // Prevent accidental double-tap sending for "share post" action.
+    private var isSharingPost: Bool = false
+    private var activeShareClientMessageID: String? = nil
     @Published var messages: [PrivateMessage] = []
     @Published var messageFieldText: String = ""
     @Published var editingMessage: PrivateMessage? = nil
     
-    // Retry logic for operations attempted before server `_id` is available.
-    private var mutationRetryCount: [String: Int] = [:]
     @Published var showFileImporter: Bool = false
     @Published var showPhotoPicker: Bool = false
     @Published var showOptionDialog: Bool = false
@@ -107,6 +99,9 @@ class ChatViewModel: ObservableObject {
     }
     
     func addSubscribers() {
+        guard !hasActiveSubscribers else { return }
+        hasActiveSubscribers = true
+
         socketViewModel.$isConnected
             .sink { [weak self] connected in
                 guard let self else { return }
@@ -141,32 +136,31 @@ class ChatViewModel: ObservableObject {
         socketViewModel.$privateMessagesList
             .sink { [weak self] messages in
                 guard let self else { return }
-                
-                let isInShareBlockWindow = self.sharePostBlockStartTime != nil && 
-                    Date().timeIntervalSince(self.sharePostBlockStartTime!) < 10.0
-                
-                let filteredMessages = messages.filter { message in
-                    if isInShareBlockWindow {
-                        let isOutgoing = (message.sentByMe == 1) || (message.from == self.username)
-                        let isMediaType = message.type == "image" || message.type == "video" || message.type == "post"
-                        
-                        if isOutgoing && isMediaType {
-                            return false
-                        }
-                    }
-                    
-                    return true
-                }
-                
-                let updatedMessages = addShowDatePropertyToMessages(messages: filteredMessages)
+
+                let updatedMessages = addShowDatePropertyToMessages(messages: messages)
                 
                 if refresh {
                     // Preserving local pending messages (those with clientMessageID but no server messageID yet)
-                    let pendingMessages = self.messages.filter { $0.clientMessageID != nil && $0.messageID == nil }
+                    var pendingMessages = self.messages.filter { $0.clientMessageID != nil && $0.messageID == nil }
                     
-                    // Filter out any messages from updatedMessages that were already in pendingMessages to avoid duplicates if server is fast
-                    let filteredUpdated = updatedMessages.filter { serverMsg in
-                        !pendingMessages.contains(where: { $0.clientMessageID == serverMsg.clientMessageID })
+                    // Merge server-confirmed data into pending optimistic items using clientMessageID.
+                    var pendingIndexByClientID: [String: Int] = [:]
+                    for (idx, msg) in pendingMessages.enumerated() {
+                        if let key = (msg.clientMessageID ?? msg.id), !key.isEmpty {
+                            pendingIndexByClientID[key] = idx
+                        }
+                    }
+
+                    var filteredUpdated: [PrivateMessage] = []
+                    filteredUpdated.reserveCapacity(updatedMessages.count)
+
+                    for serverMsg in updatedMessages {
+                        if let key = (serverMsg.clientMessageID ?? serverMsg.id), !key.isEmpty,
+                           let idx = pendingIndexByClientID[key] {
+                            pendingMessages[idx] = self.mergePending(pendingMessages[idx], with: serverMsg)
+                        } else {
+                            filteredUpdated.append(serverMsg)
+                        }
                     }
                     
                     self.messages = pendingMessages + filteredUpdated
@@ -190,36 +184,42 @@ class ChatViewModel: ObservableObject {
                                 message.sentByMe = 1
                             }
 
-                            if isFromRecipient && suppressNextOutgoingEcho {
-                                suppressNextOutgoingEcho = false
-                                return
-                            }
-                            
-                            if isEchoFromMe && suppressNextOutgoingEcho {
-                                suppressNextOutgoingEcho = false
-                                return
-                            }
-
-                            if let blockStart = sharePostBlockStartTime, 
-                               Date().timeIntervalSince(blockStart) < 10.0 {
-                                let isMediaType = message.type == "image" || message.type == "video" || message.type == "post"
-                                if isMediaType {
-                                    return
-                                }
-                            }
-                            
-                            // No more URL-based filtering here. clientID matching below handles it.
-                            
-                            if let clientID = message.clientMessageID ?? message.id,
-                               let index = messages.firstIndex(where: { $0.clientMessageID == clientID || $0.id == clientID }) {
+                            // Prefer merging into an optimistic message by clientMessageID when present.
+                            let clientKey = message.clientMessageID ?? message.id
+                            if let clientKey, let index = messages.firstIndex(where: {
+                                ($0.clientMessageID ?? $0.id) == clientKey
+                            }) {
                                 // Update existing optimistic message with server data
-                                var updated = message
-                                updated.showDate = messages[index].showDate
-                                // Preserve local properties that might be missing from server echo
-                                if updated.isUploading == nil {
-                                    updated.isUploading = false
+                                var existing = messages[index]
+                                if let serverID = message.messageID, !serverID.isEmpty {
+                                    existing.messageID = serverID
                                 }
-                                messages[index] = updated
+                                existing.isUploading = false
+                                if let mediaUrl = message.mediaUrl {
+                                    existing.mediaUrl = mediaUrl
+                                }
+                                if let thumbnailUrl = message.thumbnailUrl {
+                                    existing.thumbnailUrl = thumbnailUrl
+                                }
+                                // Preserve local properties like thumbnail UIImage
+                                existing.sentByMe = isEchoFromMe ? 1 : existing.sentByMe
+                                existing.showDate = messages[index].showDate
+                                messages[index] = existing
+
+                                // If this was a shared-post send, unlock once the server confirms it.
+                                if let active = self.activeShareClientMessageID, active == clientKey {
+                                    self.isSharingPost = false
+                                    self.activeShareClientMessageID = nil
+                                }
+                            } else if let serverMessageID = message.messageID, !serverMessageID.isEmpty,
+                                      let index = messages.firstIndex(where: { ($0.messageID ?? "") == serverMessageID }) {
+                                // We already have this server message; update fields if needed (idempotent).
+                                var existing = messages[index]
+                                existing.isUploading = false
+                                if let mediaUrl = message.mediaUrl { existing.mediaUrl = mediaUrl }
+                                if let thumbnailUrl = message.thumbnailUrl { existing.thumbnailUrl = thumbnailUrl }
+                                existing.sentByMe = isEchoFromMe ? 1 : existing.sentByMe
+                                messages[index] = existing
                             } else {
                                 if let first = messages.first {
                                     let hasChanged = hasDateChanged(from: message.createdAt ?? "", to: first.createdAt ?? "")
@@ -253,18 +253,26 @@ class ChatViewModel: ObservableObject {
         $photoPickerItems
             .sink { [weak self] pickerItems in
                 guard let self else { return }
-                guard let firstItem = pickerItems.first else { return }
+                guard !pickerItems.isEmpty else { return }
 
-                // Insert the "sending" bubble immediately (especially important for videos,
-                // since `loadTransferable` can take a moment to export/move the asset).
-                let clientID = UUID().uuidString
+                let items = pickerItems
+                // Clear selection immediately so a second pick won't re-process the same array.
                 Task { @MainActor [weak self] in
-                    self?.insertPendingMediaMessage(for: firstItem, clientID: clientID)
                     self?.photoPickerItems.removeAll()
                 }
 
-                Task { [weak self] in
-                    await self?.processPickedMediaItem(firstItem, clientID: clientID)
+                for item in items {
+                    let clientID = UUID().uuidString
+
+                    // Insert the "sending" bubble immediately (especially important for videos).
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        self.insertPendingMediaMessage(for: item, clientID: clientID)
+                    }
+
+                    Task { [weak self] in
+                        await self?.processPickedMediaItem(item, clientID: clientID)
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -306,8 +314,10 @@ class ChatViewModel: ObservableObject {
                         let media = MessageMedia(id: randomID, type: .file(data))
                         let parameters: [String: Any] = [
                             "username": username,
+                            "userID": userID,
                             "message": url.lastPathComponent,
                             "messageType": "pdf",
+                            "clientMessageID": randomID
                         ]
                         
                         sendMediaMessage(media: [media], parameters: parameters)
@@ -460,6 +470,41 @@ class ChatViewModel: ObservableObject {
         return datePart1 != datePart2
     }
     
+    private func mergePending(_ pending: PrivateMessage, with server: PrivateMessage) -> PrivateMessage {
+        // Keep the local `id` stable (it's what ScrollView uses as identity), but fill in
+        // server-backed fields like `messageID`, `createdAt`, media URLs, edit/delete flags, etc.
+        return PrivateMessage(
+            id: pending.id,
+            createdAt: server.createdAt ?? pending.createdAt,
+            isSeen: server.isSeen ?? pending.isSeen,
+            content: server.content ?? pending.content,
+            sentByMe: pending.sentByMe ?? server.sentByMe,
+            type: server.type ?? pending.type,
+            messageID: server.messageID ?? pending.messageID,
+            clientMessageID: pending.clientMessageID ?? server.clientMessageID,
+            isEdited: server.isEdited ?? pending.isEdited,
+            editedAt: server.editedAt ?? pending.editedAt,
+            isDeleted: server.isDeleted ?? pending.isDeleted,
+            deletedAt: server.deletedAt ?? pending.deletedAt,
+            mediaUrl: server.mediaUrl ?? pending.mediaUrl,
+            thumbnailUrl: server.thumbnailUrl ?? pending.thumbnailUrl,
+            mediaID: server.mediaID ?? pending.mediaID,
+            postID: server.postID ?? pending.postID,
+            postOwnerID: server.postOwnerID ?? pending.postOwnerID,
+            isSharedPost: server.isSharedPost ?? pending.isSharedPost,
+            from: server.from ?? pending.from,
+            to: server.to ?? pending.to,
+            thumbnail: pending.thumbnail,
+            hasUploaded: server.hasUploaded ?? pending.hasUploaded,
+            isUploading: false,
+            uploadProgress: nil,
+            isRemotePDF: pending.isRemotePDF,
+            isURL: pending.isURL,
+            showDate: pending.showDate,
+            pdfData: pending.pdfData
+        )
+    }
+    
     
     // parsePhotoPickerItem no longer used (kept logic in `processPickedMediaItem`).
 
@@ -522,8 +567,10 @@ class ChatViewModel: ObservableObject {
             let media = MessageMedia(id: clientID, type: .video(UIImage(), videoURL))
             let parameters: [String: Any] = [
                 "username": username,
+                "userID": userID,
                 "message": "Video",
                 "messageType": "video",
+                "clientMessageID": clientID
             ]
             await MainActor.run {
                 sendMediaMessage(media: [media], parameters: parameters)
@@ -551,8 +598,10 @@ class ChatViewModel: ObservableObject {
             let media = MessageMedia(id: clientID, type: .photo(image))
             let parameters: [String: Any] = [
                 "username": username,
+                "userID": userID,
                 "message": "Image",
                 "messageType": "image",
+                "clientMessageID": clientID
             ]
             await MainActor.run {
                 sendMediaMessage(media: [media], parameters: parameters)
@@ -825,11 +874,11 @@ class ChatViewModel: ObservableObject {
             ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
             return
         }
-        // IMPORTANT:
-        // If the server doesn't reliably support lookup by `clientMessageID`,
-        // emitting edit/delete before we have the Mongo `_id` will produce "Message not found".
-        // So we only emit immediately when we have a real server id.
-        let serverMessageID = message.messageID
+        // Production behavior: only allow edits once the server `_id` exists.
+        guard let serverMessageID = message.messageID, !serverMessageID.isEmpty else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Message is still sending. Please try again in a moment.")
+            return
+        }
         
         // Optimistic update
         if let index = findMessageIndex(messageID: message.messageID, clientMessageID: message.clientMessageID ?? message.id) {
@@ -862,20 +911,7 @@ class ChatViewModel: ObservableObject {
             )
         }
         
-        if let serverMessageID, !serverMessageID.isEmpty {
-            socketViewModel.editMessage(messageID: serverMessageID, message: newText)
-        }
-        
-        // Force a refresh so we don't "revert" on navigation if the server is the source of truth.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
-            guard let self else { return }
-            self.socketViewModel.fetchPrivateConversation(username: self.username, pageNumber: 1)
-        }
-        
-        // If this message doesn't have server `_id` yet, retry edit after server has a chance to persist it.
-        if serverMessageID == nil || serverMessageID?.isEmpty == true {
-            retryEditIfNeeded(original: message, newText: newText)
-        }
+        socketViewModel.editMessage(messageID: serverMessageID, message: newText)
     }
     
     private func deleteMessage(_ message: PrivateMessage) {
@@ -883,8 +919,11 @@ class ChatViewModel: ObservableObject {
             ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
             return
         }
-        // See note in submitEdit: avoid emitting delete before server `_id` exists.
-        let serverMessageID = message.messageID
+        // Production behavior: only allow deletes once the server `_id` exists.
+        guard let serverMessageID = message.messageID, !serverMessageID.isEmpty else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Message is still sending. Please try again in a moment.")
+            return
+        }
         
         // Optimistic update
         if let index = findMessageIndex(messageID: message.messageID, clientMessageID: message.clientMessageID ?? message.id) {
@@ -916,115 +955,7 @@ class ChatViewModel: ObservableObject {
             )
         }
         
-        if let serverMessageID, !serverMessageID.isEmpty {
-            socketViewModel.deleteMessage(messageID: serverMessageID)
-        }
-        
-        // Force a refresh so we don't "revert" on navigation if the server is the source of truth.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
-            guard let self else { return }
-            self.socketViewModel.fetchPrivateConversation(username: self.username, pageNumber: 1)
-        }
-        
-        // If this message doesn't have server `_id` yet, retry delete after server has a chance to persist it.
-        if serverMessageID == nil || serverMessageID?.isEmpty == true {
-            retryDeleteIfNeeded(original: message)
-        }
-    }
-    
-    // MARK: - Delayed retries (server may not have indexed/stored the message yet)
-    
-    private func retryDeleteIfNeeded(original: PrivateMessage) {
-        guard original.messageID == nil else { return } // already has server id
-        guard let clientID = original.clientMessageID ?? original.id else { return }
-        
-        let key = "delete:\(clientID)"
-        let count = mutationRetryCount[key, default: 0]
-        guard count < 2 else { return } // retry up to 2 times
-        mutationRetryCount[key] = count + 1
-        
-        // Re-fetch to get the server `_id`, then retry using it.
-        socketViewModel.fetchPrivateConversation(username: username, pageNumber: 1)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-            guard let self else { return }
-            if let serverID = self.resolveServerMessageID(for: original, clientID: clientID) {
-                self.socketViewModel.deleteMessage(messageID: serverID)
-            } else {
-                self.retryDeleteIfNeeded(original: original)
-            }
-        }
-    }
-    
-    private func retryEditIfNeeded(original: PrivateMessage, newText: String) {
-        guard original.messageID == nil else { return } // already has server id
-        guard let clientID = original.clientMessageID ?? original.id else { return }
-        
-        let key = "edit:\(clientID)"
-        let count = mutationRetryCount[key, default: 0]
-        guard count < 2 else { return } // retry up to 2 times
-        mutationRetryCount[key] = count + 1
-        
-        socketViewModel.fetchPrivateConversation(username: username, pageNumber: 1)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-            guard let self else { return }
-            if let serverID = self.resolveServerMessageID(for: original, clientID: clientID) {
-                self.socketViewModel.editMessage(messageID: serverID, message: newText)
-            } else {
-                self.retryEditIfNeeded(original: original, newText: newText)
-            }
-        }
-    }
-    
-    private func resolveServerMessageID(for original: PrivateMessage, clientID: String) -> String? {
-        // Preferred: match by `clientMessageID` from server response.
-        if let byClient = socketViewModel.privateMessagesList.first(where: { ($0.clientMessageID == clientID) || ($0.id == clientID) }),
-           let serverID = byClient.messageID,
-           !serverID.isEmpty {
-            return serverID
-        }
-        
-        // Fallback: some backend responses may omit `clientMessageID` in fetch conversations.
-        // Try matching by (sentByMe, type, content, createdAt proximity).
-        let originalContent = original.content ?? ""
-        let originalType = original.type ?? ""
-        let originalDate = isoDate(original.createdAt)
-        
-        let candidates = socketViewModel.privateMessagesList.filter { msg in
-            guard msg.sentByMe == 1 else { return false }
-            guard (msg.type ?? "") == originalType else { return false }
-            // Avoid matching already-deleted placeholders
-            if msg.isDeleted == true { return false }
-            return (msg.content ?? "") == originalContent
-        }
-        
-        if let originalDate {
-            // Pick the closest in time within ~20 seconds.
-            var best: (id: String, delta: TimeInterval)? = nil
-            for msg in candidates {
-                guard let serverID = msg.messageID, !serverID.isEmpty else { continue }
-                guard let msgDate = isoDate(msg.createdAt) else { continue }
-                let delta = abs(msgDate.timeIntervalSince(originalDate))
-                if delta <= 20 {
-                    if best == nil || delta < best!.delta {
-                        best = (serverID, delta)
-                    }
-                }
-            }
-            return best?.id
-        } else {
-            // If we can't parse dates, just take the newest matching content/type.
-            return candidates.first?.messageID
-        }
-    }
-    
-    private func isoDate(_ iso: String?) -> Date? {
-        guard let iso, !iso.isEmpty else { return nil }
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: iso) { return d }
-        // Some payloads may not have fractional seconds.
-        f.formatOptions = [.withInternetDateTime]
-        return f.date(from: iso)
+        socketViewModel.deleteMessage(messageID: serverMessageID)
     }
     
     private func applyEditUpdate(_ update: SocketMessageEditUpdate) {
@@ -1103,29 +1034,18 @@ class ChatViewModel: ObservableObject {
     }
     
     func sharePostViaDM(postData: PostData, caption: String? = nil) {
-        sharingLock.lock()
-        defer { sharingLock.unlock() }
-        
-        guard !isSharingPost else {
+        guard socketViewModel.isConnected else {
+            ErrorModalManager.showErrorModal(router: router, errorText: "Connection lost. Please try again.")
             return
         }
         
-        // Allow sharing the same post again if enough time has passed (15 seconds total)
-        if let postID = postData.id, 
-           postID == lastSharedPostID,
-           let blockStartTime = sharePostBlockStartTime,
-           Date().timeIntervalSince(blockStartTime) < 15.0 {
-            return
-        }
-        
+        // Prevent accidental double-taps until we receive server confirmation.
+        guard !isSharingPost else { return }
         isSharingPost = true
-        sharePostBlockStartTime = Date()
-        lastSharedPostID = postData.id
         
         guard let mediaRefs = postData.mediaRef, 
               !mediaRefs.isEmpty else {
             isSharingPost = false
-            sharePostBlockStartTime = nil
             return
         }
         
@@ -1141,7 +1061,6 @@ class ChatViewModel: ObservableObject {
               let mediaID = firstMedia.id,
               let mediaUrl = firstMedia.sourceURL else {
             isSharingPost = false
-            sharePostBlockStartTime = nil
             return
         }
         
@@ -1155,19 +1074,8 @@ class ChatViewModel: ObservableObject {
         let thumbnailUrl = firstMedia.thumbnailURL ?? (messageType == "image" ? mediaUrl : nil)
         let messageText = caption ?? postData.content ?? "Check this out!"
         
-        var allPostMediaURLs = Set<String>()
-        allPostMediaURLs.insert(mediaUrl)
-        
-        for media in mediaRefs {
-            if let url = media.sourceURL {
-                allPostMediaURLs.insert(url)
-            }
-        }
-        
-        recentlySentMediaURLs.insert(mediaUrl)
-        recentlySharedPostMediaURLs.formUnion(allPostMediaURLs)
-        
         let clientMessageID = UUID().uuidString
+        activeShareClientMessageID = clientMessageID
         var localMessage = PrivateMessage(
             id: clientMessageID,
             createdAt: DateManager.dateIntoIsoFormat(date: Date()),
@@ -1215,15 +1123,13 @@ class ChatViewModel: ObservableObject {
         ]
         
         socketViewModel.sendMessage(parameters: parameters)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
-            guard let self = self else { return }
-            self.recentlySentMediaURLs.remove(mediaUrl)
-            self.recentlySharedPostMediaURLs.subtract(allPostMediaURLs)
-            self.isSharingPost = false
-            self.sharePostBlockStartTime = nil
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                self.lastSharedPostID = nil
+
+        // Safety: if the server never echoes back, unlock after a timeout.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 15.0) { [weak self] in
+            guard let self else { return }
+            if self.activeShareClientMessageID == clientMessageID {
+                self.isSharingPost = false
+                self.activeShareClientMessageID = nil
             }
         }
     }
@@ -1239,6 +1145,7 @@ class ChatViewModel: ObservableObject {
             cancellable.cancel()
         }
         cancellables.removeAll()
+        hasActiveSubscribers = false
     }
     
     

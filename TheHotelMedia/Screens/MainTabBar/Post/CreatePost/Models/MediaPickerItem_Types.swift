@@ -17,11 +17,17 @@ struct VideoPickerTransferable: Transferable {
         } importing: { receivedTransferredFile in
             let originalFile = receivedTransferredFile.file
             let fileExtension = originalFile.pathExtension.lowercased()
-            let uniqueFileName = "videoPicker.\(fileExtension)" // Use the extracted extension
+            let uniqueFileName = "videoPicker-\(UUID().uuidString).\(fileExtension)"
             
-            let copiedFile = URL.documentsDirectory.appendingPathComponent(uniqueFileName)
+            // Store in Caches (ephemeral) to avoid accumulating files in Documents.
+            let cachesDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+            let pickerDir = cachesDir.appendingPathComponent("PickedMedia", isDirectory: true)
+            if !FileManager.default.fileExists(atPath: pickerDir.path) {
+                try FileManager.default.createDirectory(at: pickerDir, withIntermediateDirectories: true, attributes: nil)
+            }
+            let copiedFile = pickerDir.appendingPathComponent(uniqueFileName)
             
-            // Remove existing file if it exists
+            // Remove existing file if it exists (shouldn't, but keep safe).
             if FileManager.default.fileExists(atPath: copiedFile.path) {
                 try FileManager.default.removeItem(at: copiedFile)
             }

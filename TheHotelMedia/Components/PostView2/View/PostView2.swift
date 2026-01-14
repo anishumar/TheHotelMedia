@@ -522,9 +522,7 @@ struct PostView2<Content: View>: View {
                         lastScreen: "share"
                     )
                     
-                    chatViewModel.pendingPostToShare = postToShare
-                    
-                    return ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
+                    ChatView(viewModel: chatViewModel, onLeaveChat: { _ in
                         SocketIOViewModel.shared.leavePrivateChatEmit(user: username)
                         // Reset navigation flag when leaving chat
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -534,10 +532,7 @@ struct PostView2<Content: View>: View {
                     .environmentObject(ThemeManager.shared)
                     .navigationBarBackButtonHidden()
                     .onAppear {
-                        if let postToShare = chatViewModel.pendingPostToShare {
-                            chatViewModel.sharePostViaDM(postData: postToShare)
-                            chatViewModel.pendingPostToShare = nil
-                        }
+                        chatViewModel.sharePostViaDM(postData: postToShare)
                     }
                     .onDisappear {
                         // Reset navigation flag when chat view disappears
