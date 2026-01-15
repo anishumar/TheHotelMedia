@@ -660,6 +660,12 @@ class CameraViewController: UIViewController {
     }
     
     private func stopSession() {
+        // Never stop the session if we're actively recording
+        guard !isRecording else {
+            print("⚠️ Attempted to stop session during recording - prevented")
+            return
+        }
+        
         // Use a synchronous dispatch group to ensure cleanup completes
         let group = DispatchGroup()
         group.enter()
@@ -675,9 +681,15 @@ class CameraViewController: UIViewController {
     }
 
     @objc private func appWillResignActive() {
-        // If the camera view is visible and the app is backgrounding/interrupted, stop the session.
-        shouldResumeSessionOnForeground = isViewLoaded && view.window != nil
-        stopSession()
+        // Don't stop the session if we're actively recording - keep recording going
+        // Only stop the session if we're not recording
+        if !isRecording {
+            shouldResumeSessionOnForeground = isViewLoaded && view.window != nil
+            stopSession()
+        } else {
+            // If recording, just mark that we should resume when active (but don't stop session)
+            shouldResumeSessionOnForeground = true
+        }
     }
 
     @objc private func appDidBecomeActive() {
@@ -687,11 +699,19 @@ class CameraViewController: UIViewController {
     }
 
     @objc private func sessionWasInterrupted(_ notification: Notification) {
-        // Treat interruption like backgrounding; we'll resume when it ends/when app becomes active.
-        shouldResumeSessionOnForeground = true
+        // Don't stop recording if we're actively recording
+        // The session interruption might be temporary (e.g., phone call, notification)
+        // We should try to keep recording if possible
+        if !isRecording {
+            shouldResumeSessionOnForeground = true
+        }
+        // If recording, the session will handle the interruption automatically
+        // and we'll get sessionInterruptionEnded when it's resolved
     }
 
     @objc private func sessionInterruptionEnded(_ notification: Notification) {
+        // Resume the session if it's not already running
+        // If we were recording, the recording should continue automatically
         startSession()
     }
 
