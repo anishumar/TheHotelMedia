@@ -1213,60 +1213,16 @@ class ChatViewModel: ObservableObject {
         }
     }
     
-    // Open a shared post "in feed" (like Android's UserPostsViewer): photos list or reels for videos.
+    // Open a shared post in the feed (SinglePostView) instead of photo/video viewer
     func openSharedPostInFeed(from message: PrivateMessage) {
-        let initialMediaID = message.mediaID
-        let type = (message.type ?? "").lowercased()
-        
-        // Prefer explicit owner id when backend provides it
-        if let ownerID = message.postOwnerID, !ownerID.isEmpty {
-            openViewer(ownerID: ownerID, type: type, initialMediaID: initialMediaID)
-            return
-        }
-        
-        // Backend currently sends `postID` but not `postOwnerID`.
-        // Resolve owner by fetching the post once.
+        // Get the postID from the message
         guard let postID = message.postID, !postID.isEmpty else { return }
         
-        Task { [weak self] in
-            guard let self else { return }
-            do {
-                let result = try await SinglePostDataManager().getSinglePost(id: postID)
-                let ownerID = result.data?.userID ?? result.data?.postedBy?.id
-                
-                await MainActor.run {
-                    guard let ownerID, !ownerID.isEmpty else {
-                        // Fallback to single post view if we couldn't resolve the owner feed.
-                        self.showSharePostView(postID: postID, sharedByID: "")
-                        return
-                    }
-                    self.openViewer(ownerID: ownerID, type: type, initialMediaID: initialMediaID)
-                }
-            } catch {
-                await MainActor.run {
-                    // If post fetch fails, fallback to single post view.
-                    self.showSharePostView(postID: postID, sharedByID: "")
-                }
-            }
-        }
-    }
-    
-    private func openViewer(ownerID: String, type: String, initialMediaID: String?) {
-        if type == "video" {
-            router.showScreen(.push) { router in
-                ProfileVideoDetailView(userProfileID: ownerID, initialMediaID: initialMediaID, profileData: nil)
-                    .environmentObject(ThemeManager.shared)
-                    .environmentObject(LocalizationManager.shared)
-                    .navigationBarBackButtonHidden()
-            }
-        } else {
-            router.showScreen(.push) { router in
-                ProfilePhotoDetailView(userProfileID: ownerID, initialMediaID: initialMediaID, profileData: nil, preloadedPhotos: nil)
-                    .environmentObject(ThemeManager.shared)
-                    .environmentObject(LocalizationManager.shared)
-                    .navigationBarBackButtonHidden()
-            }
-        }
+        // Get the sharedByID if available (from the message sender)
+        let sharedByID = message.from ?? ""
+        
+        // Open the post in SinglePostView (feed view) instead of photo/video viewer
+        showSharePostView(postID: postID, sharedByID: sharedByID)
     }
     
     func showCreateReviewScreen(id: String? = nil, placeID: String? = nil) {

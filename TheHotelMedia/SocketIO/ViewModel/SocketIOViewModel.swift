@@ -53,13 +53,20 @@ class SocketIOViewModel: ObservableObject {
     @AppStorage("username") var username: String = ""
     @AppStorage("lastConnectedUser") var lastConnectedUser: String = ""
     @AppStorage("appIsActive") var appIsActive: Bool = true
+    @AppStorage("ownUserID") var ownUserID: String = ""
     
     func configureSocket(onConnected: (() -> Void)? = nil) {
         
         guard appIsActive else { return }
         
         let currentConnectUser = username
-        let payload: [String: Any] = ["username": currentConnectUser]
+        var payload: [String: Any] = ["username": currentConnectUser]
+        
+        // Add userID to the socket handshake (Option 1: Recommended)
+        // This will be available in socket.handshake.auth.userID on the backend
+        if !ownUserID.isEmpty {
+            payload["userID"] = ownUserID
+        }
         
         // If the logged-in username changed, tear down the previous socket completely.
         if configuredUsername != currentConnectUser, let existing = socketManager?.defaultSocket {
@@ -71,17 +78,40 @@ class SocketIOViewModel: ObservableObject {
         configuredUsername = currentConnectUser
         
         if socketManager == nil {
-            let config = SocketIOClientConfiguration(
-                arrayLiteral:
-                    .log(false),
-                    .compress,
-                    .reconnects(true),
-                    .reconnectAttempts(-1),
-                    .reconnectWait(1),
-                    .reconnectWaitMax(5),
-                    .forceWebsockets(true)
-            )
-            socketManager = SocketManager(socketURL: URL.baseURL, config: config)
+            // Build connectParams with userID as query parameter (Option 2: Fallback)
+            // This will be available in socket.handshake.query.userID on the backend
+            var connectParams: [String: String] = [:]
+            if !ownUserID.isEmpty {
+                connectParams["userID"] = ownUserID
+            }
+            
+            // Build configuration options
+            if !connectParams.isEmpty {
+                let config = SocketIOClientConfiguration(
+                    arrayLiteral:
+                        .log(false),
+                        .compress,
+                        .reconnects(true),
+                        .reconnectAttempts(-1),
+                        .reconnectWait(1),
+                        .reconnectWaitMax(5),
+                        .forceWebsockets(true),
+                        .connectParams(connectParams)
+                )
+                socketManager = SocketManager(socketURL: URL.baseURL, config: config)
+            } else {
+                let config = SocketIOClientConfiguration(
+                    arrayLiteral:
+                        .log(false),
+                        .compress,
+                        .reconnects(true),
+                        .reconnectAttempts(-1),
+                        .reconnectWait(1),
+                        .reconnectWaitMax(5),
+                        .forceWebsockets(true)
+                )
+                socketManager = SocketManager(socketURL: URL.baseURL, config: config)
+            }
         }
         
         guard let socket = socketManager?.defaultSocket else { return }
