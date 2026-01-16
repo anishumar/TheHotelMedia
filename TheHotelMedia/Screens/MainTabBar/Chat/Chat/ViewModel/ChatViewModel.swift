@@ -50,6 +50,7 @@ class ChatViewModel: ObservableObject {
     var refresh: Bool = true
     var gotInitialData: Bool = false
     private var hasActiveSubscribers: Bool = false
+    var isNavigatingAway: Bool = false // Track if we're navigating away temporarily
     
     // Prevent accidental double-tap sending for "share post" action.
     private var isSharingPost: Bool = false
@@ -137,8 +138,34 @@ class ChatViewModel: ObservableObject {
         socketViewModel.$privateMessagesList
             .sink { [weak self] messages in
                 guard let self else { return }
+                
+                // Filter messages to only include those from the current conversation
+                // This prevents showing messages from other chats when navigating back from a post
+                let filteredMessages: [PrivateMessage]
+                if !self.messages.isEmpty {
+                    // We have existing messages, so filter to prevent cross-conversation contamination
+                    filteredMessages = messages.filter { message in
+                        // If from/to fields are missing, include the message (likely from current conversation)
+                        guard let from = message.from, let to = message.to else {
+                            return true
+                        }
+                        // Message is from the current chat user OR it's an echo from me to this user
+                        let isFromRecipient = from == self.username
+                        let isEchoFromMe = from == self.socketViewModel.username && to == self.username
+                        return isFromRecipient || isEchoFromMe
+                    }
+                    
+                    // If we have existing messages but filtered list is empty, this is likely from another chat
+                    // Preserve our existing messages instead of clearing them
+                    if filteredMessages.isEmpty {
+                        return
+                    }
+                } else {
+                    // Initial load - trust the server response
+                    filteredMessages = messages
+                }
 
-                let updatedMessages = addShowDatePropertyToMessages(messages: messages)
+                let updatedMessages = addShowDatePropertyToMessages(messages: filteredMessages)
                 
                 if refresh {
                     // Preserving local pending messages (those with clientMessageID but no server messageID yet)
@@ -1198,10 +1225,18 @@ class ChatViewModel: ObservableObject {
     
     
     func showSharePostView(postID: String, sharedByID: String) {
+        // Mark that we're navigating away temporarily to preserve messages
+        isNavigatingAway = true
         router.showScreen(.push) { router in
             SinglePostView(viewModel: SinglePostViewModel(router: router, postID: postID, sharedByID: sharedByID), isPaused: .constant(false))
                 .environmentObject(ThemeManager.shared)
                 .navigationBarBackButtonHidden()
+                .onDisappear {
+                    // Reset flag when coming back from post
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.isNavigatingAway = false
+                    }
+                }
         }
     }
     
@@ -1220,6 +1255,9 @@ class ChatViewModel: ObservableObject {
         
         // Get the sharedByID if available (from the message sender)
         let sharedByID = message.from ?? ""
+        
+        // Preserve messages by not clearing chat when navigating to post
+        // This will be handled by the ChatView's clearChat flag
         
         // Open the post in SinglePostView (feed view) instead of photo/video viewer
         showSharePostView(postID: postID, sharedByID: sharedByID)

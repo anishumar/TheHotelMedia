@@ -18,17 +18,13 @@ struct THMStoryDetailView2: View {
     @Binding var onDrag: Bool
     @State var model: THMStoryUIModel
     @State var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
-    @State var timerProgress: CGFloat = 0
-    @State var videoPaused: Bool = false
     @State var onChangeStory: Bool = false
     @State var watchingCurrentUser: Bool = false
-    @State var loadingVideo: Bool = false
-    @State var stopProgress: Bool = false
     @State var currentStoryIndex: Int = 0
     @State var totalStories: Int = 1
-    @State var currentStoryDuration: Double = 15
     @State var currentStoryProgress: Float = 0
-    @State var toIncreaseProgress: Double = 0
+    @State var currentStoryDuration: Double = 15
+    @StateObject private var playerManager = StoryPlayerManager()
     
     
     let userClosure: THMUserCompletionHandler?
@@ -40,23 +36,9 @@ struct THMStoryDetailView2: View {
     
     // MARK: Private Properties
     @StateObject private var keyboardManager = KeyboardManager2()
-    @State private var state: THMMediaState = .notStarted
-    @State private var player = AVPlayer()
-    @State private var animate = false
-    @State private var selectedEmoji = ""
-    @State private var startAnimate = false
-    @State private var isTimerRunning: Bool = false
-    @State private var isAnimationStarted: Bool = false
-    @State private var isTapDisabled: Bool = false
-    @State private var showEmoji: Bool = true
-    @State private var showBlockModalView: Bool = false
     @State private var messageFieldText: String = ""
     @State private var hideProfile: Bool = false
-    @State private var manualPaused: Bool = false
     @State private var longPressStarted: Bool = false
-    @GestureState private var longPress: Bool = false
-    
-    @State private var longPressTask: Task<Void, Never>?
     
     private var messageViewPosition: CGFloat {
         return -keyboardManager.currentHeight
@@ -72,31 +54,32 @@ struct THMStoryDetailView2: View {
     
     var body: some View {
         GeometryReader { proxy in
+            storyContentView(proxy: proxy)
+        }
+    }
+    
+    @ViewBuilder
+    private func storyContentView(proxy: GeometryProxy) -> some View {
+        let story = model.stories[currentStoryIndex]
+        VStack {
             VStack {
-                let story = model.stories[currentStoryIndex]
-                VStack {
-                    if story.config.mediaType == .image {
-                        storyImageView(urlString: story.mediaURL)
-                            .id(onChangeStory)
-                    } else {
-                        storyVideoView(urlString: story.mediaURL)
-                            .id(onChangeStory)
-                    }
+                if story.config.mediaType == .image {
+                    storyImageView(urlString: story.mediaURL)
+                        .id(onChangeStory)
+                } else {
+                    storyVideoView(urlString: story.mediaURL)
+                        .id(onChangeStory)
                 }
+            }
                 .sheet(isPresented: $detailViewModel.showStoryLikes, onDismiss: {
-                    startVideo()
+                    resumePlayback()
                 }, content: {
                     if #available(iOS 16.4, *) {
                         StorySeenView(viewModel: StorySeenViewModel(storyID: story.id), onPressedProfile: { userID in
+                            pausePlayback()
                             detailViewModel.navigatingToProfile = true
                             detailViewModel.showStoryLikes.toggle()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2 ) {
-                                stopVideo()
-                                resetPlayer()
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4 ) {
-                                detailViewModel.showStoryUserProfile(id: userID)
-                            }
+                            detailViewModel.showStoryUserProfile(id: userID)
                         })
                         .environmentObject(themeManager)
                         .presentationDetents([.fraction(0.8)])
@@ -105,15 +88,10 @@ struct THMStoryDetailView2: View {
                         .ignoresSafeArea()
                     } else {
                         StorySeenView(viewModel: StorySeenViewModel(storyID: story.id), onPressedProfile: { userID in
+                            pausePlayback()
                             detailViewModel.navigatingToProfile = true
                             detailViewModel.showStoryLikes.toggle()
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2 ) {
-                                stopVideo()
-                                resetPlayer()
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4 ) {
-                                detailViewModel.showStoryUserProfile(id: userID)
-                            }
+                            detailViewModel.showStoryUserProfile(id: userID)
                         })
                         .environmentObject(themeManager)
                         .presentationDetents([.fraction(0.8)])
@@ -122,7 +100,7 @@ struct THMStoryDetailView2: View {
                     }
                 })
                 .overlay {
-                    CustomProgressView(showIndicator: $loadingVideo)
+                    CustomProgressView(showIndicator: $playerManager.isLoading)
                 }
                 .overlay {
                     tapStoryOverlayView
@@ -143,41 +121,43 @@ struct THMStoryDetailView2: View {
                 .overlay(alignment: .bottom) {
                     bottomSection(story: story)
                 }
-            }
             .onReceive(viewModel.$currentStoryUser) { id in
                 if id == model.id {
                     watchingCurrentUser = true
+                    startCurrentStory()
                 } else {
-                    stopVideo()
-                    resetPlayer()
+                    pausePlayback()
                     watchingCurrentUser = false
                 }
             }
             .onReceive(timer, perform: { _ in
-                if !stopProgress {
-                    currentStoryProgress += Float(toIncreaseProgress)
-                    
-                    if currentStoryProgress >= 100 {
-                        tapNextStory()
-                    }
-                }
+                updateImageProgress()
             })
-            .onReceive(keyboardManager.$isKeyboardOpen, perform: { value in
-                if value {
-                    stopVideo()
+            .onReceive(keyboardManager.$isKeyboardOpen) { isOpen in
+                if isOpen {
+                    pausePlayback()
                 } else {
-                    startVideo()
+                    resumePlayback()
                 }
-            })
+            }
+            .onReceive(playerManager.$progress) { progress in
+                currentStoryProgress = progress
+                if progress >= 100 {
+                    tapNextStory()
+                }
+            }
+            .onChange(of: currentStoryIndex) { _ in
+                loadCurrentStory()
+            }
             .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    viewModel.currentStoryUser = model.id
-                    currentStoryIndex = 0
-                    totalStories = model.stories.count
-                    configureProgress()
-                    
-
-                }
+                viewModel.currentStoryUser = model.id
+                currentStoryIndex = 0
+                totalStories = model.stories.count
+                setupPlayerCallbacks()
+                loadCurrentStory()
+            }
+            .onDisappear {
+                playerManager.cleanup()
             }
             .rotation3DEffect(
                 getAngle(proxy: proxy),
@@ -185,40 +165,37 @@ struct THMStoryDetailView2: View {
                 anchor: proxy.frame(in: .global).minX > 0 ? .leading : .trailing,
                 perspective: 2.5
             )
-            .onChange(of: onDrag) { newValue in
-                if newValue {
-                    stopVideo()
+            .onChange(of: onDrag) { isDragging in
+                if isDragging {
+                    pausePlayback()
                 } else {
-                    startVideo()
+                    resumePlayback()
                 }
             }
         }
-        
     }
 }
 
 // MARK: - Functions
 extension THMStoryDetailView2 {
     func tapNextStory() {
-        if currentStoryIndex < totalStories - 1{
+        pausePlayback()
+        
+        if currentStoryIndex < totalStories - 1 {
             currentStoryIndex += 1
         } else {
             toNextUser()
         }
-        resetPlayer()
-        onChangeStory.toggle()
-        configureProgress()
     }
     
     func tapPreviousStory() {
+        pausePlayback()
+        
         if currentStoryIndex <= 0 {
             toPreviousUser()
         } else {
             currentStoryIndex -= 1
         }
-        resetPlayer()
-        onChangeStory.toggle()
-        configureProgress()
     }
     
     
@@ -229,36 +206,91 @@ extension THMStoryDetailView2 {
         return Angle(degrees: degrees)
     }
     
-    
-    func configureProgress() {
-        let story = model.stories[currentStoryIndex]
-        
-        currentStoryDuration = story.duration
-        currentStoryProgress = 0
-        toIncreaseProgress = 100 / (currentStoryDuration * 10)
-    }
-    
-    
     func getStory() -> THMStory {
         return model.stories[currentStoryIndex]
     }
     
-    
     func dismiss() {
+        playerManager.cleanup()
         onDismiss?()
-        resetPlayer()
         detailViewModel.dismissScreen()
     }
     
-    
-    func startVideo() {
-        detailViewModel.pauseVideo = false
-        stopProgress = false
+    // MARK: - Playback Control
+    private func setupPlayerCallbacks() {
+        playerManager.onVideoFinished = {
+            DispatchQueue.main.async {
+                tapNextStory()
+            }
+        }
     }
     
-    func stopVideo() {
-        detailViewModel.pauseVideo = true
-        stopProgress = true
+    private func loadCurrentStory() {
+        let story = model.stories[currentStoryIndex]
+        currentStoryDuration = story.duration
+        currentStoryProgress = 0
+        
+        if story.config.mediaType == .video {
+            loadVideoStory(urlString: story.mediaURL)
+        } else {
+            playerManager.cleanup()
+        }
+        
+        onChangeStory.toggle()
+        updateStoryView()
+    }
+    
+    private func startCurrentStory() {
+        let story = model.stories[currentStoryIndex]
+        if story.config.mediaType == .video {
+            playerManager.play()
+        }
+    }
+    
+    private func pausePlayback() {
+        playerManager.pause()
+    }
+    
+    private func resumePlayback() {
+        let story = model.stories[currentStoryIndex]
+        if story.config.mediaType == .video {
+            playerManager.play()
+        }
+    }
+    
+    private func resetCurrentStory() {
+        playerManager.reset()
+        currentStoryProgress = 0
+    }
+    
+    private func loadVideoStory(urlString: String) {
+        guard let encodedUrl = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: encodedUrl) else { return }
+        
+        playerManager.setupPlayer(url: url)
+        
+        // Get actual duration
+        Task {
+            let asset = AVURLAsset(url: url)
+            if let duration = try? await asset.load(.duration) {
+                let durationInSeconds = CMTimeGetSeconds(duration)
+                await MainActor.run {
+                    currentStoryDuration = max(durationInSeconds, 15.0)
+                }
+            }
+        }
+    }
+    
+    private func updateImageProgress() {
+        let story = model.stories[currentStoryIndex]
+        guard story.config.mediaType == .image else { return }
+        
+        let increment = 100.0 / (currentStoryDuration * 10)
+        currentStoryProgress += Float(increment)
+        
+        if currentStoryProgress >= 100 {
+            tapNextStory()
+        }
     }
     
     func toNextUser() {
@@ -271,34 +303,16 @@ extension THMStoryDetailView2 {
         }
     }
     
-    
     func toPreviousUser() {
         if let index = viewModel.stories.firstIndex(where: {$0.id == viewModel.currentStoryUser}) {
             if index > 0 {
                 viewModel.currentStoryUser = viewModel.stories[index - 1].id
-                
             } else {
                 currentStoryIndex = 0
                 onChangeStory.toggle()
             }
         }
     }
-    
-    
-    func resetPlayer() {
-        stopVideo()
-        player.replaceCurrentItem(with: nil)
-        player = AVPlayer()
-    }
-    
-    
-    func updatePlayer() {
-        if let url = URL(string: model.stories[currentStoryIndex].mediaURL) {
-            let playerItem = AVPlayerItem(url: url)
-            player = AVPlayer(playerItem: playerItem)
-        }
-    }
-    
     
     func updateStoryView() {
         guard watchingCurrentUser else { return }
@@ -325,7 +339,7 @@ extension THMStoryDetailView2 {
         }
         
         // Reset player
-        resetPlayer()
+        playerManager.cleanup()
         
         // Navigate to next story or user
         if model.stories.isEmpty {
@@ -353,7 +367,7 @@ extension THMStoryDetailView2 {
             // Reset progress and update view
             currentStoryProgress = 0
             onChangeStory.toggle()
-            configureProgress()
+            loadCurrentStory()
             
             // Notify parent if needed
             onDeleteStory?(deletedIndex)
@@ -375,90 +389,31 @@ extension THMStoryDetailView2 {
                     .resizable()
                     .scaledToFit()
                     .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            loadingVideo = false
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            stopProgress = false
-                            updateStoryView()
-                        }
+                        updateStoryView()
                     }
             } placeholder: {
                 Rectangle()
                     .fill(.black)
             }
         }
-        .onAppear {
-            loadingVideo = true
-        }
     }
     
     
     private func storyVideoView(urlString: String) -> some View {
-        VStack {
-            if let encodedUrlString = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-               let url = URL(string: encodedUrlString) {
-                CustomVideoPlayer(player: player, contentMode: .resizeAspect, backgroundColor: UIColor(themeManager.currentTheme.backgroundColor)) {
-                    player.play()
-                } onTimeControlStatusChange: { status in
-                    switch status {
-                    case .paused:
-                        DispatchQueue.main.async {
-                            stopProgress = true
-                        }
-                    case .waitingToPlayAtSpecifiedRate:
-                        DispatchQueue.main.async {
-                            stopProgress = true
-                            loadingVideo = true
-                        }
-                    case .playing:
-                        DispatchQueue.main.async {
-                            stopProgress = false
-                            loadingVideo = false
-                        }
-                    @unknown default:
-                        break
-                    }
-                }
-                .onReceive(detailViewModel.$pauseVideo) { value in
-                    if value {
-                        player.pause()
-                    } else {
-                        player.play()
-                    }
-                }
-                .onAppear {
-                    let playerItem = AVPlayerItem(url: url)
-                    player = AVPlayer(playerItem: playerItem)
-                    player.automaticallyWaitsToMinimizeStalling = false
-                    
-                    // Get actual video duration and update story duration
-                    Task {
-                        let asset = AVURLAsset(url: url)
-                        let duration = try? await asset.load(.duration)
-                        let durationInSeconds = duration.map { CMTimeGetSeconds($0) } ?? 15.0
-                        
-                        await MainActor.run {
-                            // Use actual video duration, but ensure minimum 15 seconds
-                            let actualDuration = max(durationInSeconds, 15.0)
-                            if actualDuration > currentStoryDuration {
-                                currentStoryDuration = actualDuration
-                                toIncreaseProgress = 100 / (currentStoryDuration * 10)
-                            }
-                        }
-                    }
-                    
-                    updateStoryView()
-                }
-                .onDisappear {
-                    player = AVPlayer()
-                }
+        CustomVideoPlayer(
+            player: playerManager.avPlayer,
+            contentMode: .resizeAspect,
+            backgroundColor: UIColor(themeManager.currentTheme.backgroundColor)
+        ) {
+            playerManager.play()
+        } onTimeControlStatusChange: { _ in
+            // Status handled by playerManager
+        }
+        .onReceive(detailViewModel.$pauseVideo) { shouldPause in
+            if shouldPause {
+                playerManager.pause()
             } else {
-                Text("Error: Invalid Video URL")
-                    .foregroundColor(.white)
-                    .onAppear {
-                        print("❌ Invalid Story Video URL: \(urlString)")
-                    }
+                playerManager.play()
             }
         }
     }
@@ -504,12 +459,12 @@ extension THMStoryDetailView2 {
                 .onLongPressGesture(minimumDuration: 0.3, perform: {
                     
                 }, onPressingChanged: { isPressing in
-                    if !isPressing {
-                        startVideo()
-                        hideProfile = false
-                    } else {
-                        stopVideo()
+                    if isPressing {
+                        pausePlayback()
                         hideProfile = true
+                    } else {
+                        resumePlayback()
+                        hideProfile = false
                     }
                 })
                 .onTapGesture {
@@ -520,12 +475,12 @@ extension THMStoryDetailView2 {
                 .onLongPressGesture(minimumDuration: 0.3, perform: {
                     
                 }, onPressingChanged: { isPressing in
-                    if !isPressing {
-                        startVideo()
-                        hideProfile = false
-                    } else {
-                        stopVideo()
+                    if isPressing {
+                        pausePlayback()
                         hideProfile = true
+                    } else {
+                        resumePlayback()
+                        hideProfile = false
                     }
                 })
                 .onTapGesture {
@@ -557,29 +512,15 @@ extension THMStoryDetailView2 {
                             // Handle story deletion - navigate to next story
                             handleStoryDeletion()
                         } onDismiss: {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2 ) {
-                                startVideo()
-                            }
-                        }
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 ) {
-                            stopVideo()
+                            resumePlayback()
                         }
                     } else {
                         detailViewModel.showProfileOptionsModal(id: model.user.id) {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 ) {
-                                stopVideo()
-                            }
-                            
+                            pausePlayback()
                         } onProfileBlock: {
                             
                         } onDismiss: {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2 ) {
-                                startVideo()
-                            }
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 ) {
-                            stopVideo()
+                            resumePlayback()
                         }
                     }
                 } onDismiss: {
@@ -618,17 +559,13 @@ extension THMStoryDetailView2 {
                             .foregroundColor(.white)
                             .offset(y: story.viewsRef?.isEmpty ?? true ? 0 : -20)
                             .onTapGesture {
+                                pausePlayback()
                                 detailViewModel.showStoryLikes.toggle()
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                    stopVideo()
-                                }
                             }
                     }
                     .onTapGesture {
+                        pausePlayback()
                         detailViewModel.showStoryLikes.toggle()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            stopVideo()
-                        }
                     }
                     .animation(.easeInOut, value: hideProfile)
                 } else {
@@ -795,12 +732,9 @@ extension THMStoryDetailView2 {
             .zIndex(100)
             .opacity(isVideo ? 1.0 : 0.01) // Invisible for images (baked-in), visible for video
             .onTapGesture {
+                pausePlayback()
                 detailViewModel.navigatingToProfile = true
-                stopVideo()
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    detailViewModel.showStoryUserProfile(id: userID)
-                }
+                detailViewModel.showStoryUserProfile(id: userID)
             }
         }
     }

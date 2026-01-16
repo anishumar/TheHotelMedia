@@ -223,6 +223,7 @@
 		04A834E42CD9D53F00854253 /* KeyboardManager2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E32CD9D53F00854253 /* KeyboardManager2.swift */; };
 		04A834E62CD9D65000854253 /* THMVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E52CD9D65000854253 /* THMVideoView.swift */; };
 		04A834E82CD9D69B00854253 /* THMPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E72CD9D69B00854253 /* THMPlayerView.swift */; };
+		04A834FA2CD9D90000854253 /* StoryPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834F92CD9D90000854253 /* StoryPlayerManager.swift */; };
 		04A834EA2CD9D71200854253 /* THMCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E92CD9D71200854253 /* THMCacheManager.swift */; };
 		04A834EC2CD9D7EB00854253 /* THMProgressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834EB2CD9D7EB00854253 /* THMProgressBarView.swift */; };
 		04A834EE2CD9D82F00854253 /* THMUserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834ED2CD9D82F00854253 /* THMUserView.swift */; };
@@ -877,6 +878,7 @@
 		04A834E32CD9D53F00854253 /* KeyboardManager2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardManager2.swift; sourceTree = "<group>"; };
 		04A834E52CD9D65000854253 /* THMVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMVideoView.swift; sourceTree = "<group>"; };
 		04A834E72CD9D69B00854253 /* THMPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMPlayerView.swift; sourceTree = "<group>"; };
+		04A834F92CD9D90000854253 /* StoryPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPlayerManager.swift; sourceTree = "<group>"; };
 		04A834E92CD9D71200854253 /* THMCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMCacheManager.swift; sourceTree = "<group>"; };
 		04A834EB2CD9D7EB00854253 /* THMProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMProgressBarView.swift; sourceTree = "<group>"; };
 		04A834ED2CD9D82F00854253 /* THMUserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMUserView.swift; sourceTree = "<group>"; };
@@ -2511,6 +2513,7 @@
 				04A834E12CD9D39800854253 /* THMImageLoader.swift */,
 				04A834E32CD9D53F00854253 /* KeyboardManager2.swift */,
 				04A834E72CD9D69B00854253 /* THMPlayerView.swift */,
+				04A834F92CD9D90000854253 /* StoryPlayerManager.swift */,
 				04A834E92CD9D71200854253 /* THMCacheManager.swift */,
 			);
 			path = Helper;
@@ -5482,6 +5485,7 @@
 				04E03D6E2D00136D007A510B /* ReportDataManager.swift in Sources */,
 				04A834D62CD9CF6500854253 /* StoryEnums.swift in Sources */,
 				04A834E82CD9D69B00854253 /* THMPlayerView.swift in Sources */,
+				04A834FA2CD9D90000854253 /* StoryPlayerManager.swift in Sources */,
 				04BCA2C72C858B000047C184 /* ChangePasswordView.swift in Sources */,
 				04BD20D72CBFD48F003E49B4 /* SearchProfileDataResponse.swift in Sources */,
 				04DA00D12DC9CEF000EB654C /* GenericPostView2.swift in Sources */,

@@ -160,7 +160,16 @@ struct ChatView: View {
         }
         .onAppear {
             viewModel.addSubscribers()
-            clearChat = true
+            // Reset navigating away flag when view appears
+            viewModel.isNavigatingAway = false
+            // Only set clearChat to true if we're starting fresh (no messages yet)
+            // If we have messages, we're likely coming back from a post, so preserve them
+            if viewModel.messages.isEmpty {
+                clearChat = true
+            } else {
+                // We have messages, so we're coming back - don't clear them
+                clearChat = false
+            }
             if lastConnectedUser != username {
                 viewModel.socketViewModel.configureSocket()
                 print("Re-configuring socket because last connected user is not same as current user.🖐️🖐️🖐️")
@@ -184,8 +193,10 @@ struct ChatView: View {
             
         }
         .onDisappear {
-            viewModel.cancelPublishers()
+            // Don't cancel publishers or clear messages when navigating to a post
+            // Only clean up when actually leaving the chat view
             if clearChat {
+                viewModel.cancelPublishers()
                 viewModel.socketViewModel.privateMessagesList.removeAll()
             }
             // Reset share flags when leaving chat to prevent stuck state
@@ -406,6 +417,7 @@ extension ChatView {
                                         .onTapGesture {
                                             if content.isUploading == true { return }
                                             if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                clearChat = false
                                                 viewModel.openSharedPostInFeed(from: content)
                                             } else if let mediaUrl {
                                                 viewModel.selectedMedia = .image(urlString: mediaUrl)
@@ -434,6 +446,7 @@ extension ChatView {
                                             .onTapGesture {
                                                 if content.isUploading == true { return }
                                                 if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                    clearChat = false
                                                     viewModel.openSharedPostInFeed(from: content)
                                                 } else {
                                                     viewModel.selectedImage = thumbnail
@@ -488,6 +501,7 @@ extension ChatView {
                                                 } else {
                                                     Button(action: {
                                                         if (content.isSharedPost ?? false) || ((content.postID?.isEmpty) == false) {
+                                                            clearChat = false
                                                             viewModel.openSharedPostInFeed(from: content)
                                                         } else if let mediaUrl {
                                                             viewModel.selectedMedia = .video(urlString: mediaUrl)
