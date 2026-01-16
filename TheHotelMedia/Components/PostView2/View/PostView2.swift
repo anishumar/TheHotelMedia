@@ -654,21 +654,13 @@ struct PostView2<Content: View>: View {
                     },
                     onTapMedia: { mediaIndex in
                         let post = posts[index]
-                        if let mediaRef = post.mediaRef,
-                           mediaIndex < mediaRef.count,
-                           mediaRef[mediaIndex].mediaType == "video" {
-                            viewModel.pauseVideoOnNavigate()
-                            viewModel.currentPostIndex = index
-                            viewModel.currentMediaIndex = mediaIndex
-                            onNavigate?()
-                            onVideoTapped?(post, mediaIndex)
-                        } else {
-                            viewModel.pauseVideoOnNavigate()
-                            viewModel.currentPostIndex = index
-                            viewModel.currentMediaIndex = mediaIndex
-                            onNavigate?()
-                            viewModel.showMediaPreview = true
-                        }
+                        viewModel.pauseVideoOnNavigate()
+                        viewModel.currentPostIndex = index
+                        viewModel.currentMediaIndex = mediaIndex
+                        onNavigate?()
+                        // Always open in reels view (Instagram-like behavior)
+                        // Pass both post and media indices for efficient lookup
+                        onVideoTapped?(post, mediaIndex)
                     },
                     onTapReview: { id in
                         onTappedReview?(id)

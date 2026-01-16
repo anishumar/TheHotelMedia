@@ -153,8 +153,16 @@ struct HomeView: View {
         }, onNavigate: {
             refreshHomeData = false
         }, onVideoTapped: { post, mediaIndex in
+            // Find the post index in allPosts
+            let postIndex = viewModel.allPosts.firstIndex(where: { $0.id == post.id })
             let mediaID = post.mediaRef?[mediaIndex].id
-            viewModel.openReels(postID: post.id, mediaID: mediaID)
+            // Open reels starting from this media, including all subsequent media
+            viewModel.openReels(
+                postID: post.id,
+                mediaID: mediaID,
+                clickedPostIndex: postIndex,
+                clickedMediaIndex: mediaIndex
+            )
         })
         .environmentObject(viewModel)
         .background(

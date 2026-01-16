@@ -315,7 +315,8 @@ struct ProfileVideoDetailView: View {
                 url: url,
                 thumbnailURL: thumbnailURL,
                 views: video.views,
-                postData: postData
+                postData: postData,
+                mediaType: "video"
             )
         }
     }

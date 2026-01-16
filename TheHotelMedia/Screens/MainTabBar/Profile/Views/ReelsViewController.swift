@@ -15,6 +15,7 @@ struct Reel {
     let thumbnailURL: URL?
     let views: Int?
     let postData: PostData? // Full post data for details
+    let mediaType: String // "image" or "video"
 }
 
 // MARK: - Delegate Protocol
@@ -73,6 +74,7 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     // Current post data
     private var currentPostID: String?
     private var currentPost: PostData?
+    private var isImageMedia: Bool = false // Track if current media is an image
     weak var delegate: ReelCellDelegate?
     
     var isMuted: Bool = false {
@@ -499,11 +501,6 @@ final class ReelCollectionViewCell: UICollectionViewCell {
         currentPost = reel.postData
         currentPostID = reel.postData?.id
         
-        // Load thumbnail
-        if let thumbnailURL = reel.thumbnailURL {
-            loadThumbnail(from: thumbnailURL)
-        }
-        
         // Set views
         if let views = reel.views {
             viewsLabel.text = formatViews(views)
@@ -517,40 +514,61 @@ final class ReelCollectionViewCell: UICollectionViewCell {
             configurePostDetails(postData)
         }
         
-        // Reset thumbnail visibility
-        thumbnailImageView.isHidden = false
+        // Handle images vs videos
+        isImageMedia = reel.mediaType == "image"
         
-        let asset = AVAsset(url: reel.url)
-        let item = AVPlayerItem(asset: asset)
-        self.playerItem = item
-        
-        // AVQueuePlayer + AVPlayerLooper for smooth looping
-        let queuePlayer = AVQueuePlayer()
-        queuePlayer.isMuted = isMuted
-        self.player = queuePlayer
-        self.looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
-        
-        let pl = AVPlayerLayer(player: queuePlayer)
-        pl.videoGravity = .resizeAspect // Changed to aspect fit to show full content without cropping
-        pl.frame = contentView.bounds
-        pl.backgroundColor = UIColor.black.cgColor // Black background for borders
-        contentView.layer.insertSublayer(pl, at: 1) // Above thumbnail
-        self.playerLayer = pl
-        
-        pl.needsDisplayOnBoundsChange = true
-        
-        // Observe when ready to play
-        item.addObserver(self, forKeyPath: "status", options: [.new, .initial], context: nil)
-        
-        // Check if already ready
-        if item.status == .readyToPlay {
-            DispatchQueue.main.async { [weak self] in
-                self?.thumbnailImageView.isHidden = true
+        if isImageMedia {
+            // For images: load and display the image directly
+            thumbnailImageView.isHidden = false
+            thumbnailImageView.contentMode = .scaleAspectFit
+            loadImage(from: reel.url, into: thumbnailImageView)
+            
+            // Hide player layer if it exists
+            playerLayer?.isHidden = true
+            player?.pause()
+        } else {
+            // For videos: set up video player
+            // Load thumbnail first
+            if let thumbnailURL = reel.thumbnailURL {
+                loadThumbnail(from: thumbnailURL)
             }
-        }
-        
-        if shouldAutoplay {
-            play()
+            
+            // Reset thumbnail visibility (will be hidden when video is ready)
+            thumbnailImageView.isHidden = false
+            
+            let asset = AVAsset(url: reel.url)
+            let item = AVPlayerItem(asset: asset)
+            self.playerItem = item
+            
+            // AVQueuePlayer + AVPlayerLooper for smooth looping
+            let queuePlayer = AVQueuePlayer()
+            queuePlayer.isMuted = isMuted
+            self.player = queuePlayer
+            self.looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
+            
+            let pl = AVPlayerLayer(player: queuePlayer)
+            pl.videoGravity = .resizeAspect // Changed to aspect fit to show full content without cropping
+            pl.frame = contentView.bounds
+            pl.backgroundColor = UIColor.black.cgColor // Black background for borders
+            pl.isHidden = false
+            contentView.layer.insertSublayer(pl, at: 1) // Above thumbnail
+            self.playerLayer = pl
+            
+            pl.needsDisplayOnBoundsChange = true
+            
+            // Observe when ready to play
+            item.addObserver(self, forKeyPath: "status", options: [.new, .initial], context: nil)
+            
+            // Check if already ready
+            if item.status == .readyToPlay {
+                DispatchQueue.main.async { [weak self] in
+                    self?.thumbnailImageView.isHidden = true
+                }
+            }
+            
+            if shouldAutoplay {
+                play()
+            }
         }
     }
     
@@ -702,6 +720,8 @@ final class ReelCollectionViewCell: UICollectionViewCell {
     
     func play() {
         guard !isManuallyPaused else { return }
+        // Only play if it's a video (images don't need playback)
+        guard !isImageMedia else { return }
         player?.play()
         player?.isMuted = isMuted
     }
@@ -1028,7 +1048,8 @@ extension ReelsViewController: ReelCellDelegate {
                 url: updatedReel.url,
                 thumbnailURL: updatedReel.thumbnailURL,
                 views: updatedReel.views,
-                postData: updatedPostData
+                postData: updatedPostData,
+                mediaType: updatedReel.mediaType
             )
             
             // Update the visible cell if it's showing this post

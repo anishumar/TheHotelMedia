@@ -224,6 +224,10 @@
 		04A834E62CD9D65000854253 /* THMVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E52CD9D65000854253 /* THMVideoView.swift */; };
 		04A834E82CD9D69B00854253 /* THMPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E72CD9D69B00854253 /* THMPlayerView.swift */; };
 		04A834FA2CD9D90000854253 /* StoryPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834F92CD9D90000854253 /* StoryPlayerManager.swift */; };
+		04A8350A2CD9DA0000854253 /* PostInteractionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A835092CD9DA0000854253 /* PostInteractionManager.swift */; };
+		04A8350B2CD9DA0100854253 /* UnifiedShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A8350C2CD9DA0200854253 /* UnifiedShareManager.swift */; };
+		04A8350D2CD9DA0300854253 /* UnifiedCommentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A8350E2CD9DA0400854253 /* UnifiedCommentManager.swift */; };
+		04A8350F2CD9DA0500854253 /* UnifiedInteractionButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A835102CD9DA0600854253 /* UnifiedInteractionButtons.swift */; };
 		04A834EA2CD9D71200854253 /* THMCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834E92CD9D71200854253 /* THMCacheManager.swift */; };
 		04A834EC2CD9D7EB00854253 /* THMProgressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834EB2CD9D7EB00854253 /* THMProgressBarView.swift */; };
 		04A834EE2CD9D82F00854253 /* THMUserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04A834ED2CD9D82F00854253 /* THMUserView.swift */; };
@@ -879,6 +883,10 @@
 		04A834E52CD9D65000854253 /* THMVideoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMVideoView.swift; sourceTree = "<group>"; };
 		04A834E72CD9D69B00854253 /* THMPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMPlayerView.swift; sourceTree = "<group>"; };
 		04A834F92CD9D90000854253 /* StoryPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryPlayerManager.swift; sourceTree = "<group>"; };
+		04A835092CD9DA0000854253 /* PostInteractionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostInteractionManager.swift; sourceTree = "<group>"; };
+		04A8350C2CD9DA0200854253 /* UnifiedShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedShareManager.swift; sourceTree = "<group>"; };
+		04A8350E2CD9DA0400854253 /* UnifiedCommentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedCommentManager.swift; sourceTree = "<group>"; };
+		04A835102CD9DA0600854253 /* UnifiedInteractionButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedInteractionButtons.swift; sourceTree = "<group>"; };
 		04A834E92CD9D71200854253 /* THMCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMCacheManager.swift; sourceTree = "<group>"; };
 		04A834EB2CD9D7EB00854253 /* THMProgressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMProgressBarView.swift; sourceTree = "<group>"; };
 		04A834ED2CD9D82F00854253 /* THMUserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = THMUserView.swift; sourceTree = "<group>"; };
@@ -3892,6 +3900,7 @@
 				04D004C12C5378F9009F3976 /* Screens */,
 				044E3AD92C9C2CF400C29D32 /* Networking */,
 				043C894C2CF5A1BE00C85B13 /* SocketIO */,
+				04A835112CD9DA0700854253 /* Services */,
 				04D004CA2C53981D009F3976 /* Utility */,
 				04A98F522C6341240059C5FB /* Helper */,
 				04CD4BC22C6223DE00C7A3C8 /* Extensions */,
@@ -4014,6 +4023,7 @@
 				04D26B702C78653F0015D1AA /* DropDownMenu */,
 				04BA7C5F2C75A218006E51F2 /* InsightCalendar */,
 				04AD163D2C805538001208CA /* Others */,
+				04A835122CD9DA0800854253 /* Interactions */,
 				04BDDAAA2D2EB2C000C1B680 /* GIFView.swift */,
 				04A78C002D38DC3100ED622A /* BlueButton.swift */,
 				04B9E0A42D3A5813004875A9 /* SuggestionCard.swift */,
@@ -4025,6 +4035,24 @@
 				04BDA16C2DD2FDE000FD91AC /* CustomDatePickerView.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		04A835122CD9DA0800854253 /* Interactions */ = {
+			isa = PBXGroup;
+			children = (
+				04A835102CD9DA0600854253 /* UnifiedInteractionButtons.swift */,
+			);
+			path = Interactions;
+			sourceTree = "<group>";
+		};
+		04A835112CD9DA0700854253 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				04A835092CD9DA0000854253 /* PostInteractionManager.swift */,
+				04A8350C2CD9DA0200854253 /* UnifiedShareManager.swift */,
+				04A8350E2CD9DA0400854253 /* UnifiedCommentManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		04D004D02C53AC90009F3976 /* Launch */ = {
@@ -5486,6 +5514,10 @@
 				04A834D62CD9CF6500854253 /* StoryEnums.swift in Sources */,
 				04A834E82CD9D69B00854253 /* THMPlayerView.swift in Sources */,
 				04A834FA2CD9D90000854253 /* StoryPlayerManager.swift in Sources */,
+				04A8350A2CD9DA0000854253 /* PostInteractionManager.swift in Sources */,
+				04A8350B2CD9DA0100854253 /* UnifiedShareManager.swift in Sources */,
+				04A8350D2CD9DA0300854253 /* UnifiedCommentManager.swift in Sources */,
+				04A8350F2CD9DA0500854253 /* UnifiedInteractionButtons.swift in Sources */,
 				04BCA2C72C858B000047C184 /* ChangePasswordView.swift in Sources */,
 				04BD20D72CBFD48F003E49B4 /* SearchProfileDataResponse.swift in Sources */,
 				04DA00D12DC9CEF000EB654C /* GenericPostView2.swift in Sources */,

@@ -117,11 +117,6 @@ struct HomeReelsView: View {
                     .frame(width: 32, height: 32)
             })
             
-            Text("videos".localized(localizationManager.language).capitalized)
-                .font(.custom(Constants.comicBold, size: 18))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
             Spacer()
         }
         .padding(.horizontal, 16)

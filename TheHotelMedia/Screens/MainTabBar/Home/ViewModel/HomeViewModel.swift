@@ -142,38 +142,211 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    // Open reels experience for a tapped video in the feed
-    func openReels(postID: String?, mediaID: String?) {
-        // Build reels from current feed posts (only video media)
-        var videoReels: [Reel] = []
+    // Open reels experience for any tapped media (photo or video) in the feed
+    // Instagram-like: starts from clicked media and includes all subsequent media
+    func openReels(postID: String?, mediaID: String?, clickedPostIndex: Int? = nil, clickedMediaIndex: Int? = nil) {
+        // Build reels from all media (photos + videos) starting from clicked media
+        // Filter out suggestion posts (they don't have media) - these cause scrolling issues
+        let postsWithMedia = allPosts.filter { post in
+            post.postType != "suggestion" && post.mediaRef != nil && !(post.mediaRef?.isEmpty ?? true)
+        }
         
-        for post in allPosts {
-            guard let mediaRefs = post.mediaRef else { continue }
-            for media in mediaRefs where media.mediaType == "video" {
-                guard let urlString = media.sourceURL, let url = URL(string: urlString) else { continue }
-                let thumb = media.thumbnailURL
-                let reelID = media.id ?? post.id ?? UUID().uuidString
-                videoReels.append(
-                    Reel(
-                        id: reelID,
-                        url: url,
-                        thumbnailURL: URL(string: thumb ?? ""),
-                        views: post.views,
-                        postData: post
-                    )
-                )
+        var allReels: [Reel] = []
+        var startCollecting = false
+        var foundClickedMedia = false
+        
+        // Find the clicked post in the filtered array
+        var clickedPostInFiltered: PostData? = nil
+        var filteredClickedPostIndex: Int? = nil
+        if let clickedPostIndex = clickedPostIndex, clickedPostIndex < allPosts.count {
+            let clickedPost = allPosts[clickedPostIndex]
+            // Only proceed if it's not a suggestion post
+            if clickedPost.postType != "suggestion" {
+                clickedPostInFiltered = clickedPost
+                filteredClickedPostIndex = postsWithMedia.firstIndex(where: { $0.id == clickedPost.id })
             }
         }
         
-        guard !videoReels.isEmpty else { return }
-        let targetID = mediaID ?? postID
-        if let targetID, videoReels.contains(where: { $0.id == targetID }) {
-            initialReelID = targetID
-        } else {
-            initialReelID = videoReels.first?.id
+        // If we have clicked post and media indices, start from there
+        if let clickedPostIndex = filteredClickedPostIndex,
+           let clickedPost = clickedPostInFiltered,
+           let clickedMediaIndex = clickedMediaIndex,
+           clickedPostIndex < postsWithMedia.count {
+            if let mediaRefs = clickedPost.mediaRef,
+               clickedMediaIndex < mediaRefs.count {
+                let clickedMedia = mediaRefs[clickedMediaIndex]
+                if let urlString = clickedMedia.sourceURL, let url = URL(string: urlString) {
+                    // Ensure unique ID: use media.id if available, otherwise combine post.id with media index
+                    let reelID = clickedMedia.id ?? "\(clickedPost.id ?? UUID().uuidString)_\(clickedMediaIndex)"
+                    allReels.append(
+                        Reel(
+                            id: reelID,
+                            url: url,
+                            thumbnailURL: URL(string: clickedMedia.thumbnailURL ?? ""),
+                            views: clickedPost.views,
+                            postData: clickedPost,
+                            mediaType: clickedMedia.mediaType ?? "image"
+                        )
+                    )
+                    foundClickedMedia = true
+                    startCollecting = true
+                    
+                    // Add remaining media from the same post
+                    if clickedMediaIndex + 1 < mediaRefs.count {
+                        for (index, nextMedia) in mediaRefs[(clickedMediaIndex + 1)...].enumerated() {
+                            if let urlString = nextMedia.sourceURL, let url = URL(string: urlString) {
+                                let mediaIndex = clickedMediaIndex + 1 + index
+                                let nextReelID = nextMedia.id ?? "\(clickedPost.id ?? UUID().uuidString)_\(mediaIndex)"
+                                allReels.append(
+                                    Reel(
+                                        id: nextReelID,
+                                        url: url,
+                                        thumbnailURL: URL(string: nextMedia.thumbnailURL ?? ""),
+                                        views: clickedPost.views,
+                                        postData: clickedPost,
+                                        mediaType: nextMedia.mediaType ?? "image"
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Add all media from subsequent posts (only posts with media)
+                    if clickedPostIndex + 1 < postsWithMedia.count {
+                        for (postOffset, nextPost) in postsWithMedia[(clickedPostIndex + 1)...].enumerated() {
+                            guard let nextMediaRefs = nextPost.mediaRef else { continue }
+                            for (mediaIndex, nextMedia) in nextMediaRefs.enumerated() {
+                                if let urlString = nextMedia.sourceURL, let url = URL(string: urlString) {
+                                    let nextReelID = nextMedia.id ?? "\(nextPost.id ?? UUID().uuidString)_\(mediaIndex)"
+                                    allReels.append(
+                                        Reel(
+                                            id: nextReelID,
+                                            url: url,
+                                            thumbnailURL: URL(string: nextMedia.thumbnailURL ?? ""),
+                                            views: nextPost.views,
+                                            postData: nextPost,
+                                            mediaType: nextMedia.mediaType ?? "image"
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         
-        reels = videoReels
+        // If we don't have indices but have mediaID, find it first
+        if !foundClickedMedia, let targetMediaID = mediaID ?? postID {
+            for (postIndex, post) in postsWithMedia.enumerated() {
+                guard let mediaRefs = post.mediaRef else { continue }
+                for (mediaIndex, media) in mediaRefs.enumerated() {
+                    let reelID = media.id ?? "\(post.id ?? UUID().uuidString)_\(mediaIndex)"
+                    if reelID == targetMediaID || media.id == targetMediaID {
+                        if let urlString = media.sourceURL, let url = URL(string: urlString) {
+                            allReels.append(
+                                Reel(
+                                    id: reelID,
+                                    url: url,
+                                    thumbnailURL: URL(string: media.thumbnailURL ?? ""),
+                                    views: post.views,
+                                    postData: post,
+                                    mediaType: media.mediaType ?? "image"
+                                )
+                            )
+                            foundClickedMedia = true
+                            startCollecting = true
+                            
+                            // Continue from next media in same post
+                            if mediaIndex + 1 < mediaRefs.count {
+                                for (index, nextMedia) in mediaRefs[(mediaIndex + 1)...].enumerated() {
+                                    if let urlString = nextMedia.sourceURL, let url = URL(string: urlString) {
+                                        let nextMediaIndex = mediaIndex + 1 + index
+                                        let nextReelID = nextMedia.id ?? "\(post.id ?? UUID().uuidString)_\(nextMediaIndex)"
+                                        allReels.append(
+                                            Reel(
+                                                id: nextReelID,
+                                                url: url,
+                                                thumbnailURL: URL(string: nextMedia.thumbnailURL ?? ""),
+                                                views: post.views,
+                                                postData: post,
+                                                mediaType: nextMedia.mediaType ?? "image"
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            // Continue from next posts (only posts with media)
+                            if postIndex + 1 < postsWithMedia.count {
+                                for (postOffset, nextPost) in postsWithMedia[(postIndex + 1)...].enumerated() {
+                                    guard let nextMediaRefs = nextPost.mediaRef else { continue }
+                                    for (mediaIndex, nextMedia) in nextMediaRefs.enumerated() {
+                                        if let urlString = nextMedia.sourceURL, let url = URL(string: urlString) {
+                                            let nextReelID = nextMedia.id ?? "\(nextPost.id ?? UUID().uuidString)_\(mediaIndex)"
+                                            allReels.append(
+                                                Reel(
+                                                    id: nextReelID,
+                                                    url: url,
+                                                    thumbnailURL: URL(string: nextMedia.thumbnailURL ?? ""),
+                                                    views: nextPost.views,
+                                                    postData: nextPost,
+                                                    mediaType: nextMedia.mediaType ?? "image"
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break
+                    }
+                }
+                if foundClickedMedia { break }
+            }
+        }
+        
+        // Fallback: if we still haven't found it, build from all media (excluding suggestions)
+        if !foundClickedMedia {
+            for post in postsWithMedia {
+                guard let mediaRefs = post.mediaRef else { continue }
+                for (mediaIndex, media) in mediaRefs.enumerated() {
+                    guard let urlString = media.sourceURL, let url = URL(string: urlString) else { continue }
+                    let reelID = media.id ?? "\(post.id ?? UUID().uuidString)_\(mediaIndex)"
+                    allReels.append(
+                        Reel(
+                            id: reelID,
+                            url: url,
+                            thumbnailURL: URL(string: media.thumbnailURL ?? ""),
+                            views: post.views,
+                            postData: post,
+                            mediaType: media.mediaType ?? "image"
+                        )
+                    )
+                }
+            }
+        }
+        
+        guard !allReels.isEmpty else { return }
+        
+        // Remove duplicates by keeping only the first occurrence of each ID
+        var seenIDs = Set<String>()
+        var uniqueReels: [Reel] = []
+        for reel in allReels {
+            if !seenIDs.contains(reel.id) {
+                seenIDs.insert(reel.id)
+                uniqueReels.append(reel)
+            }
+        }
+        
+        let targetID = mediaID ?? postID
+        if let targetID, uniqueReels.contains(where: { $0.id == targetID }) {
+            initialReelID = targetID
+        } else {
+            initialReelID = uniqueReels.first?.id
+        }
+        
+        reels = uniqueReels
         showReels = true
     }
 
@@ -225,7 +398,7 @@ class HomeViewModel: ObservableObject {
             if let pid = reel.postData?.id, pid == postID {
                 var updatedPost = reel.postData ?? PostData(id: postID, data: nil, isPublished: nil, feelings: nil, googleReviewedBusiness: nil, publicUserID: nil, reviews: nil, businessProfileID: nil, postType: nil, userID: nil, content: nil, location: nil, createdAt: nil, mediaRef: nil, taggedRef: nil, postedBy: nil, likes: nil, comments: nil, likedByMe: nil, savedByMe: nil, reviewedBusinessProfileID: nil, placeID: nil, rating: nil, reviewedBusinessProfileRef: nil, name: nil, startTime: nil, startDate: nil, venue: nil, type: nil, refreshPost: nil, endDate: nil, endTime: nil, streamingLink: nil, shared: nil, views: nil, imJoining: nil, placeName: nil, commentsCount: nil, interestedPeople: nil, eventJoinsRef: nil, collaboratorRef: nil)
                 update(&updatedPost)
-                return Reel(id: reel.id, url: reel.url, thumbnailURL: reel.thumbnailURL, views: reel.views, postData: updatedPost)
+                return Reel(id: reel.id, url: reel.url, thumbnailURL: reel.thumbnailURL, views: reel.views, postData: updatedPost, mediaType: reel.mediaType)
             }
             return reel
         }
@@ -246,7 +419,7 @@ class HomeViewModel: ObservableObject {
             var updatedPost = reel.postData ?? PostData(id: postID, data: nil, isPublished: nil, feelings: nil, googleReviewedBusiness: nil, publicUserID: nil, reviews: nil, businessProfileID: nil, postType: nil, userID: nil, content: nil, location: nil, createdAt: nil, mediaRef: nil, taggedRef: nil, postedBy: nil, likes: nil, comments: nil, likedByMe: nil, savedByMe: nil, reviewedBusinessProfileID: nil, placeID: nil, rating: nil, reviewedBusinessProfileRef: nil, name: nil, startTime: nil, startDate: nil, venue: nil, type: nil, refreshPost: nil, endDate: nil, endTime: nil, streamingLink: nil, shared: nil, views: nil, imJoining: nil, placeName: nil, commentsCount: nil, interestedPeople: nil, eventJoinsRef: nil, collaboratorRef: nil)
             let current = updatedPost.comments ?? 0
             updatedPost.comments = max(0, current + delta)
-            return Reel(id: reel.id, url: reel.url, thumbnailURL: reel.thumbnailURL, views: reel.views, postData: updatedPost)
+            return Reel(id: reel.id, url: reel.url, thumbnailURL: reel.thumbnailURL, views: reel.views, postData: updatedPost, mediaType: reel.mediaType)
         }
     }
     
