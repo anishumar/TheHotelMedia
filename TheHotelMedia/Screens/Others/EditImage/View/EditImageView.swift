@@ -393,31 +393,67 @@ extension EditImageView {
                         endEditing()
                     }
                 
-                // textfield
-                VStack(alignment: .center) {
-                    TextField(
-                        "type_here".localized(localizationManager.language),
-                        text: $viewModel.textBoxes[viewModel.currentIndex].text,
-                        prompt: Text(
-                            "type_here".localized(localizationManager.language)
+                VStack {
+                    // Top bar with Cancel and Done buttons
+                    HStack {
+                        Button(action: {
+                            viewModel.cancelTextView()
+                        }, label: {
+                            Text("cancel".localized(localizationManager.language))
+                                .font(.custom(Constants.comicBold, size: 16))
+                                .foregroundColor(.white)
+                        })
+                        
+                        Spacer()
+                        
+                        ColorPicker("", selection: $viewModel.textBoxes[viewModel.currentIndex].textColor)
+                            .labelsHidden()
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            endEditing()
+                            viewModel.selectedType = nil
+                        }, label: {
+                            Text("done".localized(localizationManager.language))
+                                .font(.custom(Constants.comicBold, size: 16))
+                                .foregroundColor(.white)
+                        })
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, UIApplication.topSafeAreaHeightTHM + 10)
+                    
+                    Spacer()
+                    
+                    // textfield
+                    VStack(alignment: .center) {
+                        TextField(
+                            "type_here".localized(localizationManager.language),
+                            text: $viewModel.textBoxes[viewModel.currentIndex].text,
+                            prompt: Text(
+                                "type_here".localized(localizationManager.language)
+                            )
+                            .font(.system(size: 25))
+                            .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor),
+                            axis: .vertical
                         )
-                        .font(.system(size: 25))
-                        .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor),
-                        axis: .vertical
-                    )
-                        .font(.system(size: 25))
-                        .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor)
-                        .multilineTextAlignment(.center)
-                        .colorScheme(.dark)
-                        .padding(.horizontal, 12)
-//                        .toolbar {
-//                            ToolbarItemGroup(placement: .keyboard) {
-//                                doneButton
-//                            }
-//                        }
+                            .font(.system(size: 25))
+                            .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor)
+                            .multilineTextAlignment(.center)
+                            .colorScheme(.dark)
+                            .padding(.horizontal, 12)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    doneButton
+                                }
+                            }
+                    }
+                    .frame(width: UIScreen.main.bounds.width, alignment: .center)
+                    .frame(maxHeight: Constants.screenHeight * 0.3)
+                    
+                    Spacer()
                 }
-                .frame(width: UIScreen.main.bounds.width, alignment: .center)
-                .frame(maxHeight: Constants.screenHeight * 0.3)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         

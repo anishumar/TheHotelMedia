@@ -79,6 +79,10 @@ struct SignInView: View {
 //                .background(Color.yellow)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                focusField = nil
+            }
             .overlay(alignment: .topTrailing) {
                 SocialLoginButton(icon: themeManager.currentTheme.CustomerSupport)
                     .scaleEffect(0.8)

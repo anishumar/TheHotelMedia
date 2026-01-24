@@ -305,23 +305,64 @@ extension EditStoryVideoView {
                         endEditing()
                     }
                 
-                VStack(alignment: .center) {
-                    TextField(
-                        "type_here".localized(localizationManager.language),
-                        text: $viewModel.textBoxes[viewModel.currentIndex].text,
-                        prompt: Text("type_here".localized(localizationManager.language))
-                            .font(.system(size: 25))
-                            .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor),
-                        axis: .vertical
-                    )
-                    .font(.system(size: 25))
-                    .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor)
-                    .multilineTextAlignment(.center)
-                    .colorScheme(.dark)
-                    .padding(.horizontal, 12)
+                VStack {
+                    // Top bar with Cancel and Done buttons
+                    HStack {
+                        Button(action: {
+                            viewModel.cancelTextView()
+                        }, label: {
+                            Text("cancel".localized(localizationManager.language))
+                                .font(.custom(Constants.comicBold, size: 16))
+                                .foregroundColor(.white)
+                        })
+                        
+                        Spacer()
+                        
+                        ColorPicker("", selection: $viewModel.textBoxes[viewModel.currentIndex].textColor)
+                            .labelsHidden()
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            endEditing()
+                            viewModel.selectedType = nil
+                        }, label: {
+                            Text("done".localized(localizationManager.language))
+                                .font(.custom(Constants.comicBold, size: 16))
+                                .foregroundColor(.white)
+                        })
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, UIApplication.topSafeAreaHeightTHM + 10)
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .center) {
+                        TextField(
+                            "type_here".localized(localizationManager.language),
+                            text: $viewModel.textBoxes[viewModel.currentIndex].text,
+                            prompt: Text("type_here".localized(localizationManager.language))
+                                .font(.system(size: 25))
+                                .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor),
+                            axis: .vertical
+                        )
+                        .font(.system(size: 25))
+                        .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor)
+                        .multilineTextAlignment(.center)
+                        .colorScheme(.dark)
+                        .padding(.horizontal, 12)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                doneButton
+                            }
+                        }
+                    }
+                    .frame(width: Constants.screenWidth, alignment: .center)
+                    .frame(maxHeight: Constants.screenHeight * 0.3)
+                    
+                    Spacer()
                 }
-                .frame(width: Constants.screenWidth, alignment: .center)
-                .frame(maxHeight: Constants.screenHeight * 0.3)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
@@ -666,6 +707,19 @@ extension EditStoryVideoView {
                 }
             }
         )
+    }
+    
+    private var doneButton: some View {
+        HStack {
+            Spacer()
+            Button(action: {
+                endEditing()
+            }, label: {
+                Text("done".localized(localizationManager.language))
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+            })
+        }
     }
 }
 
@@ -1029,25 +1083,66 @@ extension EditStoryImageView {
                         endEditing()
                     }
                 
-                VStack(alignment: .center) {
-                    TextField(
-                        "type_here".localized(localizationManager.language),
-                        text: $viewModel.textBoxes[viewModel.currentIndex].text,
-                        prompt: Text(
-                            "type_here".localized(localizationManager.language)
+                VStack {
+                    // Top bar with Cancel and Done buttons
+                    HStack {
+                        Button(action: {
+                            viewModel.cancelTextView()
+                        }, label: {
+                            Text("cancel".localized(localizationManager.language))
+                                .font(.custom(Constants.comicBold, size: 16))
+                                .foregroundColor(.white)
+                        })
+                        
+                        Spacer()
+                        
+                        ColorPicker("", selection: $viewModel.textBoxes[viewModel.currentIndex].textColor)
+                            .labelsHidden()
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            endEditing()
+                            viewModel.selectedType = nil
+                        }, label: {
+                            Text("done".localized(localizationManager.language))
+                                .font(.custom(Constants.comicBold, size: 16))
+                                .foregroundColor(.white)
+                        })
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, UIApplication.topSafeAreaHeightTHM + 10)
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .center) {
+                        TextField(
+                            "type_here".localized(localizationManager.language),
+                            text: $viewModel.textBoxes[viewModel.currentIndex].text,
+                            prompt: Text(
+                                "type_here".localized(localizationManager.language)
+                            )
+                            .font(.system(size: 25))
+                            .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor),
+                            axis: .vertical
                         )
-                        .font(.system(size: 25))
-                        .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor),
-                        axis: .vertical
-                    )
-                        .font(.system(size: 25))
-                        .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor)
-                        .multilineTextAlignment(.center)
-                        .colorScheme(.dark)
-                        .padding(.horizontal, 12)
+                            .font(.system(size: 25))
+                            .foregroundColor(viewModel.textBoxes[viewModel.currentIndex].textColor)
+                            .multilineTextAlignment(.center)
+                            .colorScheme(.dark)
+                            .padding(.horizontal, 12)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    doneButton
+                                }
+                            }
+                    }
+                    .frame(width: Constants.screenWidth, alignment: .center)
+                    .frame(maxHeight: Constants.screenHeight * 0.3)
+                    
+                    Spacer()
                 }
-                .frame(width: Constants.screenWidth, alignment: .center)
-                .frame(maxHeight: Constants.screenHeight * 0.3)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
             }
         }
